@@ -22,7 +22,7 @@
     "express-session": "^1.18.0",
     "express-winston": "^4.2.0",
     "googleapis": "^143.0.0",
-    "helmet": "^7.1.0",
+    "helmet": "^8.0.0",
     "http2-express-bridge": "^1.0.7",
     "mongoose": "^8.2.1",
     "passport": "^0.7.0",
