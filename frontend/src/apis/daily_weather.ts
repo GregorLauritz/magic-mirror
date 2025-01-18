@@ -9,7 +9,8 @@ export const useGetDailyWeather = (
     longitude: number = LONGITUDE,
     latitude: number = LATITUDE,
     forecast_days: number = DAILY_FORECAST_DAYS,
-    enabled: boolean = true
+    enabled: boolean = true,
+    timeZone: string = 'GMT'
 ) =>
     useQuery<DailyWeatherObject, Error>({
         queryKey: [
@@ -17,13 +18,21 @@ export const useGetDailyWeather = (
             longitude,
             latitude,
             forecast_days,
+            timeZone,
         ],
         enabled,
-        queryFn: async () =>
-            fetchJson<DailyWeatherObject>(
-                `${WEATHER_API}/forecast?latitude=${latitude}&longitude=${longitude}&days=${forecast_days}`
+        queryFn: async () => {
+            const params = new URLSearchParams({
+                latitude: latitude.toString(),
+                longitude: longitude.toString(),
+                days: forecast_days.toString(),
+                timezone: timeZone,
+            })
+            return fetchJson<DailyWeatherObject>(
+                `${WEATHER_API}/forecast?${params.toString()}`
             ).catch((err) => {
                 throw err
-            }),
+            })
+        },
         refetchInterval: REFETCH_INTERVAL,
     })

@@ -2,12 +2,11 @@ import ForecastItem from './ForecastItem'
 import { useGetHourlyWeather } from '../../apis/hourly_weather'
 import { MediumCard } from '../CardFrame'
 import { Grid } from '@mui/material'
-import { useContext, useEffect, useMemo } from 'react'
+import React, { useContext, useEffect, useMemo } from 'react'
 import { TimeContext } from '../../common/TimeContext'
 import { LocationContext } from '../../common/LocationContext'
 import ErrorCard from '../error_card/ErrorCard'
 import { HOURLY_FORECAST_HOURS } from '../../constants/weather'
-import React from 'react'
 
 const HourlyWeather = () => {
     const {
@@ -15,7 +14,7 @@ const HourlyWeather = () => {
         latitude,
         isLoading: isLocationLoading,
     } = useContext(LocationContext)
-    const { newHour } = useContext(TimeContext)
+    const { newHour, timeZone } = useContext(TimeContext)
     const {
         data: weather,
         isLoading: isWeatherLoading,
@@ -24,43 +23,29 @@ const HourlyWeather = () => {
         longitude,
         latitude,
         HOURLY_FORECAST_HOURS,
-        !isLocationLoading
+        !isLocationLoading,
+        timeZone
     )
 
-    const isLoadingData = useMemo(
-        () => isWeatherLoading || isLocationLoading,
-        [isWeatherLoading, isLocationLoading]
-    )
+    useEffect(() => {
+        if (newHour) refetch()
+    }, [newHour, refetch])
 
     const forecastItems = useMemo(() => {
-        if (isLoadingData) {
+        if (isWeatherLoading || isLocationLoading) {
             return Array.from({ length: HOURLY_FORECAST_HOURS }, (_, i) => (
-                <ForecastItem
-                    item={undefined}
-                    timezone={undefined}
-                    key={i}
-                    isLoading={true}
-                />
+                <ForecastItem item={undefined} key={i} isLoading={true} />
             ))
         } else if (weather?.forecast) {
             return weather.forecast.map((val) => (
                 <Grid item xs={2} key={JSON.stringify(val)}>
-                    <ForecastItem
-                        item={val}
-                        timezone={weather?.timezone}
-                        key={val.time}
-                        isLoading={false}
-                    />
+                    <ForecastItem item={val} key={val.time} isLoading={false} />
                 </Grid>
             ))
         } else {
             return <React.Fragment>Error!</React.Fragment>
         }
-    }, [isLoadingData, weather?.forecast, weather?.timezone])
-
-    useEffect(() => {
-        if (newHour) refetch()
-    }, [newHour, refetch])
+    }, [isWeatherLoading, isLocationLoading, weather?.forecast])
 
     if ((!longitude || !latitude) && !isLocationLoading) {
         return (

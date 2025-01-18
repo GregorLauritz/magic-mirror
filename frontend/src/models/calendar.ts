@@ -13,3 +13,5 @@ export type EventItem = {
     multiDays: boolean
     merged?: boolean
 }
+
+export type CalendarListItem = { name: string; id: string; primary: boolean }

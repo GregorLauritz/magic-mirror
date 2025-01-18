@@ -4,6 +4,8 @@ export interface IDtoUserSettings extends Document {
   country: string;
   city: string;
   zip_code: string;
+  events_cal_id: string;
+  birthday_cal_id: string;
   sub: string;
 }
 
@@ -24,6 +26,14 @@ const UserSettingsSchema = new Schema(
       required: false,
     },
     zip_code: {
+      type: String,
+      required: false,
+    },
+    birthday_cal_id: {
+      type: String,
+      required: false,
+    },
+    events_cal_id: {
       type: String,
       required: false,
     },

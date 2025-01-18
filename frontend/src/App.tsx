@@ -5,7 +5,6 @@ import { PADDING } from './assets/styles/theme'
 import { Box } from '@mui/material'
 import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom'
 import RouteErrorPage from './routes/RouteErrorPage'
-import { Registration } from './routes/Registration'
 import ErrorPage from './routes/ErrorPage'
 import { Dashboard } from './routes/Dashboard'
 import { Settings } from './routes/Settings'
@@ -55,10 +54,6 @@ const router = createBrowserRouter([
             {
                 path: 'settings',
                 element: <Settings />,
-            },
-            {
-                path: 'registration',
-                element: <Registration />,
             },
             {
                 path: 'error',

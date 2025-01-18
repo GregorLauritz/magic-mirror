@@ -1,9 +1,16 @@
 import { Box } from '@mui/material'
-import { SettingsForm } from '../components/settings_form/SettingsForm'
+import {
+    SettingsForm,
+    SettingsParams,
+} from '../components/settings_form/SettingsForm'
 import { useNavigate } from 'react-router-dom'
 import { useGetUserSettings } from '../apis/user_settings'
 import { patchUserSettings } from '../apis/users'
-import { useEffect } from 'react'
+import { useListCalendars } from '../apis/calendar_list'
+
+const city = 'Stuttgart'
+const country = 'DE'
+const zipCode = '70176'
 
 export const Settings = () => {
     const navigate = useNavigate()
@@ -15,49 +22,53 @@ export const Settings = () => {
         refetch,
     } = useGetUserSettings(false)
 
-    useEffect(() => {
-        if (userSettings?.city) {
-            navigate('/registration')
-        }
-    }, [userSettings, navigate])
+    const {
+        data: calList,
+        isLoading: calIsLoading,
+        error: calError,
+    } = useListCalendars()
 
-    const updateSettings = (
-        country: string,
-        city?: string,
-        zipCode?: string
-    ) => {
-        if (inputHasChanged(country, city, zipCode)) {
-            patchUserSettings(country, city, zipCode)
+    const updateSettings = (data: SettingsParams) => {
+        if (inputHasChanged(data)) {
+            patchUserSettings(data)
                 .then(() => refetch())
                 .catch(alert)
         }
     }
 
-    const inputHasChanged = (
-        country: string,
-        city?: string,
-        zipCode?: string
-    ): boolean => {
+    const inputHasChanged = (data: SettingsParams): boolean => {
+        const { country, city, zipCode, eventsCalId, birthdayCalId } = data
         return (
             country !== userSettings?.country ||
             city !== userSettings?.city ||
-            zipCode !== userSettings?.zip_code
+            zipCode !== userSettings?.zip_code ||
+            eventsCalId !== userSettings?.events_cal_id ||
+            birthdayCalId !== userSettings?.birthday_cal_id
         )
     }
 
     const back = () => navigate('/')
 
-    if (isLoading) return <Box>Loading...</Box>
+    if (isLoading || calIsLoading) return <Box>Loading...</Box>
+
+    if (error || calError || !calList) {
+        return <Box>Error: {error?.message ?? calError?.message}</Box>
+    }
 
     return (
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <SettingsForm
-                defaultCity={userSettings?.city}
-                defaultCountry={userSettings?.country}
-                defaultZipCode={userSettings?.zip_code}
+                defaults={{
+                    country: userSettings?.country ?? country,
+                    city: userSettings?.city ?? city,
+                    zipCode: userSettings?.zip_code ?? zipCode,
+                    birthdayCalId: userSettings?.birthday_cal_id ?? '',
+                    eventsCalId: userSettings?.events_cal_id ?? '',
+                }}
                 onBack={back}
                 showBackButton={error == null}
                 onSend={updateSettings}
+                calendars={calList}
             />
         </Box>
     )

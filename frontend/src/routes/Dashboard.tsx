@@ -5,10 +5,9 @@ import DailyForecast from '../components/daily_forecast/DailyForecast'
 import Birthdays from '../components/birthdays/Birthdays'
 import HourlyWeather from '../components/hourly_forecast/HourlyForecast'
 import UpcomingEvents from '../components/upcoming_events/UpcomingEvents'
-import { TimeContext, TimeContextProvider } from '../common/TimeContext'
+import { TimeContextProvider } from '../common/TimeContext'
 import { LocationContextProvider } from '../common/LocationContext'
 import { PADDING } from '../assets/styles/theme'
-import { useContext, useEffect, useState } from 'react'
 
 export const Dashboard = () => {
     return (
@@ -21,15 +20,6 @@ export const Dashboard = () => {
 }
 
 const DashBoardItems = () => {
-    const { newDay } = useContext(TimeContext)
-    const [todaysDate, setTodaysDate] = useState<Date>(new Date())
-
-    useEffect(() => {
-        if (newDay) {
-            setTodaysDate(new Date())
-        }
-    }, [newDay, setTodaysDate])
-
     return (
         <Box
             sx={{
@@ -41,7 +31,7 @@ const DashBoardItems = () => {
         >
             <Time />
             <Birthdays />
-            <UpcomingEvents todaysDate={todaysDate} />
+            <UpcomingEvents />
             <CurrentWeather />
             <HourlyWeather />
             <DailyForecast />

@@ -1,6 +1,6 @@
-import { allCalendarEvents, eventsAtDate } from 'routes/calendar/api';
+import { allCalendarEvents, eventsAtDate } from 'routes/events/api';
 import { getRouter } from 'services/router_factory';
-import { allEventsMw, dateEventsMw } from 'routes/calendar/middleware';
+import { allEventsMw, dateEventsMw } from 'routes/events/middleware';
 
 const router = getRouter();
 

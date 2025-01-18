@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { MAX_HOURLY_FORECAST_HOURS, STD_API_QUERY, WEATHER_API_URL } from 'config';
+import { MAX_HOURLY_FORECAST_HOURS, WEATHER_API_URL, WEATHER_UNITS } from 'config';
 import { ApiError } from 'models/api/api_error';
 import { ApiResponse, Json } from 'models/api/fetch';
 import { HourlyWeather, HourlyWeatherResource } from 'models/api/weather';
@@ -17,8 +17,18 @@ export const buildHourlyWeatherUrl = async (req: Request): Promise<string> => {
   tmrw_date.setDate(date.getDate() + 1);
   const today_date_str = date.toISOString().slice(0, 10);
   const tmrw_date_str = tmrw_date.toISOString().slice(0, 10);
-  const sunstate_qry = `start_date=${today_date_str}&end_date=${tmrw_date_str}&daily=sunrise,sunset&hourly=temperature_2m,windspeed_10m,precipitation,weathercode`;
-  return `${WEATHER_API_URL}/forecast/?latitude=${req.query.latitude}&longitude=${req.query.longitude}&CurrentWeather=true&${STD_API_QUERY}&${sunstate_qry}`;
+  const params = new URLSearchParams({
+    start_date: today_date_str,
+    end_date: tmrw_date_str,
+    daily: 'sunrise,sunset',
+    hourly: 'temperature_2m,windspeed_10m,precipitation,weathercode',
+    latitude: req.query.latitude as string,
+    longitude: req.query.longitude as string,
+    timezone: (req.query.timezone ?? 'GMT') as string,
+    CurrentWeather: 'true',
+    ...WEATHER_UNITS,
+  });
+  return `${WEATHER_API_URL}/forecast/?${params.toString()}`;
 };
 
 export const handleHourlyWeatherResponse = async (

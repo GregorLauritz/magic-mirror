@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { FORECAST_FIELDS, MAX_FORECAST_DAYS, STD_API_QUERY, WEATHER_API_URL } from 'config';
+import { MAX_FORECAST_DAYS, WEATHER_API_URL, WEATHER_UNITS } from 'config';
 import { ApiError } from 'models/api/api_error';
 import { ApiResponse, Json } from 'models/api/fetch';
 import { WeatherForecast, WeatherForecastResource } from 'models/api/weather';
@@ -8,8 +8,16 @@ import { getWeatherDescription, getWeatherIconFromWeathercode } from 'routes/wea
 export const buildWeatheForecastrUrl = async (req: Request): Promise<string> => {
   const start_date = (await getDateInDays(1)).toISOString().slice(0, 10);
   const end_date = (await getForecastEnddate(req)).toISOString().slice(0, 10);
-  const api_qry = `start_date=${start_date}&end_date=${end_date}&daily=${FORECAST_FIELDS}`;
-  return `${WEATHER_API_URL}/forecast/?latitude=${req.query.latitude}&longitude=${req.query.longitude}&${STD_API_QUERY}&${api_qry}`;
+  const params = new URLSearchParams({
+    latitude: req.query.latitude as string,
+    longitude: req.query.longitude as string,
+    start_date: start_date,
+    end_date: end_date,
+    daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_hours,weathercode,sunrise,sunset',
+    timezone: (req.query.timezone ?? 'GMT') as string,
+    ...WEATHER_UNITS,
+  });
+  return `${WEATHER_API_URL}/forecast/?${params.toString()}`;
 };
 
 const getForecastEnddate = async (req: Request): Promise<Date> => {

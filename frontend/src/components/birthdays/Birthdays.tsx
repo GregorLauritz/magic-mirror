@@ -6,17 +6,19 @@ import BirthdayItem from './BirthdayItem'
 import { useGetBirthdays } from '../../apis/birthday'
 import { SmallCard } from '../CardFrame'
 import { TimeContext } from '../../common/TimeContext'
+import { useGetUserSettings } from '../../apis/user_settings'
 
 const MAX_BIRTHDAYS = 4
 export const Birthdays = () => {
     const { newDay } = useContext(TimeContext)
+    const { data: userSettings } = useGetUserSettings(false)
 
     const {
         data: birthdays,
         isLoading,
         error,
         refetch,
-    } = useGetBirthdays(MAX_BIRTHDAYS)
+    } = useGetBirthdays(userSettings?.birthday_cal_id ?? '', MAX_BIRTHDAYS)
 
     useEffect(() => {
         if (newDay) refetch()

@@ -13,7 +13,8 @@ export const useGetHourlyWeather = (
     longitude: number = LONGITUDE,
     latitude: number = LATITUDE,
     forecast_hours: number = HOURLY_FORECAST_HOURS,
-    enabled: boolean = true
+    enabled: boolean = true,
+    timeZone: string = 'GMT'
 ) =>
     useQuery<HourlyWeatherObject, Error>({
         queryKey: [
@@ -21,13 +22,21 @@ export const useGetHourlyWeather = (
             longitude,
             latitude,
             forecast_hours,
+            timeZone,
         ],
         enabled,
-        queryFn: async () =>
-            fetchJson<HourlyWeatherObject>(
-                `${WEATHER_API}/hourly?latitude=${latitude}&longitude=${longitude}&hours=${forecast_hours}`
+        queryFn: async () => {
+            const params = new URLSearchParams({
+                latitude: latitude.toString(),
+                longitude: longitude.toString(),
+                hours: forecast_hours.toString(),
+                timezone: timeZone,
+            })
+            return fetchJson<HourlyWeatherObject>(
+                `${WEATHER_API}/hourly?${params.toString()}`
             ).catch((err) => {
                 throw err
-            }),
+            })
+        },
         refetchInterval: REFETCH_INTERVAL,
     })

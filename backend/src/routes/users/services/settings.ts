@@ -43,6 +43,8 @@ export const updateUserSettingsinDb = async (
   userSettings.zip_code = newUserSettings.zip_code ?? userSettings.zip_code;
   userSettings.country = newUserSettings.country ?? userSettings.country;
   userSettings.city = newUserSettings.city ?? userSettings.city;
+  userSettings.events_cal_id = newUserSettings.events_cal_id ?? userSettings.events_cal_id;
+  userSettings.birthday_cal_id = newUserSettings.birthday_cal_id ?? userSettings.birthday_cal_id;
   return userSettings.save().then(logUserSettingsUpdate);
 };
 
@@ -54,6 +56,8 @@ export const createNewUserSettingsinDb = async (
     zip_code: newUserSettings.zip_code,
     country: newUserSettings.country,
     city: newUserSettings.city,
+    events_cal_id: newUserSettings.events_cal_id,
+    birthday_cal_id: newUserSettings.birthday_cal_id,
     sub,
   });
   return userSettings.save().then((settings) => logUserSettingsUpdate(settings as IDtoUserSettings));
@@ -69,5 +73,7 @@ export const parseUserSettings = async (userSettings: IDtoUserSettings): Promise
     zip_code: userSettings.zip_code,
     country: userSettings.country,
     city: userSettings.city,
+    events_cal_id: userSettings.events_cal_id,
+    birthday_cal_id: userSettings.birthday_cal_id,
   };
 };

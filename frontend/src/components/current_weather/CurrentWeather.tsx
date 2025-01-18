@@ -12,6 +12,7 @@ import React, { useContext, useMemo } from 'react'
 import { LocationContext } from '../../common/LocationContext'
 import ErrorCard from '../error_card/ErrorCard'
 import { CurrentWeatherResource } from '../../models/current_weather'
+import { TimeContext } from '../../common/TimeContext'
 
 const CurrentWeather = () => {
     const {
@@ -19,11 +20,12 @@ const CurrentWeather = () => {
         latitude,
         isLoading: isLocationLoading,
     } = useContext(LocationContext)
+    const { timeZone } = useContext(TimeContext)
     const {
         data: weather,
         isLoading: isWeatherLoading,
         error,
-    } = useGetCurrentWeather(longitude, latitude, !isLocationLoading)
+    } = useGetCurrentWeather(longitude, latitude, !isLocationLoading, timeZone)
 
     const {
         data: icon,

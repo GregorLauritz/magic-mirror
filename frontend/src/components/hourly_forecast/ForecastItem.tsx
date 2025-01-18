@@ -1,5 +1,5 @@
 import { Box, Skeleton, Stack, Typography } from '@mui/material'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
     PRECIPITATION_UNIT,
     TEMP_UNIT,
@@ -13,28 +13,19 @@ import { useGetWeatherIcon } from '../../apis/weather_icon'
 
 interface IForecastItem {
     item?: HourlyWeatherResource
-    timezone?: string
     isLoading: boolean
 }
 
-const ForecastItem = ({ item, timezone, isLoading }: IForecastItem) => {
+const ForecastItem = ({ item, isLoading }: IForecastItem) => {
     const [hours, setHours] = useState('')
     const [minutes, setMinutes] = useState('')
 
-    const getTimeOffset = useCallback((): string => {
-        if (!timezone) return ''
-        const time = timezone.replace(/GMT[+-]/i, '')
-        const symbol = timezone.replace(/GMT([+-]).*/i, '$1')
-        const offset = `${symbol}${time.padStart(2, '0')}`
-        return time.includes(':') ? offset.padEnd(6, '0') : `${offset}:00`
-    }, [timezone])
-
     useEffect(() => {
         if (!item?.time) return
-        const t = new Date(item.time + getTimeOffset())
+        const t = new Date(item.time)
         setHours(parseTime(t.getHours()))
         setMinutes(parseTime(t.getMinutes()))
-    }, [timezone, item?.time, getTimeOffset])
+    }, [item?.time])
 
     const {
         data: icon,

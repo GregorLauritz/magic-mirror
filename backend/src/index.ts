@@ -2,7 +2,8 @@ import { ENABLE_HTTPS, mongoDbData, SERVER_PORT } from 'config';
 import { HttpServer } from 'services/server/http_server';
 import { HttpsServer } from 'services/server/https_server';
 import { default as WeatherRoute } from 'routes/weather';
-import { default as CalendarRoute } from 'routes/calendar';
+import { default as EventsRoute } from 'routes/events';
+import { default as CalendarsRoute } from 'routes/calendars';
 import { default as BirthdaysRoute } from 'routes/birthdays';
 import { default as UsersRoute } from 'routes/users';
 import { default as LocationRoute } from 'routes/location';
@@ -15,7 +16,8 @@ const mongoDb: MongoDb = new MongoDb(mongoDbData);
 const server = ENABLE_HTTPS ? new HttpsServer(mongoDb, SERVER_PORT) : new HttpServer(mongoDb, SERVER_PORT);
 
 server.app.use('/api/weather', WeatherRoute);
-server.app.use('/api/calendar', CalendarRoute);
+server.app.use('/api/events', EventsRoute);
+server.app.use('/api/calendars', CalendarsRoute);
 server.app.use('/api/birthdays', BirthdaysRoute);
 
 server.app.use('/api/users', UsersRoute);

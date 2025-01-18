@@ -1,39 +1,58 @@
-import { Box, TextField, Button } from '@mui/material'
+import { Box, TextField, Button, Autocomplete } from '@mui/material'
 import CountrySelect from '../country_select/CountrySelect'
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
     buttonBoxStyle,
     countryBoxStyle,
     inputBoxStyle,
     parentBoxStyle,
 } from './style'
-import { buildQuery } from '../../common/apis'
 import { LOCATION_API } from '../../constants/api'
+import { CalendarListItem } from '../../models/calendar'
 
-type Props = {
-    defaultCity?: string
-    defaultCountry?: string
-    defaultZipCode?: string
-    showBackButton?: boolean
-    onSend?: (country: string, city?: string, zipCode?: string) => void
-    onBack?: () => void
+type SettingsParams = {
+    country: string
+    city: string
+    zipCode: string
+    birthdayCalId: string
+    eventsCalId: string
 }
 
-const city = 'Stuttgart'
-const country = 'DE'
-const zipCode = '70176'
+type Props = {
+    calendars: CalendarListItem[]
+    defaults: SettingsParams
+    showBackButton: boolean
+    onSend: (data: SettingsParams) => void
+    onBack: () => void
+}
 
 export const SettingsForm = ({
-    defaultCity = city,
-    defaultCountry = country,
-    defaultZipCode = zipCode,
-    showBackButton = true,
+    calendars,
+    defaults,
+    showBackButton,
     onSend,
     onBack,
 }: Props) => {
+    const {
+        country: defaultCountry,
+        city: defaultCity,
+        zipCode: defaultZipCode,
+        birthdayCalId,
+        eventsCalId,
+    } = defaults
+    const defaultBirthdayCalendar = useMemo(
+        () => calendars.find((c) => c.id === birthdayCalId),
+        [birthdayCalId, calendars]
+    )
+    const defaultEventsCalendar = useMemo(
+        () => calendars.find((c) => c.id === eventsCalId),
+        [eventsCalId, calendars]
+    )
     const city = useRef<HTMLInputElement>()
     const zip = useRef<HTMLInputElement>()
     const [country, setCountry] = useState(defaultCountry)
+    const [birthdayCalendar, setBirthdayCalendar] = useState<string>()
+    const [eventsCalender, setEventsCalender] = useState<string>()
 
     const onSendButton = () => {
         if (country === '') {
@@ -47,7 +66,14 @@ export const SettingsForm = ({
 
     const handleValidInput = async () => {
         if (onSend) {
-            onSend(country, city.current?.value, zip.current?.value)
+            const data = {
+                country,
+                city: city.current!.value,
+                zipCode: zip.current!.value,
+                birthdayCalId: birthdayCalendar ?? birthdayCalId,
+                eventsCalId: eventsCalender ?? eventsCalId,
+            }
+            onSend(data)
         }
     }
 
@@ -80,11 +106,53 @@ export const SettingsForm = ({
                     defaultValue={defaultZipCode}
                 />
             </Box>
+            <Box>
+                <Autocomplete
+                    id="events-cal"
+                    options={calendars}
+                    value={defaultEventsCalendar}
+                    getOptionLabel={(option) => option.name}
+                    onChange={(_, value) =>
+                        value && setEventsCalender(value.id)
+                    }
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Events Calendar"
+                            inputProps={{
+                                ...params.inputProps,
+                                autoComplete: 'new-password', // disable autocomplete and autofill
+                            }}
+                        />
+                    )}
+                />
+            </Box>
+            <Box>
+                <Autocomplete
+                    id="bday-cal"
+                    options={calendars}
+                    value={defaultBirthdayCalendar}
+                    getOptionLabel={(option) => option.name}
+                    onChange={(_, value) =>
+                        value && setBirthdayCalendar(value.id)
+                    }
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Birthday Calendar"
+                            inputProps={{
+                                ...params.inputProps,
+                                autoComplete: 'new-password', // disable autocomplete and autofill
+                            }}
+                        />
+                    )}
+                />
+            </Box>
             <Box sx={buttonBoxStyle}>
                 <Button variant="outlined" onClick={onSendButton}>
                     Send
                 </Button>
-                {(showBackButton || onBack) && (
+                {showBackButton && (
                     <Button variant="outlined" onClick={onBack}>
                         Back
                     </Button>
@@ -95,22 +163,12 @@ export const SettingsForm = ({
 }
 
 const validate = async (country: string, city?: string, zipCode?: string) => {
-    const queryParams = [
-        {
-            name: 'city',
-            value: city,
-        },
-        {
-            name: 'country',
-            value: country,
-        },
-        {
-            name: 'zip_code',
-            value: zipCode,
-        },
-    ]
-    return buildQuery(queryParams)
-        .then((qry) => fetch(`${LOCATION_API}/geocode${qry}`))
+    const params = new URLSearchParams({
+        country,
+        city: city ?? '',
+        zip_code: zipCode ?? '',
+    })
+    return fetch(`${LOCATION_API}/geocode?${params.toString()}`)
         .then((res) => {
             if (res.ok) return
             throw Error()
@@ -119,3 +177,5 @@ const validate = async (country: string, city?: string, zipCode?: string) => {
             throw err
         })
 }
+
+export type { SettingsParams }

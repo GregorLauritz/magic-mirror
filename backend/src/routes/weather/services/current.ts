@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { STD_API_QUERY, WEATHER_API_URL } from 'config';
+import { WEATHER_API_URL, WEATHER_UNITS } from 'config';
 import { ApiError } from 'models/api/api_error';
 import { ApiResponse, Json } from 'models/api/fetch';
 import { CurrentWeather } from 'models/api/weather';
@@ -7,8 +7,18 @@ import { getWeatherDescription, getWeatherIconFromWeathercode, sunIsCurrentlyUp 
 
 export const buildCurrentWeatherUrl = async (req: Request): Promise<string> => {
   const today_date = new Date().toISOString().slice(0, 10);
-  const sunstate_qry = `start_date=${today_date}&end_date=${today_date}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,sunrise,sunset&hourly=apparent_temperature`;
-  return `${WEATHER_API_URL}/forecast/?latitude=${req.query.latitude}&longitude=${req.query.longitude}&current_weather=true&${STD_API_QUERY}&${sunstate_qry}`;
+  const params = new URLSearchParams({
+    latitude: req.query.latitude as string,
+    longitude: req.query.longitude as string,
+    current_weather: 'true',
+    start_date: today_date,
+    end_date: today_date,
+    daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,sunrise,sunset',
+    timezone: (req.query.timezone ?? 'GMT') as string,
+    hourly: 'apparent_temperature',
+    ...WEATHER_UNITS,
+  });
+  return `${WEATHER_API_URL}/forecast/?${params.toString()}`;
 };
 
 export const handleCurrentWeatherResponse = async (res: Response, response: ApiResponse<Json>): Promise<Response> => {

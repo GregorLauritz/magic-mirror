@@ -4,7 +4,7 @@ import { MediumCard } from '../CardFrame'
 import { EventItem } from '../../models/calendar'
 import { Event } from './Event'
 import { xSmallFontSize } from '../../assets/styles/theme'
-import React, { ReactElement, useEffect } from 'react'
+import React, { ReactElement, useContext, useEffect, useMemo } from 'react'
 import { EventTexts, TodayEventTexts, NextDaysEventTexts } from './types'
 import { useGetEvents } from '../../apis/events'
 import {
@@ -12,8 +12,12 @@ import {
     getISODayEndString,
     getISODayStartString,
 } from '../../common/dateParser'
+import { TimeContext } from '../../common/TimeContext'
+import { useGetUserSettings } from '../../apis/user_settings'
 
-const UpcomingEvents = ({ todaysDate }: { todaysDate: Date }) => {
+const UpcomingEvents = () => {
+    const { currentDate } = useContext(TimeContext)
+
     const [tomorrowsDate, setTomorrowsDate] = React.useState<Date>(
         getDateInXDays(1)
     )
@@ -24,7 +28,7 @@ const UpcomingEvents = ({ todaysDate }: { todaysDate: Date }) => {
     useEffect(() => {
         setTomorrowsDate(getDateInXDays(1))
         setOvermorrowsDate(getDateInXDays(2))
-    }, [todaysDate, setTomorrowsDate, setOvermorrowsDate])
+    }, [currentDate, setTomorrowsDate, setOvermorrowsDate])
 
     return (
         <MediumCard>
@@ -34,9 +38,10 @@ const UpcomingEvents = ({ todaysDate }: { todaysDate: Date }) => {
                         <Typography variant="body1">TODAY</Typography>
                         <Stack spacing={1} direction={'column'}>
                             <EventsOnDay
-                                date={todaysDate}
+                                date={currentDate}
                                 maxEvents={2}
                                 eventTexts={TodayEventTexts}
+                                isCurrentDay={true}
                             />
                         </Stack>
                     </Box>
@@ -60,6 +65,7 @@ const UpcomingEvents = ({ todaysDate }: { todaysDate: Date }) => {
                                     date={tomorrowsDate}
                                     maxEvents={1}
                                     eventTexts={NextDaysEventTexts}
+                                    isCurrentDay={false}
                                 />
                             </Stack>
                         </Grid>
@@ -75,6 +81,7 @@ const UpcomingEvents = ({ todaysDate }: { todaysDate: Date }) => {
                                     date={overmorrowsDate}
                                     maxEvents={1}
                                     eventTexts={NextDaysEventTexts}
+                                    isCurrentDay={false}
                                 />
                             </Stack>
                         </Grid>
@@ -89,25 +96,26 @@ const EventsOnDay = ({
     date,
     maxEvents,
     eventTexts,
+    isCurrentDay = false,
 }: {
     date: Date
     maxEvents: number
     eventTexts: EventTexts
+    isCurrentDay: boolean
 }): ReactElement | ReactElement[] => {
-    const {
-        data: events,
-        isLoading,
-        error,
-    } = useGetEvents([
-        {
-            name: 'minTime',
-            value: encodeURIComponent(getISODayStartString(date, true)),
-        },
-        {
-            name: 'maxTime',
-            value: encodeURIComponent(getISODayEndString(date, true)),
-        },
-    ])
+    const { data: userSettings } = useGetUserSettings(false)
+    const params = useMemo(
+        () =>
+            new URLSearchParams({
+                minTime: isCurrentDay
+                    ? new Date().toISOString()
+                    : getISODayStartString(date, true),
+                maxTime: getISODayEndString(date, true),
+                cal_id: userSettings?.events_cal_id ?? '',
+            }),
+        [date, isCurrentDay, userSettings?.events_cal_id]
+    )
+    const { data: events, isLoading, error } = useGetEvents(params)
 
     if (isLoading) {
         return (

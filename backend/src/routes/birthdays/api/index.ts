@@ -13,9 +13,10 @@ export const allBirthdays = async (req: Request, res: Response, next: NextFuncti
   } as calendar_v3.Options);
   const maxResults = parseInt(((req.query.count as string) ?? CALENDAR_CONFIG.DEFAULT_EVENT_COUNT).toString());
   const timeMin = new Date().toISOString();
+  const calId = req.query.cal_id as string;
   return calendar.events
     .list({
-      calendarId: CALENDAR_CONFIG.BIRTHDAY_ID,
+      calendarId: calId,
       timeMin,
       maxResults,
       singleEvents: true,

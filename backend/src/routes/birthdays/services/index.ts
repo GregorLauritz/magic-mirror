@@ -11,15 +11,14 @@ const parseRetrievedBirthdays = async (events: calendar_v3.Schema$Events): Promi
 
 const parseBirthdays = async (birthdaysList: calendar_v3.Schema$Event[]): Promise<Array<Birthday>> => {
   const bdays: Array<Promise<Birthday>> = [];
-  birthdaysList
-    .filter((b) => b.gadget?.preferences && b.gadget.preferences['goo.contactsEventType'].toUpperCase() === 'BIRTHDAY')
-    .forEach((b) => bdays.push(parseBirthday(b)));
+  birthdaysList.forEach((b) => bdays.push(parseBirthday(b)));
   return Promise.all(bdays);
 };
 
 const parseBirthday = async (birthday: calendar_v3.Schema$Event): Promise<Birthday> => {
+  const name = birthday.summary ?? '';
   return {
-    name: birthday.gadget?.preferences ? birthday.gadget.preferences['goo.contactsFullName'] : '',
+    name: name.replace("'s Birthday", ''),
     date: birthday.start?.date ?? new Date().toISOString(),
   };
 };

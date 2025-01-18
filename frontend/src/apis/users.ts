@@ -1,13 +1,10 @@
 import { USER_SETTINGS_API } from '../constants/api'
 import { fetchJson } from '../common/fetch'
 import { UserSettings } from '../models/user_settings'
+import { SettingsParams } from '../components/settings_form/SettingsForm'
 
-export const postUserSettings = async (
-    country: string,
-    city = '',
-    zipCode = ''
-) => {
-    return getUserSettingsBody(country, city, zipCode)
+export const postUserSettings = async (data: SettingsParams) => {
+    return getUserSettingsBody(data)
         .then((settings) => JSON.stringify(settings))
         .then((settings) =>
             fetchJson(
@@ -24,12 +21,8 @@ export const postUserSettings = async (
         )
 }
 
-export const patchUserSettings = async (
-    country?: string,
-    city?: string,
-    zipCode?: string
-) => {
-    return getUserSettingsBody(country, city, zipCode)
+export const patchUserSettings = async (data: SettingsParams) => {
+    return getUserSettingsBody(data)
         .then((settings) => JSON.stringify(settings))
         .then((settings) =>
             fetchJson(
@@ -47,13 +40,13 @@ export const patchUserSettings = async (
 }
 
 const getUserSettingsBody = async (
-    country?: string,
-    city?: string,
-    zipCode?: string
+    data: SettingsParams
 ): Promise<Partial<UserSettings>> => {
     return {
-        zip_code: zipCode,
-        country: country,
-        city: city,
+        zip_code: data.zipCode,
+        country: data.country,
+        city: data.city,
+        events_cal_id: data.eventsCalId,
+        birthday_cal_id: data.birthdayCalId,
     }
 }

@@ -1,6 +1,6 @@
-ARG NODE_IMG_VERSION=18.20.1-alpine3.19
+ARG NODE_IMG_VERSION=20-alpine3.21
 
-FROM node:${NODE_IMG_VERSION} as builder
+FROM node:${NODE_IMG_VERSION} AS builder
 
 ENV REACT_APP_NODE_ENV=production
 
@@ -8,9 +8,7 @@ WORKDIR /opt
 
 COPY . .
 
-RUN yarn install
-
-RUN yarn build
+RUN yarn install && yarn build
 
 FROM nginx:latest
 

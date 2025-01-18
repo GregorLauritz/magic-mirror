@@ -5,7 +5,7 @@ import { hasJsonSchemaValidationErrors } from 'services/json_schema';
 import { event_list_schema } from './json_schemas/event_list.test';
 import { event_schema } from './json_schemas/event.test';
 
-const ROUTE = '/calendar';
+const ROUTE = '/events';
 
 describe(`Unit test the ${ROUTE} route`, () => {
   const event_list_params = {

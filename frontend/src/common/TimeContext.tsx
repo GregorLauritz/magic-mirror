@@ -1,26 +1,42 @@
 import { createContext, useCallback, useEffect, useMemo, useState } from 'react'
 
-type TimeContextType = { newDay: boolean; newHour: boolean }
+type TimeContextType = {
+    newDay: boolean
+    newHour: boolean
+    timeZone: string
+    currentDate: Date
+}
 
-const defaultValue: TimeContextType = { newDay: false, newHour: false }
+const defaultValue: TimeContextType = {
+    newDay: false,
+    newHour: false,
+    timeZone: 'GMT',
+    currentDate: new Date(),
+}
 
 const TimeContext = createContext(defaultValue)
+
+const getTimeZone = () => {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    return timeZone
+}
 
 const TimeContextProvider = ({ children }: { children: JSX.Element }) => {
     const [newDay, setNewDay] = useState(false)
     const [newHour, setNewHour] = useState(false)
     const [previousDate, setPreviousDate] = useState(new Date())
     const [previousHours, setPreviousHours] = useState(previousDate.getHours())
+    const [timeZone, setTimeZone] = useState(getTimeZone())
+    const [currentDate, setCurrentDate] = useState(new Date())
 
     const handleDayCheck = useCallback(
         (currentDate: Date) => {
-            const isNewDayFlag =
-                currentDate.getDate() !== previousDate.getDate()
-            if (newDay !== isNewDayFlag) {
-                setNewDay(isNewDayFlag)
-            }
-            if (isNewDayFlag) {
+            const isNewDay = currentDate.getDate() !== previousDate.getDate()
+            if (newDay !== isNewDay) {
+                setNewDay(isNewDay)
                 setPreviousDate(currentDate)
+                setTimeZone(getTimeZone())
+                setCurrentDate(currentDate)
             }
         },
         [newDay, setPreviousDate, previousDate]
@@ -28,15 +44,12 @@ const TimeContextProvider = ({ children }: { children: JSX.Element }) => {
 
     const handleHourCheck = useCallback(
         (currentDate: Date) => {
-            const isNewHourFlag = currentDate.getHours() !== previousHours
-            if (newHour !== isNewHourFlag) {
-                setNewHour(isNewHourFlag)
-            }
-            if (isNewHourFlag) {
+            if (currentDate.getHours() !== previousHours) {
+                setNewHour(true)
                 setPreviousHours(currentDate.getHours())
             }
         },
-        [previousHours, newHour]
+        [previousHours]
     )
 
     useEffect(() => {
@@ -48,7 +61,10 @@ const TimeContextProvider = ({ children }: { children: JSX.Element }) => {
         return () => clearInterval(intervalId)
     }, [previousDate, handleDayCheck, handleHourCheck])
 
-    const value = useMemo(() => ({ newDay, newHour }), [newDay, newHour])
+    const value = useMemo(
+        () => ({ newDay, newHour, timeZone, currentDate }),
+        [newDay, newHour, timeZone, currentDate]
+    )
 
     return <TimeContext.Provider value={value}>{children}</TimeContext.Provider>
 }

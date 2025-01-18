@@ -10,4 +10,5 @@ export enum ServerStateKeysEnum {
     events_day,
     user_settings,
     geocode,
+    calendar_list,
 }

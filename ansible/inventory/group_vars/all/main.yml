@@ -7,7 +7,7 @@ required_backend_packages:
 
 domain: fritz.box
 addtional_hostnames: "localhost 127.0.0.1 ::1"
-node_docker_image_version: "18.20.3-alpine3.20"
+node_docker_image_version: 20-alpine3.21
 mongo:
   user: mongoadmin
   host: mongo

@@ -2,15 +2,14 @@ import ForecastItem from './ForecastItem'
 import { useGetDailyWeather } from '../../apis/daily_weather'
 import { MediumCard } from '../CardFrame'
 import { Grid } from '@mui/material'
-import { useContext, useEffect, useMemo } from 'react'
+import React, { useContext, useEffect, useMemo } from 'react'
 import { TimeContext } from '../../common/TimeContext'
 import { LocationContext } from '../../common/LocationContext'
 import ErrorCard from '../error_card/ErrorCard'
 import { DAILY_FORECAST_DAYS } from '../../constants/weather'
-import React from 'react'
 
 const DailyForecast = () => {
-    const { newDay } = useContext(TimeContext)
+    const { newDay, timeZone } = useContext(TimeContext)
     const {
         longitude,
         latitude,
@@ -25,7 +24,8 @@ const DailyForecast = () => {
         longitude,
         latitude,
         DAILY_FORECAST_DAYS,
-        !isLocationLoading
+        !isLocationLoading,
+        timeZone
     )
 
     useEffect(() => {
