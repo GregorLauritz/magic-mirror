@@ -1,6 +1,6 @@
 import { Box, TextField, Button, Autocomplete } from '@mui/material'
 import CountrySelect from '../country_select/CountrySelect'
-import { useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import {
     buttonBoxStyle,
     countryBoxStyle,
@@ -40,42 +40,50 @@ export const SettingsForm = ({
         birthdayCalId,
         eventsCalId,
     } = defaults
-    const defaultBirthdayCalendar = useMemo(
-        () => calendars.find((c) => c.id === birthdayCalId),
-        [birthdayCalId, calendars]
-    )
-    const defaultEventsCalendar = useMemo(
-        () => calendars.find((c) => c.id === eventsCalId),
-        [eventsCalId, calendars]
-    )
     const city = useRef<HTMLInputElement>()
     const zip = useRef<HTMLInputElement>()
     const [country, setCountry] = useState(defaultCountry)
-    const [birthdayCalendar, setBirthdayCalendar] = useState<string>()
-    const [eventsCalender, setEventsCalender] = useState<string>()
+    const [birthdayCalendar, setBirthdayCalendar] =
+        useState<string>(birthdayCalId)
+    const [eventsCalender, setEventsCalender] = useState<string>(eventsCalId)
+    const currentBirthdayCalendar = useMemo(
+        () => calendars.find((c) => c.id === birthdayCalendar),
+        [birthdayCalendar, calendars]
+    )
+    const currentEventsCalendar = useMemo(
+        () => calendars.find((c) => c.id === eventsCalender),
+        [eventsCalender, calendars]
+    )
 
-    const onSendButton = () => {
+    const onSendButton = useCallback(() => {
         if (country === '') {
             alert('Country must not be empty!')
-        } else {
+        } else if (birthdayCalendar === '' || birthdayCalendar === undefined) {
+            alert('Birthday Calendar must not be empty!')
+        } else if (eventsCalender === '' || eventsCalender === undefined) {
+            alert('Events Calendar must not be empty!')
+        } else if (onSend) {
             validate(country, city.current?.value, zip.current?.value)
-                .then(handleValidInput)
+                .then(() => {
+                    const data = {
+                        country,
+                        city: city.current!.value,
+                        zipCode: zip.current!.value,
+                        birthdayCalId: birthdayCalendar ?? birthdayCalId,
+                        eventsCalId: eventsCalender ?? eventsCalId,
+                    }
+                    onSend(data)
+                })
                 .catch(() => alert('Address could not be geolocated!'))
         }
-    }
-
-    const handleValidInput = async () => {
-        if (onSend) {
-            const data = {
-                country,
-                city: city.current!.value,
-                zipCode: zip.current!.value,
-                birthdayCalId: birthdayCalendar ?? birthdayCalId,
-                eventsCalId: eventsCalender ?? eventsCalId,
-            }
-            onSend(data)
-        }
-    }
+    }, [
+        country,
+        birthdayCalendar,
+        eventsCalender,
+        onSend,
+        birthdayCalId,
+        eventsCalId,
+    ])
 
     return (
         <Box sx={parentBoxStyle}>
@@ -110,7 +118,7 @@ export const SettingsForm = ({
                 <Autocomplete
                     id="events-cal"
                     options={calendars}
-                    value={defaultEventsCalendar}
+                    value={currentEventsCalendar}
                     getOptionLabel={(option) => option.name}
                     onChange={(_, value) =>
                         value && setEventsCalender(value.id)
@@ -131,7 +139,7 @@ export const SettingsForm = ({
                 <Autocomplete
                     id="bday-cal"
                     options={calendars}
-                    value={defaultBirthdayCalendar}
+                    value={currentBirthdayCalendar}
                     getOptionLabel={(option) => option.name}
                     onChange={(_, value) =>
                         value && setBirthdayCalendar(value.id)

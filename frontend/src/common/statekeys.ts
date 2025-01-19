@@ -11,4 +11,5 @@ export enum ServerStateKeysEnum {
     user_settings,
     geocode,
     calendar_list,
+    min_time,
 }

@@ -7,9 +7,9 @@ import { default as CalendarsRoute } from 'routes/calendars';
 import { default as BirthdaysRoute } from 'routes/birthdays';
 import { default as UsersRoute } from 'routes/users';
 import { default as LocationRoute } from 'routes/location';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { ApiError } from 'models/api/api_error';
-import { EXPRESS_ERROR_LOGGER } from 'services/loggers';
+import { EXPRESS_ERROR_LOGGER, LOGGER } from 'services/loggers';
 import { MongoDb } from 'services/database/mongodb';
 
 const mongoDb: MongoDb = new MongoDb(mongoDbData);
@@ -26,15 +26,13 @@ server.app.use('/api/location', LocationRoute);
 // ERROR HANDLING
 server.app.use(EXPRESS_ERROR_LOGGER);
 
-const isApiError = (err: Error): err is ApiError => {
-  return (err as ApiError).status !== undefined && (err as ApiError).message !== undefined;
-};
-
-server.app.use((err: ApiError | Error, _req: Request, res: Response) => {
-  if (isApiError(err)) {
-    return res.status(err.status).json({ error: err.message }).end();
+server.app.use((err: ApiError | Error, req: Request, res: Response, _next: NextFunction) => {
+  if (err instanceof ApiError) {
+    res.status(err.status).json({ error: err.message, details: err.message });
+  } else {
+    LOGGER.error('Unhandled Server Error', { error: err, stack: err.stack, request: req });
+    res.status(500).json({ error: 'An unexpected error occurred.' });
   }
-  return res.status(500).json({ error: 'Oops... something unexpected happened!' }).end();
 });
 
 server.start();

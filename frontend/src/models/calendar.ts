@@ -1,9 +1,9 @@
-export type EventList = {
+export type CalendarEventList = {
     count: number
-    list: Array<EventItem>
+    list: Array<CalendarEvent>
 }
 
-export type EventItem = {
+export type CalendarEvent = {
     summary: string
     description: string
     location: string

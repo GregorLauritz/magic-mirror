@@ -44,6 +44,8 @@ services:
   oauth2-proxy:
     build:
       context: ../oauth2-proxy
+      args:
+        OAUTH2_PROXY_VERSION: ${OAUTH2_PROXY_VERSION}
     command: --config=/opt/conf/oauth2-proxy.cfg
     ports:
       - 443:443

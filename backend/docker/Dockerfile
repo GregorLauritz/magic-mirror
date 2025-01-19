@@ -1,4 +1,4 @@
-ARG NODE_IMG_VERSION=18.9-alpine3.15
+ARG NODE_IMG_VERSION=20-alpine3.21
 ARG NODE_ENV=production
 
 FROM node:${NODE_IMG_VERSION}
@@ -13,12 +13,12 @@ COPY rootCA.pem /usr/local/share/ca-certificates/rootCa.crt
 
 RUN update-ca-certificates
 
-WORKDIR /opt 
+WORKDIR /opt
 
 COPY . .
 
 RUN mv ssl /etc/express
 
-RUN yarn install 
+RUN yarn install
 
 CMD [ "yarn", "prod" ]

@@ -1,10 +1,16 @@
 import Typography from '@mui/material/Typography'
 import { Box, Grid, Skeleton, Stack } from '@mui/material'
 import { MediumCard } from '../CardFrame'
-import { EventItem } from '../../models/calendar'
+import { CalendarEvent } from '../../models/calendar'
 import { Event } from './Event'
 import { xSmallFontSize } from '../../assets/styles/theme'
-import React, { ReactElement, useContext, useEffect, useMemo } from 'react'
+import React, {
+    ReactElement,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from 'react'
 import { EventTexts, TodayEventTexts, NextDaysEventTexts } from './types'
 import { useGetEvents } from '../../apis/events'
 import {
@@ -14,21 +20,20 @@ import {
 } from '../../common/dateParser'
 import { TimeContext } from '../../common/TimeContext'
 import { useGetUserSettings } from '../../apis/user_settings'
+import { ServerStateKeysEnum } from '../../common/statekeys'
+import { useQuery } from 'react-query'
 
 const UpcomingEvents = () => {
     const { currentDate } = useContext(TimeContext)
-
-    const [tomorrowsDate, setTomorrowsDate] = React.useState<Date>(
-        getDateInXDays(1)
-    )
-    const [overmorrowsDate, setOvermorrowsDate] = React.useState<Date>(
+    const [tomorrowsDate, setTomorrowsDate] = useState<Date>(getDateInXDays(1))
+    const [overmorrowsDate, setOvermorrowsDate] = useState<Date>(
         getDateInXDays(2)
     )
 
     useEffect(() => {
         setTomorrowsDate(getDateInXDays(1))
         setOvermorrowsDate(getDateInXDays(2))
-    }, [currentDate, setTomorrowsDate, setOvermorrowsDate])
+    }, [currentDate])
 
     return (
         <MediumCard>
@@ -104,16 +109,16 @@ const EventsOnDay = ({
     isCurrentDay: boolean
 }): ReactElement | ReactElement[] => {
     const { data: userSettings } = useGetUserSettings(false)
+    const { data: minTime } = useGetMinTime(date, isCurrentDay)
+
     const params = useMemo(
         () =>
             new URLSearchParams({
-                minTime: isCurrentDay
-                    ? new Date().toISOString()
-                    : getISODayStartString(date, true),
+                minTime: minTime ?? date.toISOString(),
                 maxTime: getISODayEndString(date, true),
                 cal_id: userSettings?.events_cal_id ?? '',
             }),
-        [date, isCurrentDay, userSettings?.events_cal_id]
+        [date, minTime, userSettings?.events_cal_id]
     )
     const { data: events, isLoading, error } = useGetEvents(params)
 
@@ -140,7 +145,7 @@ const EventsOnDay = ({
         `${events.count - (maxEvents - 1)}`
     )
     const summaryEventList = events.list.slice(maxEvents - 1)
-    const eventItem: EventItem = {
+    const CalendarEvent: CalendarEvent = {
         summary,
         description: '',
         start: summaryEventList[0].start,
@@ -157,15 +162,24 @@ const EventsOnDay = ({
             {displayEventList.map((ev) => (
                 <Event item={ev} date={date} key={ev.summary} />
             ))}
-            <Event item={eventItem} date={date} key={eventItem.start} />
+            <Event item={CalendarEvent} date={date} key={CalendarEvent.start} />
         </React.Fragment>
     )
 }
 
-const getMaxDateEndDate = (events: Array<EventItem>): Date => {
-    const endDates = events.map((item) => new Date(item.end).getTime())
-    return new Date(Math.max(...endDates))
-}
+const useGetMinTime = (date: Date, isCurrentDay: boolean) =>
+    useQuery<string, Error>({
+        queryKey: [
+            ServerStateKeysEnum.min_time,
+            date.toISOString(),
+            isCurrentDay,
+        ],
+        queryFn: async () =>
+            isCurrentDay
+                ? new Date().toISOString()
+                : getISODayStartString(date, true),
+        refetchInterval: 300000, // 5 minutes
+    })
 
 const NoEventsItem = ({ timeFrame }: { timeFrame: string }): ReactElement => {
     return (
@@ -173,6 +187,11 @@ const NoEventsItem = ({ timeFrame }: { timeFrame: string }): ReactElement => {
             {timeFrame}
         </Typography>
     )
+}
+
+const getMaxDateEndDate = (events: Array<CalendarEvent>): Date => {
+    const endDates = events.map((item) => new Date(item.end).getTime())
+    return new Date(Math.max(...endDates))
 }
 
 export default UpcomingEvents

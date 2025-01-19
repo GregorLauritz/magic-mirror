@@ -5,12 +5,28 @@ import {
 } from '../components/settings_form/SettingsForm'
 import { useNavigate } from 'react-router-dom'
 import { useGetUserSettings } from '../apis/user_settings'
-import { patchUserSettings } from '../apis/users'
+import { patchUserSettings, postUserSettings } from '../apis/users'
 import { useListCalendars } from '../apis/calendar_list'
+import { UserSettings } from '../models/user_settings'
+import { useCallback } from 'react'
 
 const city = 'Stuttgart'
 const country = 'DE'
 const zipCode = '70176'
+
+const inputHasChanged = (
+    data: SettingsParams,
+    userSettings?: UserSettings
+): boolean => {
+    const { country, city, zipCode, eventsCalId, birthdayCalId } = data
+    return (
+        country !== userSettings?.country ||
+        city !== userSettings?.city ||
+        zipCode !== userSettings?.zip_code ||
+        eventsCalId !== userSettings?.events_cal_id ||
+        birthdayCalId !== userSettings?.birthday_cal_id
+    )
+}
 
 export const Settings = () => {
     const navigate = useNavigate()
@@ -20,7 +36,7 @@ export const Settings = () => {
         isLoading,
         error,
         refetch,
-    } = useGetUserSettings(false)
+    } = useGetUserSettings(true)
 
     const {
         data: calList,
@@ -28,30 +44,26 @@ export const Settings = () => {
         error: calError,
     } = useListCalendars()
 
-    const updateSettings = (data: SettingsParams) => {
-        if (inputHasChanged(data)) {
-            patchUserSettings(data)
-                .then(() => refetch())
-                .catch(alert)
-        }
-    }
-
-    const inputHasChanged = (data: SettingsParams): boolean => {
-        const { country, city, zipCode, eventsCalId, birthdayCalId } = data
-        return (
-            country !== userSettings?.country ||
-            city !== userSettings?.city ||
-            zipCode !== userSettings?.zip_code ||
-            eventsCalId !== userSettings?.events_cal_id ||
-            birthdayCalId !== userSettings?.birthday_cal_id
-        )
-    }
-
-    const back = () => navigate('/')
+    const updateSettings = useCallback(
+        (data: SettingsParams) => {
+            if (inputHasChanged(data, userSettings)) {
+                if (userSettings === undefined) {
+                    postUserSettings(data)
+                        .then(() => refetch())
+                        .catch(alert)
+                } else {
+                    patchUserSettings(data)
+                        .then(() => refetch())
+                        .catch(alert)
+                }
+            }
+        },
+        [userSettings, refetch]
+    )
 
     if (isLoading || calIsLoading) return <Box>Loading...</Box>
 
-    if (error || calError || !calList) {
+    if (calError || !calList) {
         return <Box>Error: {error?.message ?? calError?.message}</Box>
     }
 
@@ -65,7 +77,7 @@ export const Settings = () => {
                     birthdayCalId: userSettings?.birthday_cal_id ?? '',
                     eventsCalId: userSettings?.events_cal_id ?? '',
                 }}
-                onBack={back}
+                onBack={() => navigate('/')}
                 showBackButton={error == null}
                 onSend={updateSettings}
                 calendars={calList}

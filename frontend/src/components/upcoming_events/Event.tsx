@@ -7,17 +7,17 @@ import {
     isSameDate,
 } from '../../common/dateParser'
 import { PAPER_CARD_COLOR, xSmallFontSize } from '../../assets/styles/theme'
-import { EventItem } from '../../models/calendar'
+import { CalendarEvent } from '../../models/calendar'
 import { DEFAULT_LOCALE } from '../../constants/defaults'
 import { hideTextOverflow } from '../../assets/styles/coloredBox'
 import { Paper, Stack } from '@mui/material'
 
-interface IEventItem {
-    item: EventItem
+interface ICalendarEvent {
+    item: CalendarEvent
     date: Date
 }
 
-export const Event = ({ item, date }: IEventItem) => {
+export const Event = ({ item, date }: ICalendarEvent) => {
     const localeStrOpts: Intl.DateTimeFormatOptions = {
         month: 'short',
         day: 'numeric',
@@ -66,7 +66,7 @@ export const Event = ({ item, date }: IEventItem) => {
 }
 
 const getEventTime = (
-    { item, date }: IEventItem,
+    { item, date }: ICalendarEvent,
     localeStrOpts: Intl.DateTimeFormatOptions
 ) => {
     if (item.allDay && !item.multiDays) {
@@ -79,7 +79,7 @@ const getEventTime = (
 }
 
 const handleMultiFullDayEvent = (
-    { item, date }: IEventItem,
+    { item, date }: ICalendarEvent,
     localeStrOpts: Intl.DateTimeFormatOptions
 ) => {
     const startDate = new Date(item.start)
@@ -110,7 +110,7 @@ const handleMultiFullDayEvent = (
 }
 
 const handleNormalEvent = (
-    { item, date }: IEventItem,
+    { item, date }: ICalendarEvent,
     localeStrOpts: Intl.DateTimeFormatOptions
 ) => {
     const startDate = new Date(item.start)
