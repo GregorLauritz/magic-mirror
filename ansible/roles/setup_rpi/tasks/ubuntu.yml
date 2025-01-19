@@ -1,0 +1,39 @@
+---
+- name: Set autostart dir
+  ansible.builtin.set_fact:
+    autostart_dir: "/home/{{ ansible_user }}/.config/autostart"
+
+- name: Create auto start dir in ansible user home
+  ansible.builtin.file:
+    path: "{{ autostart_dir }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user | default(ansible_user_id) }}"
+    recurse: true
+
+- name: Copy autostart script
+  ansible.builtin.template:
+    src: "{{ os_type }}/magicmirror.desktop.j2"
+    dest: "{{ autostart_dir }}/magicmirror.desktop"
+    mode: 0755
+
+- name: Disable Wayland in GDM3
+  lineinfile:
+    path: /etc/gdm3/custom.conf
+    regexp: '^(\s*#*\s*)WaylandEnable'
+    line: "WaylandEnable=false"
+    backrefs: true
+  become: true
+
+- name: Restart gmd3
+  ansible.builtin.service:
+    state: restarted
+    daemon_reload: true
+    name: gdm3
+
+- name: Add user to dialout group
+  user:
+    name: "{{ ansible_user }}"
+    groups: dialout
+    append: true
+  become: true

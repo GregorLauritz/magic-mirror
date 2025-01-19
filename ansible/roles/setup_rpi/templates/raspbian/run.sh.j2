@@ -1,0 +1,6 @@
+#!/bin/sh
+export DISPLAY=:0.0
+firefox-esr --kiosk {{ backend_url }} &
+sleep 15s;
+xte "key F11"@@
+python3 {{ default_working_dir }}/main.py &
