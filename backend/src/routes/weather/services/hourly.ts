@@ -3,6 +3,7 @@ import { MAX_HOURLY_FORECAST_HOURS, WEATHER_API_URL, WEATHER_UNITS } from 'confi
 import { ApiError } from 'models/api/api_error';
 import { ApiResponse, Json } from 'models/api/fetch';
 import { HourlyWeather, HourlyWeatherResource } from 'models/api/weather';
+import { DateTime } from 'luxon';
 import {
   exceedsMaxForecastTime,
   getWeatherDescription,
@@ -24,7 +25,7 @@ export const buildHourlyWeatherUrl = async (req: Request): Promise<string> => {
     hourly: 'temperature_2m,windspeed_10m,precipitation,weathercode',
     latitude: req.query.latitude as string,
     longitude: req.query.longitude as string,
-    timezone: (req.query.timezone ?? 'GMT') as string,
+    timezone: 'UTC',
     CurrentWeather: 'true',
     ...WEATHER_UNITS,
   });
@@ -35,9 +36,10 @@ export const handleHourlyWeatherResponse = async (
   res: Response,
   response: ApiResponse<Json>,
   forecast_hours: number = MAX_HOURLY_FORECAST_HOURS,
+  timezone: string | undefined = undefined,
 ): Promise<Response> => {
   if (response.status === 200) {
-    return createResponse(res, response.body, forecast_hours);
+    return createResponse(res, response.body, forecast_hours, timezone);
   } else if (response.status === 400) {
     throw new ApiError(response.body.reason ?? 'Error while calling weather API', new Error(), 400);
   } else {
@@ -50,25 +52,38 @@ export const getForecastHours = async (req: Request): Promise<number> => {
   return hour_query_param;
 };
 
-const createResponse = async (res: Response, response: Json, forecast_hours: number): Promise<Response> => {
-  return res.status(200).json(await createResponseJson(response, forecast_hours));
+const createResponse = async (
+  res: Response,
+  response: Json,
+  forecast_hours: number,
+  timezone: string | undefined,
+): Promise<Response> => {
+  return res.status(200).json(await createResponseJson(response, forecast_hours, timezone));
 };
 
-const createResponseJson = async (response: Json, forecast_hours: number): Promise<HourlyWeather> => {
+const createResponseJson = async (
+  response: Json,
+  forecast_hours: number,
+  timezone: string = 'UTC',
+): Promise<HourlyWeather> => {
   return {
     latitude: response.latitude,
     longitude: response.longitude,
-    timezone: response.timezone,
-    forecast: await createForecastArray(response, forecast_hours),
+    timezone: timezone,
+    forecast: await createForecastArray(response, forecast_hours, timezone),
   };
 };
 
-const createForecastArray = async (response: Json, forecast_hours: number): Promise<Array<HourlyWeatherResource>> => {
+const createForecastArray = async (
+  response: Json,
+  forecast_hours: number,
+  timezone: string = 'UTC',
+): Promise<Array<HourlyWeatherResource>> => {
   const forecast: Array<Promise<HourlyWeatherResource>> = [];
   const count = response.hourly.time.length;
   for (let i = 0; i < count; i++) {
     if (await isValidHourlyForecastTime(response.hourly.time[i], forecast_hours)) {
-      forecast.push(createForecastHour(response, i));
+      forecast.push(createForecastHour(response, i, timezone));
     }
   }
   return Promise.all(forecast);
@@ -78,12 +93,18 @@ const isValidHourlyForecastTime = async (time: string, forecast_hours: number): 
   return (await timeHasPassed(time)) === false && (await exceedsMaxForecastTime(time, forecast_hours)) === false;
 };
 
-const createForecastHour = async (response: Json, index: number): Promise<HourlyWeatherResource> => {
+const createForecastHour = async (
+  response: Json,
+  index: number,
+  timezone: string = 'UTC',
+): Promise<HourlyWeatherResource> => {
   const weathercode = response.hourly.weathercode[index];
   const time = response.hourly.time[index];
   const sunIsUp = await timeIsDuringDay(time, response.daily.sunrise[0], response.daily.sunset[0]);
+  console.log('timezone', timezone);
+  const timeInZone = DateTime.fromISO(time, { zone: 'UTC' }).setZone(timezone).toFormat('yyyy-MM-dd HH:mm ZZZZ');
   return {
-    time: time,
+    time: timeInZone,
     temperature: response.hourly.temperature_2m[index],
     precipitation: response.hourly.precipitation[index],
     weather_icon: await getWeatherIconFromWeathercode(sunIsUp, weathercode),

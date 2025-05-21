@@ -10,7 +10,7 @@ import { useGetUserSettings } from '../../apis/user_settings'
 
 const MAX_BIRTHDAYS = 4
 export const Birthdays = () => {
-    const { newDay } = useContext(TimeContext)
+    const { addDailyUpdateTrigger } = useContext(TimeContext)
     const { data: userSettings } = useGetUserSettings(false)
 
     const {
@@ -21,8 +21,8 @@ export const Birthdays = () => {
     } = useGetBirthdays(userSettings?.birthday_cal_id ?? '', MAX_BIRTHDAYS)
 
     useEffect(() => {
-        if (newDay) refetch()
-    }, [newDay, refetch])
+        addDailyUpdateTrigger(refetch)
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     const listItems = useMemo(() => {
         if (isLoading) {

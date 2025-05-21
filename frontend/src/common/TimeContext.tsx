@@ -1,18 +1,27 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from 'react'
+import {
+    createContext,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react'
 
 type TimeContextType = {
-    newDay: boolean
-    newHour: boolean
+    addHourlyUpdateTrigger: (trigger: UpdateTrigger) => void
+    addDailyUpdateTrigger: (trigger: UpdateTrigger) => void
     timeZone: string
     currentDate: Date
 }
 
 const defaultValue: TimeContextType = {
-    newDay: false,
-    newHour: false,
+    addHourlyUpdateTrigger: () => {},
+    addDailyUpdateTrigger: () => {},
     timeZone: 'GMT',
     currentDate: new Date(),
 }
+
+type UpdateTrigger = () => void
 
 const TimeContext = createContext(defaultValue)
 
@@ -21,49 +30,52 @@ const getTimeZone = () => {
     return timeZone
 }
 
-const TimeContextProvider = ({ children }: { children: JSX.Element }) => {
-    const [newDay, setNewDay] = useState(false)
-    const [newHour, setNewHour] = useState(false)
-    const [previousDate, setPreviousDate] = useState(new Date())
-    const [previousHours, setPreviousHours] = useState(previousDate.getHours())
+type Props = { children: JSX.Element }
+
+const TimeContextProvider = ({ children }: Props) => {
     const [timeZone, setTimeZone] = useState(getTimeZone())
     const [currentDate, setCurrentDate] = useState(new Date())
 
-    const handleDayCheck = useCallback(
-        (currentDate: Date) => {
-            const isNewDay = currentDate.getDate() !== previousDate.getDate()
-            if (newDay !== isNewDay) {
-                setNewDay(isNewDay)
-                setPreviousDate(currentDate)
-                setTimeZone(getTimeZone())
-                setCurrentDate(currentDate)
-            }
-        },
-        [newDay, setPreviousDate, previousDate]
-    )
+    const hourlyTriggers = useRef<Set<UpdateTrigger>>(new Set())
+    const dailyTriggers = useRef<Set<UpdateTrigger>>(new Set())
+    const prevHour = useRef(currentDate.getHours())
+    const prevDay = useRef(currentDate.getDate())
 
-    const handleHourCheck = useCallback(
-        (currentDate: Date) => {
-            if (currentDate.getHours() !== previousHours) {
-                setNewHour(true)
-                setPreviousHours(currentDate.getHours())
-            }
-        },
-        [previousHours]
-    )
+    const addHourlyUpdateTrigger = useCallback((trigger: UpdateTrigger) => {
+        hourlyTriggers.current.add(trigger)
+    }, [])
+
+    const addDailyUpdateTrigger = useCallback((trigger: UpdateTrigger) => {
+        dailyTriggers.current.add(trigger)
+    }, [])
 
     useEffect(() => {
         const intervalId = setInterval(() => {
-            const currentDate = new Date()
-            handleDayCheck(currentDate)
-            handleHourCheck(currentDate)
-        }, 1000)
+            const now = new Date()
+            setCurrentDate(now)
+
+            if (now.getHours() !== prevHour.current) {
+                hourlyTriggers.current.forEach((trigger) => trigger())
+                prevHour.current = now.getHours()
+            }
+
+            if (now.getDate() !== prevDay.current) {
+                dailyTriggers.current.forEach((trigger) => trigger())
+                prevDay.current = now.getDate()
+                setTimeZone(getTimeZone())
+            }
+        }, 5000)
         return () => clearInterval(intervalId)
-    }, [previousDate, handleDayCheck, handleHourCheck])
+    }, [])
 
     const value = useMemo(
-        () => ({ newDay, newHour, timeZone, currentDate }),
-        [newDay, newHour, timeZone, currentDate]
+        () => ({
+            timeZone,
+            currentDate,
+            addHourlyUpdateTrigger,
+            addDailyUpdateTrigger,
+        }),
+        [timeZone, currentDate, addHourlyUpdateTrigger, addDailyUpdateTrigger]
     )
 
     return <TimeContext.Provider value={value}>{children}</TimeContext.Provider>

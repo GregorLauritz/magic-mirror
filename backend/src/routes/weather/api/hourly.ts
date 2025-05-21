@@ -7,6 +7,8 @@ export const getHourlyWeather = async (req: Request, res: Response, next: NextFu
   const forecast_hours = await getForecastHours(req);
   return buildHourlyWeatherUrl(req)
     .then((url) => fetchJson(url))
-    .then((response) => handleHourlyWeatherResponse(res, response, forecast_hours))
+    .then((response) =>
+      handleHourlyWeatherResponse(res, response, forecast_hours, (req.query.timezone ?? 'UTC') as string),
+    )
     .catch((err: ApiError) => next(err));
 };

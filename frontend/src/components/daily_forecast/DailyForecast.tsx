@@ -9,7 +9,7 @@ import ErrorCard from '../error_card/ErrorCard'
 import { DAILY_FORECAST_DAYS } from '../../constants/weather'
 
 const DailyForecast = () => {
-    const { newDay, timeZone } = useContext(TimeContext)
+    const { addDailyUpdateTrigger, timeZone } = useContext(TimeContext)
     const {
         longitude,
         latitude,
@@ -29,8 +29,8 @@ const DailyForecast = () => {
     )
 
     useEffect(() => {
-        if (newDay) refetch()
-    }, [newDay, refetch])
+        addDailyUpdateTrigger(refetch)
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     const isLoadingData = useMemo(
         () => isWeatherLoading || isLocationLoading,

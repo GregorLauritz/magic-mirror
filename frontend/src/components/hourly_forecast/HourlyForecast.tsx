@@ -14,7 +14,7 @@ const HourlyWeather = () => {
         latitude,
         isLoading: isLocationLoading,
     } = useContext(LocationContext)
-    const { newHour, timeZone } = useContext(TimeContext)
+    const { addHourlyUpdateTrigger, timeZone } = useContext(TimeContext)
     const {
         data: weather,
         isLoading: isWeatherLoading,
@@ -28,8 +28,8 @@ const HourlyWeather = () => {
     )
 
     useEffect(() => {
-        if (newHour) refetch()
-    }, [newHour, refetch])
+        addHourlyUpdateTrigger(refetch)
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     const forecastItems = useMemo(() => {
         if (isWeatherLoading || isLocationLoading) {
