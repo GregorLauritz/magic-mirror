@@ -52,14 +52,12 @@ const TimeContextProvider = ({ children }: Props) => {
     useEffect(() => {
         const intervalId = setInterval(() => {
             const now = new Date()
-            setCurrentDate(now)
-
             if (now.getHours() !== prevHour.current) {
                 hourlyTriggers.current.forEach((trigger) => trigger())
                 prevHour.current = now.getHours()
             }
-
             if (now.getDate() !== prevDay.current) {
+                setCurrentDate(now)
                 dailyTriggers.current.forEach((trigger) => trigger())
                 prevDay.current = now.getDate()
                 setTimeZone(getTimeZone())
