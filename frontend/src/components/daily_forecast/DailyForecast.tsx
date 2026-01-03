@@ -28,9 +28,12 @@ const DailyForecast = () => {
         timeZone
     )
 
+    // Register refetch trigger only once on mount, not when refetch changes
+    // This prevents re-registering the same trigger on every render
     useEffect(() => {
         addDailyUpdateTrigger(refetch)
-    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const isLoadingData = useMemo(
         () => isWeatherLoading || isLocationLoading,
@@ -40,12 +43,12 @@ const DailyForecast = () => {
     const forecastItems = useMemo(() => {
         if (isLoadingData) {
             return Array.from({ length: DAILY_FORECAST_DAYS }, (_, i) => (
-                <ForecastItem item={undefined} key={i} isLoading={true} />
+                <ForecastItem item={undefined} key={`skeleton-${i}`} isLoading={true} />
             ))
         } else if (weather?.forecast) {
             return weather.forecast.map((val) => (
                 <Grid item xs={3} key={val.date}>
-                    <ForecastItem item={val} key={val.date} isLoading={false} />
+                    <ForecastItem item={val} isLoading={false} />
                 </Grid>
             ))
         } else {

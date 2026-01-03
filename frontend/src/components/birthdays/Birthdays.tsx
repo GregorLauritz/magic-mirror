@@ -20,14 +20,17 @@ export const Birthdays = () => {
         refetch,
     } = useGetBirthdays(userSettings?.birthday_cal_id ?? '', MAX_BIRTHDAYS)
 
+    // Register refetch trigger only once on mount, not when refetch changes
+    // This prevents re-registering the same trigger on every render
     useEffect(() => {
         addDailyUpdateTrigger(refetch)
-    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const listItems = useMemo(() => {
         if (isLoading) {
             return Array.from({ length: MAX_BIRTHDAYS }, (_, i) => (
-                <Skeleton key={i} variant="rounded" />
+                <Skeleton key={`skeleton-${i}`} variant="rounded" />
             ))
         } else if (error || !birthdays?.list) {
             return <React.Fragment>Error!</React.Fragment>

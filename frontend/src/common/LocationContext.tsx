@@ -68,7 +68,7 @@ const LocationContextProvider = ({ children }: { children: JSX.Element }) => {
         if (apiGeoLocation && !isGeoCodeLoading) {
             setGeoLocation(apiGeoLocation)
         }
-    }, [apiGeoLocation, setGeoLocation, isGeoCodeLoading])
+    }, [apiGeoLocation, isGeoCodeLoading])
 
     const contextValue = useMemo(() => {
         return {

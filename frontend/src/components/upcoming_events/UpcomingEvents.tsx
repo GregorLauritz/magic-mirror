@@ -126,7 +126,7 @@ const EventsOnDay = ({
         return (
             <React.Fragment>
                 {Array.from({ length: maxEvents }, (_, index) => (
-                    <Skeleton key={index} variant="rounded" />
+                    <Skeleton key={`skeleton-${index}`} variant="rounded" />
                 ))}
             </React.Fragment>
         )

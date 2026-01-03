@@ -27,19 +27,22 @@ const HourlyWeather = () => {
         timeZone
     )
 
+    // Register refetch trigger only once on mount, not when refetch changes
+    // This prevents re-registering the same trigger on every render
     useEffect(() => {
         addHourlyUpdateTrigger(refetch)
-    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const forecastItems = useMemo(() => {
         if (isWeatherLoading || isLocationLoading) {
             return Array.from({ length: HOURLY_FORECAST_HOURS }, (_, i) => (
-                <ForecastItem item={undefined} key={i} isLoading={true} />
+                <ForecastItem item={undefined} key={`skeleton-${i}`} isLoading={true} />
             ))
         } else if (weather?.forecast) {
             return weather.forecast.map((val) => (
-                <Grid item xs={2} key={JSON.stringify(val)}>
-                    <ForecastItem item={val} key={val.time} isLoading={false} />
+                <Grid item xs={2} key={val.time}>
+                    <ForecastItem item={val} isLoading={false} />
                 </Grid>
             ))
         } else {
