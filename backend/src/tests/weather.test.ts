@@ -28,31 +28,29 @@ describe(`Unit test the ${ROUTE} route`, () => {
 
   describe(`Unit testing the ${ROUTE}/icon route`, () => {
     it(`should return OK status for icon ${icon_params.ok_icon}`, async () => {
-      return request(app)
-        .get(`${ROUTE}/icon/${icon_params.ok_icon}`)
-        .then((response) => assert.equal(response.status, 200));
+      const response = await request(app).get(`${ROUTE}/icon/${icon_params.ok_icon}`);
+      assert.equal(response.status, 200);
     });
     it(`should return 404 status for icon ${icon_params.fault_icon}`, async () => {
-      return request(app)
-        .get(`${ROUTE}/icon/${icon_params.fault_icon}`)
-        .then((response) => assert.equal(response.status, 404));
+      const response = await request(app).get(`${ROUTE}/icon/${icon_params.fault_icon}`);
+      assert.equal(response.status, 404);
     });
   });
 
   describe(`Unit testing the ${ROUTE}/current route`, () => {
     it(`should return OK status for ok test params`, async () => {
-      return request(app)
-        .get(`${ROUTE}/current?latitude=${location_params.ok_latitude}&longitude=${location_params.ok_longitude}`)
-        .then((response) => {
-          assert.equal(response.status, 200);
-          return hasJsonSchemaValidationErrors(weather_current_schema, response.body);
-        })
-        .then((result) => assert.equal(result, false));
+      const response = await request(app).get(
+        `${ROUTE}/current?latitude=${location_params.ok_latitude}&longitude=${location_params.ok_longitude}`,
+      );
+      assert.equal(response.status, 200);
+      const result = await hasJsonSchemaValidationErrors(weather_current_schema, response.body);
+      assert.equal(result, false);
     });
     it(`should return 400 status for bad test params`, async () => {
-      return request(app)
-        .get(`${ROUTE}/current?latitude=${location_params.fault_latitude}&longitude=${location_params.fault_longitude}`)
-        .then((response) => assert.equal(response.status, 400));
+      const response = await request(app).get(
+        `${ROUTE}/current?latitude=${location_params.fault_latitude}&longitude=${location_params.fault_longitude}`,
+      );
+      assert.equal(response.status, 400);
     });
   });
 
@@ -66,25 +64,22 @@ describe(`Unit test the ${ROUTE} route`, () => {
       return assert.equal(result, false);
     });
     it(`should return 400 status for bad test params`, async () => {
-      return request(app)
-        .get(
-          `${ROUTE}/forecast?latitude=${location_params.fault_latitude}&longitude=${location_params.fault_longitude}`,
-        )
-        .then((response) => assert.equal(response.status, 400));
+      const response = await request(app).get(
+        `${ROUTE}/forecast?latitude=${location_params.fault_latitude}&longitude=${location_params.fault_longitude}`,
+      );
+      assert.equal(response.status, 400);
     });
     it(`should return 400 status for 1000 day forcast`, async () => {
-      return request(app)
-        .get(
-          `${ROUTE}/forecast?latitude=${location_params.ok_latitude}&longitude=${location_params.ok_longitude}&days=${forecast_params.too_many_days}`,
-        )
-        .then((response) => assert.equal(response.status, 400));
+      const response = await request(app).get(
+        `${ROUTE}/forecast?latitude=${location_params.ok_latitude}&longitude=${location_params.ok_longitude}&days=${forecast_params.too_many_days}`,
+      );
+      assert.equal(response.status, 400);
     });
     it(`should return 400 status for negative day forcast`, async () => {
-      return request(app)
-        .get(
-          `${ROUTE}/forecast?latitude=${location_params.ok_latitude}&longitude=${location_params.ok_longitude}&days=${forecast_params.neg_days}`,
-        )
-        .then((response) => assert.equal(response.status, 400));
+      const response = await request(app).get(
+        `${ROUTE}/forecast?latitude=${location_params.ok_latitude}&longitude=${location_params.ok_longitude}&days=${forecast_params.neg_days}`,
+      );
+      assert.equal(response.status, 400);
     });
   });
 });

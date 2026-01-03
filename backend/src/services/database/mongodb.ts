@@ -17,6 +17,14 @@ export class MongoDb extends Database {
   }
 
   protected initDatabaseConnection(): void {
-    connect(this._connectionString).then((con) => (this._connection = con));
+    connect(this._connectionString)
+      .then((con) => {
+        this._connection = con;
+        console.log('MongoDB connected successfully');
+      })
+      .catch((error) => {
+        console.error('Failed to connect to MongoDB:', error);
+        throw error;
+      });
   }
 }

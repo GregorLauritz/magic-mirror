@@ -3,6 +3,7 @@ import { default as session } from 'express-session';
 import bodyParser from 'body-parser';
 import { ENABLE_HTTPS, FRONTEND_URL, RATE_LIMIT, SESSION_SECRET } from 'config';
 import { default as cors } from 'cors';
+import compression from 'compression';
 
 import { EXPRESS_LOGGER } from 'services/loggers';
 import { Database } from 'services/database/database';
@@ -75,7 +76,7 @@ export abstract class Server<T extends http2.Http2Server> {
   }
 
   private async setupDefaultMiddlewares() {
-    //this._app.use(compression());
+    this._app.use(compression());
     this._app.use(helmet());
     this._app.use(RateLimit(RATE_LIMIT));
   }

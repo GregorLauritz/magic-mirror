@@ -54,8 +54,9 @@ const parseBufferResponse = async (res: Response): Promise<ApiResponse<ArrayBuff
   };
 };
 
-const checkInputURL = async (url: string) => {
-  isAllowedURL(url).then((res) => checkUrlAllowedResponse(res, url));
+const checkInputURL = async (url: string): Promise<void> => {
+  const isAllowed = await isAllowedURL(url);
+  await checkUrlAllowedResponse(isAllowed, url);
 };
 
 const isAllowedURL = async (url: string): Promise<boolean> => {

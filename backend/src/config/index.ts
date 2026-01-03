@@ -6,7 +6,7 @@ export const SESSION_SECRET = process.env.SESSION_SECRET ?? randomUUID();
 export const SERVER_HOSTNAME = process.env.SERVER_HOSTNAME ?? 'localhost';
 export const ENABLE_HTTPS = (process.env.ENABLE_HTTPS?.toLowerCase() ?? 'false') === 'true';
 export const SSL_PRIVATE_KEY = process.env.SSL_PRIVATE_KEY ?? '/etc/express/express.key';
-export const SSL_CERTIFICATE = process.env.SSL_PRIVATE_KEY ?? '/etc/express/express.pem';
+export const SSL_CERTIFICATE = process.env.SSL_CERTIFICATE ?? '/etc/express/express.pem';
 
 export const mongoDbData: IDatabaseConenction = {
   hostname: process.env.MONGO_HOSTNAME ?? 'mongo',

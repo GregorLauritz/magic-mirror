@@ -1,23 +1,34 @@
 import { IncomingHttpHeaders } from 'http2';
 
-const getUserId = async (headers: IncomingHttpHeaders) => {
+/**
+ * Extract user ID from OAuth proxy headers
+ */
+export const getUserId = (headers: IncomingHttpHeaders): string => {
   return headers['x-forwarded-user'] as string;
 };
 
-const getUserEmail = async (headers: IncomingHttpHeaders) => {
+/**
+ * Extract user email from OAuth proxy headers
+ */
+export const getUserEmail = (headers: IncomingHttpHeaders): string => {
   return headers['x-forwarded-email'] as string;
 };
 
-const getAccessToken = async (headers: IncomingHttpHeaders) => {
+/**
+ * Extract access token from OAuth proxy headers
+ */
+export const getAccessToken = (headers: IncomingHttpHeaders): string => {
   return headers['x-forwarded-access-token'] as string;
 };
 
-export const getAuthenticationHeader = async (headers: IncomingHttpHeaders): Promise<RequestInit> => {
-  return getAccessToken(headers).then((access_token) => ({
+/**
+ * Build authentication header object for API requests
+ */
+export const getAuthenticationHeader = (headers: IncomingHttpHeaders): RequestInit => {
+  const accessToken = getAccessToken(headers);
+  return {
     headers: {
-      Authorization: `Bearer ${access_token}`,
+      Authorization: `Bearer ${accessToken}`,
     },
-  }));
+  };
 };
-
-export { getUserId, getUserEmail, getAccessToken };

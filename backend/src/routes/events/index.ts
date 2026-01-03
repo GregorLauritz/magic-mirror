@@ -37,17 +37,16 @@ class CalendarEventService {
     return events.data;
   }
 
-  static async parseEvents(events: calendar_v3.Schema$Events): Promise<CalendarEventList> {
+  static parseEvents(events: calendar_v3.Schema$Events): CalendarEventList {
     const items = events.items || [];
-    const parsedEvents = await Promise.all(items.map(this.parseEvent)); // Use this.parseEvent
+    const parsedEvents = items.map(this.parseEvent);
     return { count: parsedEvents.length, list: parsedEvents };
   }
 
-  static async parseEvent(event: calendar_v3.Schema$Event): Promise<CalendarEvent> {
-    // Explicitly type the return value
+  static parseEvent(event: calendar_v3.Schema$Event): CalendarEvent {
     const start = new Date(event.start!.dateTime ?? event.start!.date ?? '');
     const end = new Date(event.end!.dateTime ?? event.end!.date ?? '');
-    const timeDiff = await getTimeDiff(start, end, TimeUnit.hours);
+    const timeDiff = getTimeDiff(start, end, TimeUnit.hours);
     return {
       summary: event.summary ?? '',
       description: event.description ?? '',
@@ -69,7 +68,7 @@ async function allCalendarEvents(req: Request, res: Response, next: NextFunction
     const calId = (req.query.cal_id as string) || 'primary';
 
     const events = await CalendarEventService.getEvents(req, timeMin, timeMax, maxResults, calId);
-    const parsedEvents = await CalendarEventService.parseEvents(events);
+    const parsedEvents = CalendarEventService.parseEvents(events);
 
     res.status(200).json(parsedEvents);
   } catch (err) {
@@ -85,8 +84,8 @@ async function eventsAtDate(req: Request, res: Response, next: NextFunction) {
     timeMax.setDate(timeMax.getDate() + 1);
     const calId = (req.query.cal_id as string) || 'primary';
 
-    const events = await CalendarEventService.getEvents(req, timeMin, timeMax.toISOString(), 100, calId); // Default to a reasonable maxResults
-    const parsedEvents = await CalendarEventService.parseEvents(events);
+    const events = await CalendarEventService.getEvents(req, timeMin, timeMax.toISOString(), 100, calId);
+    const parsedEvents = CalendarEventService.parseEvents(events);
 
     res.status(200).json(parsedEvents);
   } catch (err) {

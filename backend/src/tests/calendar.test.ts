@@ -28,14 +28,12 @@ describe(`Unit test the ${ROUTE} route`, () => {
       return assert.equal(result, false);
     });
     it(`should return 400 for negative count`, async () => {
-      request(app)
-        .get(`${ROUTE}?count=${event_list_params.neg_count}`)
-        .then((response) => assert.equal(response.status, 200));
+      const response = await request(app).get(`${ROUTE}?count=${event_list_params.neg_count}`);
+      assert.equal(response.status, 400);
     });
     it(`should return 400 for too high count`, async () => {
-      request(app)
-        .get(`${ROUTE}?count=${event_list_params.too_high_count}`)
-        .then((response) => assert.equal(response.status, 200));
+      const response = await request(app).get(`${ROUTE}?count=${event_list_params.too_high_count}`);
+      assert.equal(response.status, 400);
     });
   });
   describe(`Unit testing the ${ROUTE}/next route`, () => {
