@@ -1,15 +1,17 @@
 import { Typography, Paper, Stack } from '@mui/material'
 import { Birthday } from '../../models/birthdays'
 import { PAPER_CARD_COLOR, xSmallFontSize } from '../../assets/styles/theme'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { getDifferenceInDays } from '../../common/dateParser'
 import { hideTextOverflow } from '../../assets/styles/coloredBox'
+import { TimeContext } from '../../common/TimeContext'
 
 interface IBirthdayItem {
     item: Birthday
 }
 
 const BirthdayItem = ({ item }: IBirthdayItem) => {
+    const { currentDate } = useContext(TimeContext)
     const [days, setDays] = useState(0)
     const [color, setColor] = useState('text.secondary')
     const [timeText, setTimeText] = useState('')
@@ -17,9 +19,9 @@ const BirthdayItem = ({ item }: IBirthdayItem) => {
 
     useEffect(() => {
         const bday = new Date(item.date)
-        const today = new Date(new Date().toDateString())
+        const today = new Date(currentDate.toDateString())
         setDays(getDifferenceInDays(today, bday))
-    }, [item.date])
+    }, [item.date, currentDate])
 
     useEffect(() => {
         if (days === 0) {
