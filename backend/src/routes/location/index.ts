@@ -3,9 +3,9 @@ import { RegexParameterValidator } from 'services/validators/regex_parameter_val
 import { EParamType } from 'services/validators/parameter_validator';
 import { fetchJson } from 'services/fetch';
 import { NextFunction, Request, Response } from 'express';
-import { GeocodeResponse, GeoLocation } from 'models/api/geocode';
+import { GeoLocation } from 'models/api/geocode';
 import { ApiError } from 'models/api/api_error';
-import { GEOCODE_URL } from 'config';
+import { GEOCODE_API_KEY, GEOCODE_URL } from 'config';
 import { ApiResponse, Json } from 'models/api/fetch';
 
 // Middlewares
@@ -21,6 +21,7 @@ class GeocodingService {
   static async buildGeocodeUrl(req: Request): Promise<string> {
     const params = new URLSearchParams({
       country: req.query.country as string,
+      api_key: GEOCODE_API_KEY,
     });
 
     if (req.query.zip_code) {

@@ -30,10 +30,10 @@ mongo_host: mongo
 oauth2_proxy:
   client_id: 428211582851-66891ucq97qkrbmsik41ftkfcke0u26f.apps.googleusercontent.com
   scopes: email profile https://www.googleapis.com/auth/calendar.readonly
-  version: v7.8.1
+  version: v7.13.0-alpine
 backend_context: "/api"
 pw_store_dir: "{{ playbook_dir }}/pwstore"
 node:
-  version: 20-alpine3.21
+  version: 24-alpine3.23
 
 backend_url: "https://nuc.{{ domain }}"

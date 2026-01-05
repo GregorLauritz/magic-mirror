@@ -1,4 +1,4 @@
-ARG OAUTH2_PROXY_VERSION=v7.8.1
+ARG OAUTH2_PROXY_VERSION=v7.13.0-alpine
 
 FROM quay.io/oauth2-proxy/oauth2-proxy:${OAUTH2_PROXY_VERSION}
 
