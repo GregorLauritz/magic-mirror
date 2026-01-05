@@ -23,15 +23,39 @@ server.app.use('/api/birthdays', BirthdaysRoute);
 server.app.use('/api/users', UsersRoute);
 server.app.use('/api/location', LocationRoute);
 
-// ERROR HANDLING
+// ERROR HANDLING MIDDLEWARE
 server.app.use(EXPRESS_ERROR_LOGGER);
 
-server.app.use((err: ApiError | Error, req: Request, res: Response, _next: NextFunction) => {
+/**
+ * Global error handler for all routes
+ * Catches ApiError instances and generic errors, logging and formatting appropriately
+ */
+server.app.use((err: ApiError | Error, req: Request, res: Response, _next: NextFunction): void => {
   if (err instanceof ApiError) {
-    res.status(err.status).json({ error: err.message, details: err.message });
+    // Known API errors with specific status codes
+    LOGGER.warn('API Error', {
+      message: err.message,
+      status: err.status,
+      path: req.path,
+      method: req.method,
+    });
+    res.status(err.status).json({
+      error: err.message,
+      status: err.status,
+    });
   } else {
-    LOGGER.error('Unhandled Server Error', { error: err, stack: err.stack, request: req });
-    res.status(500).json({ error: 'An unexpected error occurred.' });
+    // Unexpected errors - log full details
+    LOGGER.error('Unhandled Server Error', {
+      error: err.message,
+      stack: err.stack,
+      path: req.path,
+      method: req.method,
+      headers: req.headers,
+    });
+    res.status(500).json({
+      error: 'An unexpected error occurred',
+      status: 500,
+    });
   }
 });
 

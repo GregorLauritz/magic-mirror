@@ -5,14 +5,17 @@ import { ApiResponse, Json } from 'models/api/fetch';
 import { WeatherForecast, WeatherForecastResource } from 'models/api/weather';
 import { getWeatherDescription, getWeatherIconFromWeathercode } from 'routes/weather/services/common';
 
-export const buildWeatheForecastrUrl = async (req: Request): Promise<string> => {
-  const start_date = (await getDateInDays(1)).toISOString().slice(0, 10);
-  const end_date = (await getForecastEnddate(req)).toISOString().slice(0, 10);
+/**
+ * Builds URL for fetching daily weather forecast
+ */
+export const buildWeatherForecastUrl = (req: Request): string => {
+  const startDate = getDateInDays(1).toISOString().slice(0, 10);
+  const endDate = getForecastEndDate(req).toISOString().slice(0, 10);
   const params = new URLSearchParams({
     latitude: req.query.latitude as string,
     longitude: req.query.longitude as string,
-    start_date: start_date,
-    end_date: end_date,
+    start_date: startDate,
+    end_date: endDate,
     daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_hours,weathercode,sunrise,sunset',
     timezone: (req.query.timezone ?? 'GMT') as string,
     ...WEATHER_UNITS,
@@ -20,56 +23,79 @@ export const buildWeatheForecastrUrl = async (req: Request): Promise<string> => 
   return `${WEATHER_API_URL}/forecast/?${params.toString()}`;
 };
 
-const getForecastEnddate = async (req: Request): Promise<Date> => {
-  const forecast_days = await getForecastDays(req);
-  return getDateInDays(forecast_days);
+/**
+ * Calculates the end date for the forecast based on request parameters
+ */
+const getForecastEndDate = (req: Request): Date => {
+  const forecastDays = getForecastDays(req);
+  return getDateInDays(forecastDays);
 };
 
-const getDateInDays = async (days: number): Promise<Date> => {
+/**
+ * Gets a date N days from today
+ */
+const getDateInDays = (days: number): Date => {
   const date = new Date();
   date.setDate(date.getDate() + days);
   return date;
 };
 
-export const getForecastDays = async (req: Request): Promise<number> => {
-  const day_query_param = parseInt(((req.query.days as string) ?? MAX_FORECAST_DAYS).toString());
-  return day_query_param;
+/**
+ * Extracts forecast days from request or uses default
+ */
+export const getForecastDays = (req: Request): number => {
+  return parseInt((req.query.days as string) ?? String(MAX_FORECAST_DAYS));
 };
 
-export const handleWeatherForecastResponse = async (res: Response, response: ApiResponse<Json>): Promise<Response> => {
+/**
+ * Handles weather forecast API response
+ */
+export const handleWeatherForecastResponse = (res: Response, response: ApiResponse<Json>): Response => {
   if (response.status === 200) {
     return createResponse(res, response.body);
   } else if (response.status === 400) {
-    throw new ApiError(response.body.reason ?? 'Error while calling weather forecast API', new Error(), 400);
+    throw new ApiError(response.body.reason ?? 'Error calling weather forecast API', new Error(), 400);
   } else {
-    throw new ApiError('Error while retrieving the weather forecast', new Error(), 500);
+    throw new ApiError('Error retrieving weather forecast', new Error(), 500);
   }
 };
 
-const createResponse = async (res: Response, response: Json): Promise<Response> => {
-  return res.status(200).json(await createResponseJson(response));
+/**
+ * Creates the HTTP response with formatted forecast data
+ */
+const createResponse = (res: Response, response: Json): Response => {
+  return res.status(200).json(createResponseJson(response));
 };
 
-const createResponseJson = async (response: Json): Promise<WeatherForecast> => {
+/**
+ * Transforms raw forecast API response into structured WeatherForecast object
+ */
+const createResponseJson = (response: Json): WeatherForecast => {
   return {
     latitude: response.latitude,
     longitude: response.longitude,
     timezone: response.timezone,
     days: response.daily.time.length,
-    forecast: await createForecastArray(response),
+    forecast: createForecastArray(response),
   };
 };
 
-const createForecastArray = async (response: Json): Promise<Array<WeatherForecastResource>> => {
-  const forecast: Array<Promise<WeatherForecastResource>> = [];
+/**
+ * Creates array of daily forecast resources
+ */
+const createForecastArray = (response: Json): Array<WeatherForecastResource> => {
   const count = response.daily.time.length;
+  const forecast: Array<WeatherForecastResource> = [];
   for (let i = 0; i < count; i++) {
     forecast.push(createForecastDay(response, i));
   }
-  return Promise.all(forecast);
+  return forecast;
 };
 
-const createForecastDay = async (response: Json, index: number): Promise<WeatherForecastResource> => {
+/**
+ * Creates a single day's forecast data
+ */
+const createForecastDay = (response: Json, index: number): WeatherForecastResource => {
   const weathercode = response.daily.weathercode[index];
   return {
     date: response.daily.time[index],
@@ -83,10 +109,10 @@ const createForecastDay = async (response: Json, index: number): Promise<Weather
       hours: response.daily.precipitation_hours[index],
       amount_unit: response.daily_units.precipitation_sum,
     },
-    weather_icon: await getWeatherIconFromWeathercode(true, weathercode),
+    weather_icon: getWeatherIconFromWeathercode(true, weathercode),
     sunrise: response.daily.sunrise[index],
     sunset: response.daily.sunset[index],
     weathercode: weathercode,
-    description: await getWeatherDescription(weathercode),
+    description: getWeatherDescription(weathercode),
   };
 };

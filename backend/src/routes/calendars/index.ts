@@ -7,13 +7,9 @@ import { getRouter } from 'services/router_factory';
 // Calendar List Retrieval Service
 class CalendarListRetriever {
   static async getCalendarList(req: Request): Promise<calendar_v3.Schema$CalendarListEntry[] | undefined> {
-    try {
-      const calendar = await getGoogleCalendar(req);
-      const calendars = await calendar.calendarList.list({ maxResults: 100 });
-      return calendars.data.items;
-    } catch (err) {
-      throw new ApiError('Error retrieving calendar list', err as Error, 500);
-    }
+    const calendar = getGoogleCalendar(req);
+    const calendars = await calendar.calendarList.list({ maxResults: 100 });
+    return calendars.data.items;
   }
 }
 
@@ -29,7 +25,7 @@ class CalendarListParser {
 }
 
 // Route Handler
-async function listCalendars(req: Request, res: Response, next: NextFunction) {
+async function listCalendars(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const calendarList = await CalendarListRetriever.getCalendarList(req);
     const parsedList = CalendarListParser.parseCalendarList(calendarList);
@@ -39,7 +35,7 @@ async function listCalendars(req: Request, res: Response, next: NextFunction) {
     if (err instanceof ApiError) {
       next(err);
     } else {
-      next(new ApiError('Error while retrieving calendar list', err as Error, 500));
+      next(new ApiError('Error retrieving calendar list', err as Error, 500));
     }
   }
 }

@@ -1,14 +1,14 @@
-import { IDatabaseConenction } from 'services/database/database';
+import { IDatabaseConnection } from 'services/database/database';
 import { randomUUID } from 'crypto';
 
-export const SERVER_PORT = parseInt(process.env.PORT ?? String(3001));
+export const SERVER_PORT = parseInt(process.env.SERVER_PORT ?? String(3001));
 export const SESSION_SECRET = process.env.SESSION_SECRET ?? randomUUID();
 export const SERVER_HOSTNAME = process.env.SERVER_HOSTNAME ?? 'localhost';
 export const ENABLE_HTTPS = (process.env.ENABLE_HTTPS?.toLowerCase() ?? 'false') === 'true';
 export const SSL_PRIVATE_KEY = process.env.SSL_PRIVATE_KEY ?? '/etc/express/express.key';
-export const SSL_CERTIFICATE = process.env.SSL_PRIVATE_KEY ?? '/etc/express/express.pem';
+export const SSL_CERTIFICATE = process.env.SSL_CERTIFICATE ?? '/etc/express/express.pem';
 
-export const mongoDbData: IDatabaseConenction = {
+export const mongoDbData: IDatabaseConnection = {
   hostname: process.env.MONGO_HOSTNAME ?? 'mongo',
   port: parseInt(process.env.MONGO_PORT ?? '27017'),
   username: process.env.MONGO_USERNAME,

@@ -5,14 +5,19 @@ import { ApiResponse, Json } from 'models/api/fetch';
 import { CurrentWeather } from 'models/api/weather';
 import { getWeatherDescription, getWeatherIconFromWeathercode, sunIsCurrentlyUp } from 'routes/weather/services/common';
 
-export const buildCurrentWeatherUrl = async (req: Request): Promise<string> => {
-  const today_date = new Date().toISOString().slice(0, 10);
+/**
+ * Builds the URL for fetching current weather data
+ * @param req - Express request with latitude, longitude, and timezone query params
+ * @returns Weather API URL
+ */
+export const buildCurrentWeatherUrl = (req: Request): string => {
+  const todayDate = new Date().toISOString().slice(0, 10);
   const params = new URLSearchParams({
     latitude: req.query.latitude as string,
     longitude: req.query.longitude as string,
     current_weather: 'true',
-    start_date: today_date,
-    end_date: today_date,
+    start_date: todayDate,
+    end_date: todayDate,
     daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,sunrise,sunset',
     timezone: (req.query.timezone ?? 'GMT') as string,
     hourly: 'apparent_temperature',
@@ -21,7 +26,13 @@ export const buildCurrentWeatherUrl = async (req: Request): Promise<string> => {
   return `${WEATHER_API_URL}/forecast/?${params.toString()}`;
 };
 
-export const handleCurrentWeatherResponse = async (res: Response, response: ApiResponse<Json>): Promise<Response> => {
+/**
+ * Handles the weather API response and formats it for the client
+ * @param res - Express response object
+ * @param response - API response from weather service
+ * @returns Express response with formatted weather data
+ */
+export const handleCurrentWeatherResponse = (res: Response, response: ApiResponse<Json>): Response => {
   if (response.status === 200) {
     return createResponse(res, response.body);
   } else if (response.status === 400) {
@@ -31,13 +42,19 @@ export const handleCurrentWeatherResponse = async (res: Response, response: ApiR
   }
 };
 
-const createResponse = async (res: Response, response: Json): Promise<Response> => {
-  const responseJson = await createResponseJson(response);
+/**
+ * Creates the HTTP response with formatted weather data
+ */
+const createResponse = (res: Response, response: Json): Response => {
+  const responseJson = createResponseJson(response);
   return res.status(200).json(responseJson);
 };
 
-const createResponseJson = async (response: Json): Promise<CurrentWeather> => {
-  const isDay = await sunIsCurrentlyUp(response.daily.sunrise[0], response.daily.sunset[0]);
+/**
+ * Transforms raw weather API response into structured CurrentWeather object
+ */
+const createResponseJson = (response: Json): CurrentWeather => {
+  const isDay = sunIsCurrentlyUp(response.daily.sunrise[0], response.daily.sunset[0]);
   const hourlyIndex = parseInt(response.current_weather.time.split('T')[1].split(':')[0]);
   return {
     latitude: response.latitude,
@@ -52,7 +69,7 @@ const createResponseJson = async (response: Json): Promise<CurrentWeather> => {
     windspeed: response.current_weather.windspeed,
     weathercode: response.current_weather.weathercode,
     update_time: response.current_weather.time,
-    weather_icon: await getWeatherIconFromWeathercode(isDay, response.current_weather.weathercode),
-    description: await getWeatherDescription(response.current_weather.weathercode),
+    weather_icon: getWeatherIconFromWeathercode(isDay, response.current_weather.weathercode),
+    description: getWeatherDescription(response.current_weather.weathercode),
   };
 };

@@ -18,16 +18,9 @@ class UserSettingsService {
     return userSettings ? this.parseUserSettings(userSettings) : null;
   }
 
-  async updateSettings(sub: string, updates: Partial<ApiDtoUserSettings>): Promise<ApiDtoUserSettings | null> {
-    const existingSettings = await this.repository.get(sub);
-    if (!existingSettings) return null;
-    const updatedSettings = await this.repository.update(existingSettings, updates);
-    return this.parseUserSettings(updatedSettings);
-  }
-
-  async createSettings(sub: string, newSettings: ApiDtoUserSettings): Promise<ApiDtoUserSettings> {
-    const createdSettings = await this.repository.create(sub, newSettings);
-    return this.parseUserSettings(createdSettings);
+  async upsertSettings(sub: string, settings: ApiDtoUserSettings): Promise<ApiDtoUserSettings> {
+    const upsertedSettings = await this.repository.upsert(sub, settings);
+    return this.parseUserSettings(upsertedSettings);
   }
 
   async deleteSettings(sub: string): Promise<void> {
@@ -49,50 +42,38 @@ class UserSettingsService {
 const userSettingsRepository = new UserSettingsRepository();
 const userSettingsService = new UserSettingsService(userSettingsRepository);
 
-const getMeUserSettings = async (req: Request, res: Response, next: NextFunction) => {
+const getMeUserSettings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const sub = await getUserId(req.headers);
+    const sub = getUserId(req.headers);
     const userSettings = await userSettingsService.getSettings(sub);
     if (!userSettings) {
-      return res.status(404).send('User settings not found');
+      res.status(404).json({ error: 'User settings not found' });
+      return;
     }
     res.status(200).json(userSettings);
   } catch (err) {
-    next(new ApiError('Error while retrieving user settings', err as Error, 500));
+    next(err instanceof ApiError ? err : new ApiError('Error retrieving user settings', err as Error, 500));
   }
 };
 
-const patchMeUserSettings = async (req: Request, res: Response, next: NextFunction) => {
+const putMeUserSettings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const sub = await getUserId(req.headers);
-    const updatedSettings = await userSettingsService.updateSettings(sub, req.body);
-    if (!updatedSettings) {
-      return next(new ApiError('User settings not found', undefined, 404));
-    }
-    res.status(200).json(updatedSettings);
+    const sub = getUserId(req.headers);
+    const upsertedSettings = await userSettingsService.upsertSettings(sub, req.body);
+    res.status(200).json(upsertedSettings);
   } catch (err) {
-    next(new ApiError('Error updating settings', err as Error, 500));
+    next(err instanceof ApiError ? err : new ApiError('Error saving user settings', err as Error, 500));
   }
 };
 
-const postUserSettings = async (req: Request, res: Response, next: NextFunction) => {
+const deleteMeUserSettings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const sub = await getUserId(req.headers);
-    const newSettings = await userSettingsService.createSettings(sub, req.body);
-    res.status(201).json(newSettings);
-  } catch (err) {
-    next(new ApiError('Error creating user settings', err as Error, 500));
-  }
-};
-
-const deleteMeUserSettings = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const sub = await getUserId(req.headers);
+    const sub = getUserId(req.headers);
     await userSettingsService.deleteSettings(sub);
     res.status(204).send();
   } catch (err) {
-    next(new ApiError('Error while deleting user settings', err as Error, 500));
+    next(err instanceof ApiError ? err : new ApiError('Error deleting user settings', err as Error, 500));
   }
 };
 
-export { postUserSettings, deleteMeUserSettings, getMeUserSettings, patchMeUserSettings };
+export { deleteMeUserSettings, getMeUserSettings, putMeUserSettings };

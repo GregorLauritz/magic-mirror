@@ -18,7 +18,7 @@ const zipCodeMiddleware = new RegexParameterValidator('zip_code', ZIP_REGEX, EPa
 const cityMiddleware = new RegexParameterValidator('city', CITY_REGEX, EParamType.query, false);
 
 class GeocodingService {
-  static async buildGeocodeUrl(req: Request): Promise<string> {
+  static buildGeocodeUrl(req: Request): string {
     const params = new URLSearchParams({
       country: req.query.country as string,
       api_key: GEOCODE_API_KEY,
@@ -38,7 +38,7 @@ class GeocodingService {
     return fetchJson(url);
   }
 
-  static async parseGeocodeResponse(response: ApiResponse<Json>): Promise<GeoLocation> {
+  static parseGeocodeResponse(response: ApiResponse<Json>): GeoLocation {
     if (!Array.isArray(response.body) || response.body.length === 0) {
       throw new ApiError(response.body?.reason ?? 'Geolocation could not be found', undefined, 404);
     }
@@ -57,11 +57,11 @@ class GeocodingService {
 }
 
 // Route Handler
-async function getGeocodeOfAddress(req: Request, res: Response, next: NextFunction) {
+async function getGeocodeOfAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const url = await GeocodingService.buildGeocodeUrl(req);
+    const url = GeocodingService.buildGeocodeUrl(req);
     const response = await GeocodingService.fetchGeocodeData(url);
-    const coordinates = await GeocodingService.parseGeocodeResponse(response);
+    const coordinates = GeocodingService.parseGeocodeResponse(response);
     res.status(200).json(coordinates);
   } catch (err) {
     if (err instanceof ApiError) {

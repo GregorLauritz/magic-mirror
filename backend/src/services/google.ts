@@ -1,19 +1,27 @@
-import { IncomingHttpHeaders } from 'http2';
+import { IncomingHttpHeaders } from 'http';
 import { getAccessToken } from './headers';
-import { google } from 'googleapis';
+import { calendar_v3, google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 import { Request } from 'express';
 
-const getOAuth2ClientForUser = async (headers: IncomingHttpHeaders): Promise<OAuth2Client> => {
-  const access_token = await getAccessToken(headers);
+/**
+ * Creates an OAuth2 client with user credentials from forwarded headers
+ * @param headers - HTTP request headers containing access token
+ * @returns Configured OAuth2Client instance
+ */
+export const getOAuth2ClientForUser = (headers: IncomingHttpHeaders): OAuth2Client => {
+  const accessToken = getAccessToken(headers);
   const client = new google.auth.OAuth2();
-  client.setCredentials({ access_token });
+  client.setCredentials({ access_token: accessToken });
   return client;
 };
 
-const getGoogleCalendar = async (req: Request) => {
-  const auth = await getOAuth2ClientForUser(req.headers);
+/**
+ * Creates a Google Calendar API client authenticated with user credentials
+ * @param req - Express request object
+ * @returns Google Calendar v3 API client
+ */
+export const getGoogleCalendar = (req: Request): calendar_v3.Calendar => {
+  const auth = getOAuth2ClientForUser(req.headers);
   return google.calendar({ version: 'v3', auth });
 };
-
-export { getOAuth2ClientForUser, getGoogleCalendar };

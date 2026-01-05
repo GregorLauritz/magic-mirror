@@ -27,7 +27,7 @@ const UpcomingEvents = () => {
     return (
         <MediumCard>
             <Grid container spacing={1} height={'100%'}>
-                <Grid item xs={6}>
+                <Grid size={6}>
                     <Box>
                         <Typography variant="body1">TODAY</Typography>
                         <Stack spacing={1} direction={'column'}>
@@ -40,14 +40,9 @@ const UpcomingEvents = () => {
                         </Stack>
                     </Box>
                 </Grid>
-                <Grid item xs={6}>
-                    <Grid
-                        container
-                        direction="column"
-                        spacing={1}
-                        height={'100%'}
-                    >
-                        <Grid item xs={6} height={'50%'}>
+                <Grid size={6}>
+                    <Grid direction="column" spacing={1} height={'100%'}>
+                        <Grid size={12} height={'50%'}>
                             <Typography
                                 fontWeight={'bold'}
                                 fontSize={xSmallFontSize}
@@ -63,7 +58,7 @@ const UpcomingEvents = () => {
                                 />
                             </Stack>
                         </Grid>
-                        <Grid item xs={6} height={'50%'}>
+                        <Grid size={12} height={'50%'}>
                             <Typography
                                 fontWeight={'bold'}
                                 fontSize={xSmallFontSize}

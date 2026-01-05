@@ -3,7 +3,7 @@ export interface IDatabaseConnectionOptions {
   value: string;
 }
 
-export interface IDatabaseConenction {
+export interface IDatabaseConnection {
   hostname: string;
   port: number;
   database?: string;
@@ -16,7 +16,7 @@ export abstract class Database {
   protected readonly _connectionString: string;
   protected readonly _databaseType: string;
 
-  constructor(dbConnection: IDatabaseConenction, databaseType: string) {
+  constructor(dbConnection: IDatabaseConnection, databaseType: string) {
     this._databaseType = databaseType;
     this._connectionString = this.buildConnectionString(dbConnection);
     this.initDatabaseConnection();
@@ -26,7 +26,7 @@ export abstract class Database {
 
   public getConnectionString = (): string => this._connectionString;
 
-  protected abstract buildConnectionString(dbConnection: IDatabaseConenction): string;
+  protected abstract buildConnectionString(dbConnection: IDatabaseConnection): string;
 
   protected abstract initDatabaseConnection(): void;
 }

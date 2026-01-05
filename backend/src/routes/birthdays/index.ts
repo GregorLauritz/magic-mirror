@@ -16,13 +16,13 @@ const calendarIdValidator = new RegexParameterValidator('cal_id', CAL_ID_REGEX, 
 
 // Birthday Parsing Service
 class BirthdayParser {
-  static async parseBirthdays(events: calendar_v3.Schema$Events): Promise<BirthdayList> {
+  static parseBirthdays(events: calendar_v3.Schema$Events): BirthdayList {
     const items = events.items || [];
-    const birthdays = await Promise.all(items.map(this.parseBirthday));
+    const birthdays = items.map(this.parseBirthday);
     return { count: birthdays.length, list: birthdays };
   }
 
-  static async parseBirthday(birthday: calendar_v3.Schema$Event): Promise<Birthday> {
+  static parseBirthday(birthday: calendar_v3.Schema$Event): Birthday {
     const name = birthday.summary ?? '';
     return {
       name: name.replace("'s Birthday", ''),
@@ -34,11 +34,11 @@ class BirthdayParser {
 // Calendar Event Retrieval Service
 class CalendarEventRetriever {
   static async getBirthdays(req: Request, calendarId: string, maxResults: number): Promise<calendar_v3.Schema$Events> {
-    const calendar = await getGoogleCalendar(req);
+    const calendar = getGoogleCalendar(req);
     const timeMin = new Date().toISOString();
 
     const events = await calendar.events.list({
-      calendarId: calendarId,
+      calendarId,
       timeMin,
       maxResults,
       singleEvents: true,
@@ -49,17 +49,17 @@ class CalendarEventRetriever {
 }
 
 // Route Handler
-async function allBirthdays(req: Request, res: Response, next: NextFunction) {
+async function allBirthdays(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const maxResults = parseInt((req.query.count as string) || String(CALENDAR_CONFIG.DEFAULT_EVENT_COUNT));
     const calId = req.query.cal_id as string;
 
     const events = await CalendarEventRetriever.getBirthdays(req, calId, maxResults);
-    const parsedEvents = await BirthdayParser.parseBirthdays(events);
+    const parsedEvents = BirthdayParser.parseBirthdays(events);
 
     res.status(200).json(parsedEvents);
   } catch (err) {
-    next(new ApiError('Error retrieving calendar events', err as Error, 500));
+    next(new ApiError('Error retrieving birthdays', err as Error, 500));
   }
 }
 

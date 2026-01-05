@@ -7,12 +7,11 @@ import { default as cors } from 'cors';
 import { EXPRESS_LOGGER } from 'services/loggers';
 import { Database } from 'services/database/database';
 import { getSessionStore } from 'services/server/session_store';
-import * as http2 from 'http2';
-import http2Express from 'http2-express-bridge';
+import * as http from 'http';
 import helmet from 'helmet';
 import RateLimit from 'express-rate-limit';
 
-export abstract class Server<T extends http2.Http2Server> {
+export abstract class Server<T extends http.Server> {
   protected readonly _app: express.Application;
   protected readonly _port: number;
   private readonly _database: Database;
@@ -30,7 +29,7 @@ export abstract class Server<T extends http2.Http2Server> {
   constructor(database: Database, port = 3001) {
     this._port = port;
     this._database = database;
-    this._app = http2Express(express);
+    this._app = express();
     this._app.set('port', port);
     this.configureExpress();
   }

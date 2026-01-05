@@ -24,12 +24,12 @@ const userRepository = new UserRepository();
 const userSettingsRepository = new UserSettingsRepository();
 const userService = new UserService(userRepository, userSettingsRepository);
 
-export const deleteMeUser = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteMeUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const sub = await getUserId(req.headers);
+    const sub = getUserId(req.headers);
     await userService.deleteUser(sub);
     res.status(204).send();
   } catch (err) {
-    next(new ApiError('Error while deleting user', err as Error, 500));
+    next(err instanceof ApiError ? err : new ApiError('Error deleting user', err as Error, 500));
   }
 };

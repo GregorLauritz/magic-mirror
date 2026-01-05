@@ -1,11 +1,17 @@
 import { NextFunction, Request, Response } from 'express';
-import { buildWeatheForecastrUrl, handleWeatherForecastResponse } from 'routes/weather/services/forecast';
+import { buildWeatherForecastUrl, handleWeatherForecastResponse } from 'routes/weather/services/forecast';
 import { fetchJson } from 'services/fetch';
 import { ApiError } from 'models/api/api_error';
 
-export const getWeatherForecast = async (req: Request, res: Response, next: NextFunction) => {
-  return buildWeatheForecastrUrl(req)
-    .then((url) => fetchJson(url))
-    .then((response) => handleWeatherForecastResponse(res, response))
-    .catch((err: ApiError) => next(err));
+/**
+ * Route handler for getting daily weather forecast
+ */
+export const getWeatherForecast = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const url = buildWeatherForecastUrl(req);
+    const response = await fetchJson(url);
+    handleWeatherForecastResponse(res, response);
+  } catch (err) {
+    next(err instanceof ApiError ? err : new ApiError('Error retrieving weather forecast', err as Error, 500));
+  }
 };

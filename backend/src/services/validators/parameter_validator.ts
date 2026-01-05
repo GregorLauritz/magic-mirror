@@ -12,7 +12,7 @@ export abstract class ParameterValidator {
   protected readonly _paramName: string;
   protected readonly _required: boolean;
   protected readonly _type: EParamType;
-  protected readonly _paramContainsMap = new Map<EParamType, (req: Request, paramName: string) => Promise<boolean>>([
+  protected readonly _paramContainsMap = new Map<EParamType, (req: Request, paramName: string) => boolean>([
     [EParamType.query, requestQueryContainsParam],
     [EParamType.request, requestContainsParam],
   ]);
@@ -32,11 +32,11 @@ export abstract class ParameterValidator {
     if (paramFunc) return paramFunc(req);
   };
 
-  public validate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public validate = (req: Request, res: Response, next: NextFunction): void => {
     LOGGER.info(`Validate parameter ${this._paramName}`);
     const func = this._paramContainsMap.get(this._type);
     if (func) {
-      const exists = await func(req, this._paramName);
+      const exists = func(req, this._paramName);
       if (!exists && !this._required) {
         LOGGER.info(`Non required ${this._type} parameter ${this._paramName} not existing in request - continuing`);
         return next();

@@ -10,11 +10,7 @@ import { HOURLY_FORECAST_HOURS } from '../../constants/weather'
 import { useRegisterUpdateTrigger } from '../../hooks/useRegisterUpdateTrigger'
 
 const HourlyWeather = () => {
-    const {
-        longitude,
-        latitude,
-        isLoading: isLocationLoading,
-    } = useLocation()
+    const { longitude, latitude, isLoading: isLocationLoading } = useLocation()
     const { addHourlyUpdateTrigger, timeZone } = useTimeContext()
 
     const {
@@ -34,13 +30,13 @@ const HourlyWeather = () => {
     const forecastItems = useMemo(() => {
         if (isWeatherLoading || isLocationLoading) {
             return Array.from({ length: HOURLY_FORECAST_HOURS }, (_, i) => (
-                <Grid item xs={2} key={i}>
+                <Grid size={2} key={i}>
                     <ForecastItem item={undefined} isLoading={true} />
                 </Grid>
             ))
         } else if (weather?.forecast) {
             return weather.forecast.map((val) => (
-                <Grid item xs={2} key={val.time}>
+                <Grid size={2} key={val.time}>
                     <ForecastItem item={val} isLoading={false} />
                 </Grid>
             ))

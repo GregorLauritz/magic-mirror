@@ -5,7 +5,7 @@ import {
 } from '../components/settings_form/SettingsForm'
 import { useNavigate } from 'react-router-dom'
 import { useGetUserSettings } from '../apis/user_settings'
-import { patchUserSettings, postUserSettings } from '../apis/users'
+import { putUserSettings } from '../apis/users'
 import { useListCalendars } from '../apis/calendar_list'
 import { UserSettings } from '../models/user_settings'
 import { useCallback } from 'react'
@@ -47,15 +47,9 @@ export const Settings = () => {
     const updateSettings = useCallback(
         (data: SettingsParams) => {
             if (inputHasChanged(data, userSettings)) {
-                if (userSettings === undefined) {
-                    postUserSettings(data)
-                        .then(() => refetch())
-                        .catch(alert)
-                } else {
-                    patchUserSettings(data)
-                        .then(() => refetch())
-                        .catch(alert)
-                }
+                putUserSettings(data)
+                    .then(() => refetch())
+                    .catch(alert)
             }
         },
         [userSettings, refetch]

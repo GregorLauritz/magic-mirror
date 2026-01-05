@@ -11,11 +11,7 @@ import { useRegisterUpdateTrigger } from '../../hooks/useRegisterUpdateTrigger'
 
 const DailyForecast = () => {
     const { addDailyUpdateTrigger, timeZone } = useTimeContext()
-    const {
-        longitude,
-        latitude,
-        isLoading: isLocationLoading,
-    } = useLocation()
+    const { longitude, latitude, isLoading: isLocationLoading } = useLocation()
 
     const {
         data: weather,
@@ -39,13 +35,13 @@ const DailyForecast = () => {
     const forecastItems = useMemo(() => {
         if (isLoadingData) {
             return Array.from({ length: DAILY_FORECAST_DAYS }, (_, i) => (
-                <Grid item xs={3} key={i}>
+                <Grid size={3} key={i}>
                     <ForecastItem item={undefined} isLoading={true} />
                 </Grid>
             ))
         } else if (weather?.forecast) {
             return weather.forecast.map((val) => (
-                <Grid item xs={3} key={val.date}>
+                <Grid size={3} key={val.date}>
                     <ForecastItem item={val} isLoading={false} />
                 </Grid>
             ))

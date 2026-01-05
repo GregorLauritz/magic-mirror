@@ -19,9 +19,10 @@ interface WeatherInfoProps {
 }
 
 const WeatherInfo = React.memo<WeatherInfoProps>(({ weather }) => {
-    const precipitationValue = weather.precipitation_sum !== null
-        ? weather.precipitation_sum.toFixed(1)
-        : '-'
+    const precipitationValue =
+        weather.precipitation_sum !== null
+            ? weather.precipitation_sum.toFixed(1)
+            : '-'
 
     return (
         <React.Fragment>
@@ -63,11 +64,7 @@ const WeatherInfo = React.memo<WeatherInfoProps>(({ weather }) => {
 WeatherInfo.displayName = 'WeatherInfo'
 
 const CurrentWeather = () => {
-    const {
-        longitude,
-        latitude,
-        isLoading: isLocationLoading,
-    } = useLocation()
+    const { longitude, latitude, isLoading: isLocationLoading } = useLocation()
     const { timeZone } = useTimeContext()
     const {
         data: weather,
@@ -134,12 +131,10 @@ const CurrentWeather = () => {
     return (
         <MediumCard>
             <Grid container spacing={1}>
-                <Grid item xs={6}>
+                <Grid size={6}>
                     <Stack spacing={1}>{weatherData}</Stack>
                 </Grid>
-                <Grid item xs={6}>
-                    {weatherIconJsx}
-                </Grid>
+                <Grid size={6}>{weatherIconJsx}</Grid>
             </Grid>
         </MediumCard>
     )

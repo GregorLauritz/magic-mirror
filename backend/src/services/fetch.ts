@@ -2,67 +2,82 @@ import { ALLOWED_URLS } from 'config';
 import { ApiResponse, Json } from 'models/api/fetch';
 import { LOGGER } from 'services/loggers';
 
+/**
+ * Fetches JSON data from an external API with URL validation and logging
+ * @param url - URL to fetch from (must be in ALLOWED_URLS)
+ * @param options - Fetch options (headers, method, etc.)
+ * @param logUrl - Optional URL to display in logs (for security)
+ * @returns API response with parsed JSON body
+ * @throws Error if URL is not in allowed list
+ */
 export const fetchJson = async (
   url: string,
   options: RequestInit = {},
-  logUrl: string | undefined = undefined,
+  logUrl?: string,
 ): Promise<ApiResponse<Json>> => {
-  LOGGER.info(`Calling API ${logUrl ?? url} to get JSON`);
-  return checkInputURL(url)
-    .then(() => fetch(url, options))
-    .then((response) => logFetch(response, logUrl ?? url))
-    .then((response) => parseJsonResponse(response))
-    .catch((err) => logFetchErr(err, logUrl ?? url));
+  const displayUrl = logUrl ?? url;
+  LOGGER.info(`Calling API ${displayUrl} to get JSON`);
+
+  checkInputURL(url);
+
+  try {
+    const response = await fetch(url, options);
+    LOGGER.info(`Call to API ${displayUrl} returned status code ${response.status}`);
+
+    const body = await response.json();
+    return {
+      body,
+      status: response.status,
+      statusOk: response.ok,
+    };
+  } catch (err) {
+    LOGGER.error(`Call to API ${displayUrl} returned error`, { error: err });
+    throw err;
+  }
 };
 
-const logFetch = async (res: Response, url: string): Promise<Response> => {
-  LOGGER.info(`Call to API ${url} returned status code ${res.status}`);
-  return res;
-};
-
-const logFetchErr = async (err: Error, url: string) => {
-  LOGGER.error(`Call to API ${url} returned error '${err.message}'`);
-  throw err;
-};
-
-const parseJsonResponse = async (res: Response): Promise<ApiResponse<Json>> => {
-  return {
-    body: await res.json(),
-    status: res.status,
-    statusOk: res.ok,
-  };
-};
-
+/**
+ * Fetches binary data (ArrayBuffer) from an external API
+ * @param url - URL to fetch from (must be in ALLOWED_URLS)
+ * @param options - Fetch options (headers, method, etc.)
+ * @param logUrl - Optional URL to display in logs (for security)
+ * @returns API response with ArrayBuffer body
+ * @throws Error if URL is not in allowed list
+ */
 export const fetchBuffer = async (
   url: string,
   options: RequestInit = {},
-  logUrl: string | undefined = undefined,
+  logUrl?: string,
 ): Promise<ApiResponse<ArrayBuffer>> => {
-  LOGGER.info(`Calling API ${logUrl ?? url} to get BLOB`);
-  return checkInputURL(url)
-    .then(() => fetch(url, options))
-    .then((response) => logFetch(response, logUrl ?? url))
-    .then((response) => parseBufferResponse(response))
-    .catch((err) => logFetchErr(err, logUrl ?? url));
+  const displayUrl = logUrl ?? url;
+  LOGGER.info(`Calling API ${displayUrl} to get binary data`);
+
+  checkInputURL(url);
+
+  try {
+    const response = await fetch(url, options);
+    LOGGER.info(`Call to API ${displayUrl} returned status code ${response.status}`);
+
+    const body = await response.arrayBuffer();
+    return {
+      body,
+      status: response.status,
+      statusOk: response.ok,
+    };
+  } catch (err) {
+    LOGGER.error(`Call to API ${displayUrl} returned error`, { error: err });
+    throw err;
+  }
 };
 
-const parseBufferResponse = async (res: Response): Promise<ApiResponse<ArrayBuffer>> => {
-  return {
-    body: await res.arrayBuffer(),
-    status: res.status,
-    statusOk: res.ok,
-  };
-};
-
-const checkInputURL = async (url: string) => {
-  isAllowedURL(url).then((res) => checkUrlAllowedResponse(res, url));
-};
-
-const isAllowedURL = async (url: string): Promise<boolean> => {
-  return ALLOWED_URLS.some((allowed_url) => url.startsWith(allowed_url));
-};
-
-const checkUrlAllowedResponse = async (isAllowed: boolean, url: string) => {
-  if (isAllowed) return;
-  throw new Error(`Invalid URL given! URL ${url} is not part of the allowed URL list!`);
+/**
+ * Validates that a URL is in the allowed list for security
+ * @param url - URL to validate
+ * @throws Error if URL is not allowed
+ */
+const checkInputURL = (url: string): void => {
+  const isAllowed = ALLOWED_URLS.some((allowedUrl) => url.startsWith(allowedUrl));
+  if (!isAllowed) {
+    throw new Error(`Invalid URL: ${url} is not in the allowed URL list`);
+  }
 };

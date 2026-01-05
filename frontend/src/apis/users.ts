@@ -3,45 +3,26 @@ import { fetchJson } from '../common/fetch'
 import { UserSettings } from '../models/user_settings'
 import { SettingsParams } from '../components/settings_form/SettingsForm'
 
-export const postUserSettings = async (data: SettingsParams) => {
-    return getUserSettingsBody(data)
-        .then((settings) => JSON.stringify(settings))
-        .then((settings) =>
-            fetchJson(
-                USER_SETTINGS_API,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: settings,
-                },
-                [201]
-            )
-        )
-}
+export const putUserSettings = async (data: SettingsParams): Promise<UserSettings> => {
+    const settings = await getUserSettingsBody(data)
+    const body = JSON.stringify(settings)
 
-export const patchUserSettings = async (data: SettingsParams) => {
-    return getUserSettingsBody(data)
-        .then((settings) => JSON.stringify(settings))
-        .then((settings) =>
-            fetchJson(
-                `${USER_SETTINGS_API}/me`,
-                {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: settings,
-                },
-                [200]
-            )
-        )
+    return fetchJson<UserSettings>(
+        `${USER_SETTINGS_API}/me`,
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body,
+        },
+        [200]
+    )
 }
 
 const getUserSettingsBody = async (
     data: SettingsParams
-): Promise<Partial<UserSettings>> => {
+): Promise<UserSettings> => {
     return {
         zip_code: data.zipCode,
         country: data.country,
