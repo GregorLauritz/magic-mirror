@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from 'react-query'
-import React from 'react'
+import React, { ReactNode } from 'react'
 import MenuAppBar from './components/appbar/MenuAppBar'
 import { PADDING } from './assets/styles/theme'
 import { Box } from '@mui/material'
@@ -20,7 +20,11 @@ const queryCache = new QueryClient({
     },
 })
 
-const BaseFrame = ({ children }: { children: JSX.Element }) => {
+interface BaseFrameProps {
+    children: ReactNode
+}
+
+const BaseFrame = ({ children }: BaseFrameProps) => {
     return (
         <React.Fragment>
             <MenuAppBar />

@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query'
+import { useQuery, UseQueryResult } from 'react-query'
 import { fetchJson } from '../common/fetch'
 import { ServerStateKeysEnum } from '../common/statekeys'
 import { REFETCH_INTERVAL, WEATHER_API } from '../constants/api'
@@ -10,7 +10,7 @@ export const useGetCurrentWeather = (
     latitude: number = LATITUDE,
     enabled: boolean = true,
     timeZone: string = 'GMT'
-) =>
+): UseQueryResult<CurrentWeatherResource, Error> =>
     useQuery<CurrentWeatherResource, Error>({
         queryKey: [
             ServerStateKeysEnum.current_weather,
@@ -18,7 +18,7 @@ export const useGetCurrentWeather = (
             latitude,
             timeZone,
         ],
-        queryFn: async () => {
+        queryFn: async (): Promise<CurrentWeatherResource> => {
             const params = new URLSearchParams({
                 latitude: latitude.toString(),
                 longitude: longitude.toString(),
@@ -26,9 +26,7 @@ export const useGetCurrentWeather = (
             })
             return fetchJson<CurrentWeatherResource>(
                 `${WEATHER_API}/current?${params.toString()}`
-            ).catch((err) => {
-                throw err
-            })
+            )
         },
         refetchInterval: REFETCH_INTERVAL,
         enabled,

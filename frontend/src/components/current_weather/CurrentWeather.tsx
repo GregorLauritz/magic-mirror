@@ -8,19 +8,67 @@ import { smallFontSize } from '../../assets/styles/theme'
 import { useGetCurrentWeather } from '../../apis/current_weather'
 import { MediumCard } from '../CardFrame'
 import { useGetWeatherIcon } from '../../apis/weather_icon'
-import React, { useContext, useMemo } from 'react'
-import { LocationContext } from '../../common/LocationContext'
+import React, { useMemo } from 'react'
+import { useLocation } from '../../hooks/useLocation'
 import ErrorCard from '../error_card/ErrorCard'
 import { CurrentWeatherResource } from '../../models/current_weather'
-import { TimeContext } from '../../common/TimeContext'
+import { useTimeContext } from '../../hooks/useTimeContext'
+
+interface WeatherInfoProps {
+    weather: CurrentWeatherResource
+}
+
+const WeatherInfo = React.memo<WeatherInfoProps>(({ weather }) => {
+    const precipitationValue = weather.precipitation_sum !== null
+        ? weather.precipitation_sum.toFixed(1)
+        : '-'
+
+    return (
+        <React.Fragment>
+            <Typography variant="h3">
+                {weather.temperature.current.toFixed()}
+                {TEMP_UNIT}
+            </Typography>
+            <Stack direction="row">
+                <ArrowDropUpIcon />
+                <Typography variant="subtitle2" color="text.primary">
+                    {weather.temperature.max.toFixed()}
+                    {TEMP_UNIT}
+                </Typography>
+                <ArrowDropDownIcon />
+                <Typography variant="subtitle2" color="text.primary">
+                    {weather.temperature.min.toFixed()}
+                    {TEMP_UNIT}
+                </Typography>
+            </Stack>
+            <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                sx={smallFontSize}
+            >
+                Feels like {weather.temperature.feels_like.toFixed()}
+                {TEMP_UNIT}
+            </Typography>
+            <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                sx={smallFontSize}
+            >
+                Precipitation: {precipitationValue} {PRECIPITATION_UNIT}
+            </Typography>
+        </React.Fragment>
+    )
+})
+
+WeatherInfo.displayName = 'WeatherInfo'
 
 const CurrentWeather = () => {
     const {
         longitude,
         latitude,
         isLoading: isLocationLoading,
-    } = useContext(LocationContext)
-    const { timeZone } = useContext(TimeContext)
+    } = useLocation()
+    const { timeZone } = useTimeContext()
     const {
         data: weather,
         isLoading: isWeatherLoading,
@@ -70,16 +118,14 @@ const CurrentWeather = () => {
         } else if (error || !weather) {
             return <React.Fragment>Error!</React.Fragment>
         }
-        return getWeatherInfoElement(weather)
+        return <WeatherInfo weather={weather} />
     }, [isLoadingData, error, weather])
 
     if ((!longitude || !latitude) && !isLocationLoading) {
         return (
             <ErrorCard
                 Card={MediumCard}
-                error={
-                    'Longitude and or latitude are not set. Please update your location in the settings'
-                }
+                error="Longitude and or latitude are not set. Please update your location in the settings"
                 showSettingsBtn
             />
         )
@@ -96,51 +142,6 @@ const CurrentWeather = () => {
                 </Grid>
             </Grid>
         </MediumCard>
-    )
-}
-
-const getWeatherInfoElement = (
-    weather: CurrentWeatherResource
-): JSX.Element => {
-    return (
-        <React.Fragment>
-            <Typography variant="h3">
-                {weather.temperature.current.toFixed() ?? '-'}
-                {TEMP_UNIT}
-            </Typography>
-            <Stack direction={'row'}>
-                <ArrowDropUpIcon />
-                <Typography variant="subtitle2" color="text.primary">
-                    {weather.temperature.max.toFixed() ?? '-'}
-                    {TEMP_UNIT}
-                </Typography>
-                <ArrowDropDownIcon />
-                <Typography variant="subtitle2" color="text.primary">
-                    {weather.temperature.min.toFixed() ?? '-'}
-                    {TEMP_UNIT}
-                </Typography>
-            </Stack>
-            <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                sx={smallFontSize}
-            >
-                Feels like {weather.temperature.feels_like.toFixed() ?? '-'}
-                {TEMP_UNIT}
-            </Typography>
-            <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                sx={smallFontSize}
-            >
-                Precipitaiton:{' '}
-                {(weather.precipitation_sum.toFixed(1) ??
-                weather.precipitation_sum === 0)
-                    ? weather.precipitation_sum
-                    : '-'}{' '}
-                {PRECIPITATION_UNIT}
-            </Typography>
-        </React.Fragment>
     )
 }
 

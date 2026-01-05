@@ -4,13 +4,7 @@ import { MediumCard } from '../CardFrame'
 import { CalendarEvent } from '../../models/calendar'
 import { Event } from './Event'
 import { xSmallFontSize } from '../../assets/styles/theme'
-import React, {
-    ReactElement,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-} from 'react'
+import React, { ReactElement, useMemo } from 'react'
 import { EventTexts, TodayEventTexts, NextDaysEventTexts } from './types'
 import { useGetEvents } from '../../apis/events'
 import {
@@ -18,22 +12,17 @@ import {
     getISODayEndString,
     getISODayStartString,
 } from '../../common/dateParser'
-import { TimeContext } from '../../common/TimeContext'
+import { useTimeContext } from '../../hooks/useTimeContext'
 import { useGetUserSettings } from '../../apis/user_settings'
 import { ServerStateKeysEnum } from '../../common/statekeys'
 import { useQuery } from 'react-query'
 
 const UpcomingEvents = () => {
-    const { currentDate } = useContext(TimeContext)
-    const [tomorrowsDate, setTomorrowsDate] = useState<Date>(getDateInXDays(1))
-    const [overmorrowsDate, setOvermorrowsDate] = useState<Date>(
-        getDateInXDays(2)
-    )
+    const { currentDate } = useTimeContext()
 
-    useEffect(() => {
-        setTomorrowsDate(getDateInXDays(1))
-        setOvermorrowsDate(getDateInXDays(2))
-    }, [currentDate])
+    // These dates are recomputed whenever currentDate changes
+    const tomorrowsDate = getDateInXDays(1)
+    const overmorrowsDate = getDateInXDays(2)
 
     return (
         <MediumCard>

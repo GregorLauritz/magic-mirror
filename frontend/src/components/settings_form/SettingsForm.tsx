@@ -10,7 +10,7 @@ import {
 import { LOCATION_API } from '../../constants/api'
 import { CalendarListItem } from '../../models/calendar'
 
-type SettingsParams = {
+export interface SettingsParams {
     country: string
     city: string
     zipCode: string
@@ -18,7 +18,7 @@ type SettingsParams = {
     eventsCalId: string
 }
 
-type Props = {
+interface SettingsFormProps {
     calendars: CalendarListItem[]
     defaults: SettingsParams
     showBackButton: boolean
@@ -32,7 +32,7 @@ export const SettingsForm = ({
     showBackButton,
     onSend,
     onBack,
-}: Props) => {
+}: SettingsFormProps) => {
     const {
         country: defaultCountry,
         city: defaultCity,
@@ -170,20 +170,18 @@ export const SettingsForm = ({
     )
 }
 
-const validate = async (country: string, city?: string, zipCode?: string) => {
+const validate = async (
+    country: string,
+    city?: string,
+    zipCode?: string
+): Promise<void> => {
     const params = new URLSearchParams({
         country,
         city: city ?? '',
         zip_code: zipCode ?? '',
     })
-    return fetch(`${LOCATION_API}/geocode?${params.toString()}`)
-        .then((res) => {
-            if (res.ok) return
-            throw Error()
-        })
-        .catch((err) => {
-            throw err
-        })
+    const response = await fetch(`${LOCATION_API}/geocode?${params.toString()}`)
+    if (!response.ok) {
+        throw new Error('Geocoding validation failed')
+    }
 }
-
-export type { SettingsParams }

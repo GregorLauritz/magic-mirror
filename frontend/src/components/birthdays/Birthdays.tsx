@@ -1,16 +1,18 @@
 import Typography from '@mui/material/Typography'
-import React, { useContext, useEffect, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { Skeleton, Stack } from '@mui/material'
 import CakeIcon from '@mui/icons-material/Cake'
 import BirthdayItem from './BirthdayItem'
 import { useGetBirthdays } from '../../apis/birthday'
 import { SmallCard } from '../CardFrame'
-import { TimeContext } from '../../common/TimeContext'
+import { useTimeContext } from '../../hooks/useTimeContext'
 import { useGetUserSettings } from '../../apis/user_settings'
+import { useRegisterUpdateTrigger } from '../../hooks/useRegisterUpdateTrigger'
 
 const MAX_BIRTHDAYS = 4
+
 export const Birthdays = () => {
-    const { addDailyUpdateTrigger } = useContext(TimeContext)
+    const { addDailyUpdateTrigger } = useTimeContext()
     const { data: userSettings } = useGetUserSettings(false)
 
     const {
@@ -20,9 +22,7 @@ export const Birthdays = () => {
         refetch,
     } = useGetBirthdays(userSettings?.birthday_cal_id ?? '', MAX_BIRTHDAYS)
 
-    useEffect(() => {
-        addDailyUpdateTrigger(refetch)
-    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    useRegisterUpdateTrigger(addDailyUpdateTrigger, refetch)
 
     const listItems = useMemo(() => {
         if (isLoading) {
@@ -39,13 +39,13 @@ export const Birthdays = () => {
 
     return (
         <SmallCard>
-            <Stack direction={'row'} justifyContent={'space-between'}>
+            <Stack direction="row" justifyContent="space-between">
                 <Typography color="text.primary" variant="body1" gutterBottom>
                     Birthdays
                 </Typography>
                 <CakeIcon fontSize="small" />
             </Stack>
-            <Stack direction={'column'} spacing={2}>
+            <Stack direction="column" spacing={2}>
                 {listItems}
             </Stack>
         </SmallCard>

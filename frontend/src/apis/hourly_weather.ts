@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query'
+import { useQuery, UseQueryResult } from 'react-query'
 import { fetchJson } from '../common/fetch'
 import { ServerStateKeysEnum } from '../common/statekeys'
 import { REFETCH_INTERVAL, WEATHER_API } from '../constants/api'
@@ -15,7 +15,7 @@ export const useGetHourlyWeather = (
     forecast_hours: number = HOURLY_FORECAST_HOURS,
     enabled: boolean = true,
     timeZone: string = 'GMT'
-) =>
+): UseQueryResult<HourlyWeatherObject, Error> =>
     useQuery<HourlyWeatherObject, Error>({
         queryKey: [
             ServerStateKeysEnum.hourly_weather,
@@ -25,7 +25,7 @@ export const useGetHourlyWeather = (
             timeZone,
         ],
         enabled,
-        queryFn: async () => {
+        queryFn: async (): Promise<HourlyWeatherObject> => {
             const params = new URLSearchParams({
                 latitude: latitude.toString(),
                 longitude: longitude.toString(),
@@ -34,9 +34,7 @@ export const useGetHourlyWeather = (
             })
             return fetchJson<HourlyWeatherObject>(
                 `${WEATHER_API}/hourly?${params.toString()}`
-            ).catch((err) => {
-                throw err
-            })
+            )
         },
         refetchInterval: REFETCH_INTERVAL,
     })

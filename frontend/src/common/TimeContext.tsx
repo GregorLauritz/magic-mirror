@@ -5,7 +5,10 @@ import {
     useMemo,
     useRef,
     useState,
+    ReactNode,
 } from 'react'
+
+type UpdateTrigger = () => void
 
 type TimeContextType = {
     addHourlyUpdateTrigger: (trigger: UpdateTrigger) => void
@@ -21,31 +24,30 @@ const defaultValue: TimeContextType = {
     currentDate: new Date(),
 }
 
-type UpdateTrigger = () => void
+const TimeContext = createContext<TimeContextType>(defaultValue)
 
-const TimeContext = createContext(defaultValue)
-
-const getTimeZone = () => {
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-    return timeZone
+const getTimeZone = (): string => {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone
 }
 
-type Props = { children: JSX.Element }
+interface TimeContextProviderProps {
+    children: ReactNode
+}
 
-const TimeContextProvider = ({ children }: Props) => {
-    const [timeZone, setTimeZone] = useState(getTimeZone())
-    const [currentDate, setCurrentDate] = useState(new Date())
+const TimeContextProvider = ({ children }: TimeContextProviderProps) => {
+    const [timeZone, setTimeZone] = useState<string>(getTimeZone())
+    const [currentDate, setCurrentDate] = useState<Date>(new Date())
 
     const hourlyTriggers = useRef<Set<UpdateTrigger>>(new Set())
     const dailyTriggers = useRef<Set<UpdateTrigger>>(new Set())
-    const prevHour = useRef(currentDate.getHours())
-    const prevDay = useRef(currentDate.getDate())
+    const prevHour = useRef<number>(new Date().getHours())
+    const prevDay = useRef<number>(new Date().getDate())
 
-    const addHourlyUpdateTrigger = useCallback((trigger: UpdateTrigger) => {
+    const addHourlyUpdateTrigger = useCallback((trigger: UpdateTrigger): void => {
         hourlyTriggers.current.add(trigger)
     }, [])
 
-    const addDailyUpdateTrigger = useCallback((trigger: UpdateTrigger) => {
+    const addDailyUpdateTrigger = useCallback((trigger: UpdateTrigger): void => {
         dailyTriggers.current.add(trigger)
     }, [])
 
@@ -66,7 +68,7 @@ const TimeContextProvider = ({ children }: Props) => {
         return () => clearInterval(intervalId)
     }, [])
 
-    const value = useMemo(
+    const value = useMemo<TimeContextType>(
         () => ({
             timeZone,
             currentDate,
@@ -80,3 +82,4 @@ const TimeContextProvider = ({ children }: Props) => {
 }
 
 export { TimeContextProvider, TimeContext }
+export type { UpdateTrigger }

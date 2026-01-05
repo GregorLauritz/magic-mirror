@@ -2,19 +2,21 @@ import ForecastItem from './ForecastItem'
 import { useGetHourlyWeather } from '../../apis/hourly_weather'
 import { MediumCard } from '../CardFrame'
 import { Grid } from '@mui/material'
-import React, { useContext, useEffect, useMemo } from 'react'
-import { TimeContext } from '../../common/TimeContext'
-import { LocationContext } from '../../common/LocationContext'
+import React, { useMemo } from 'react'
+import { useTimeContext } from '../../hooks/useTimeContext'
+import { useLocation } from '../../hooks/useLocation'
 import ErrorCard from '../error_card/ErrorCard'
 import { HOURLY_FORECAST_HOURS } from '../../constants/weather'
+import { useRegisterUpdateTrigger } from '../../hooks/useRegisterUpdateTrigger'
 
 const HourlyWeather = () => {
     const {
         longitude,
         latitude,
         isLoading: isLocationLoading,
-    } = useContext(LocationContext)
-    const { addHourlyUpdateTrigger, timeZone } = useContext(TimeContext)
+    } = useLocation()
+    const { addHourlyUpdateTrigger, timeZone } = useTimeContext()
+
     const {
         data: weather,
         isLoading: isWeatherLoading,
@@ -27,19 +29,19 @@ const HourlyWeather = () => {
         timeZone
     )
 
-    useEffect(() => {
-        addHourlyUpdateTrigger(refetch)
-    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    useRegisterUpdateTrigger(addHourlyUpdateTrigger, refetch)
 
     const forecastItems = useMemo(() => {
         if (isWeatherLoading || isLocationLoading) {
             return Array.from({ length: HOURLY_FORECAST_HOURS }, (_, i) => (
-                <ForecastItem item={undefined} key={i} isLoading={true} />
+                <Grid item xs={2} key={i}>
+                    <ForecastItem item={undefined} isLoading={true} />
+                </Grid>
             ))
         } else if (weather?.forecast) {
             return weather.forecast.map((val) => (
-                <Grid item xs={2} key={JSON.stringify(val)}>
-                    <ForecastItem item={val} key={val.time} isLoading={false} />
+                <Grid item xs={2} key={val.time}>
+                    <ForecastItem item={val} isLoading={false} />
                 </Grid>
             ))
         } else {
@@ -51,9 +53,7 @@ const HourlyWeather = () => {
         return (
             <ErrorCard
                 Card={MediumCard}
-                error={
-                    'Longitude and or latitude are not set. Please update your location in the settings'
-                }
+                error="Longitude and or latitude are not set. Please update your location in the settings"
                 showSettingsBtn
             />
         )
