@@ -1,6 +1,6 @@
 import { Theme } from '@emotion/react'
 import { SxProps } from '@mui/material'
-import Card from '@mui/material/Card/Card'
+import Card from '@mui/material/Card'
 import { ReactNode, memo } from 'react'
 import { card_small, card_medium, card_large } from '../assets/styles/cards'
 
