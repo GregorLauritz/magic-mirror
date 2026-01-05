@@ -34,6 +34,6 @@ oauth2_proxy:
 backend_context: "/api"
 pw_store_dir: "{{ playbook_dir }}/pwstore"
 node:
-  version: 20-alpine3.21
+  version: 24-alpine3.23
 
 backend_url: "https://nuc.{{ domain }}"
