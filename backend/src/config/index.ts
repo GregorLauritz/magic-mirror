@@ -33,6 +33,7 @@ export const CALENDAR_CONFIG = {
 
 export const OPENWEATHER_URL = 'https://openweathermap.org';
 export const GEOCODE_URL = 'https://geocode.maps.co';
+export const GEOCODE_API_KEY = process.env.GEOCODE_API_KEY ?? '';
 export const WEATHER_API_URL = 'https://api.open-meteo.com/v1';
 export const WEATHER_UNITS = new URLSearchParams({
   timezone: 'GMT%2B0',
