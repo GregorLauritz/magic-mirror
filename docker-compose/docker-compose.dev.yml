@@ -42,7 +42,7 @@ services:
       MONGO_USERNAME: ${MONGO_ROOT_USER}
       MONGO_PASSWORD: ${MONGO_ROOT_PW}
   mongo:
-    image: mongo
+    image: mongo:8.2.3-noble
     restart: unless-stopped
     hostname: mongo
     volumes:
