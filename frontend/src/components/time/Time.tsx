@@ -17,14 +17,14 @@ export const Time = () => {
 
     return (
         <SmallCard>
-            <Stack direction="column" spacing={1}>
+            <Stack direction="column" spacing={1.5}>
                 <Typography variant="subtitle2" color="text.primary">
                     {time.weekdayLong}
                 </Typography>
                 <Typography color="text.primary" variant="body1">
                     {time.currentDate}
                 </Typography>
-                <Typography variant="h3">
+                <Typography variant="h2">
                     {time.hour}:{time.minute}
                 </Typography>
                 <Typography

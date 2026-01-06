@@ -26,7 +26,7 @@ const WeatherInfo = React.memo<WeatherInfoProps>(({ weather }) => {
 
     return (
         <React.Fragment>
-            <Typography variant="h3">
+            <Typography variant="h2">
                 {weather.temperature.current.toFixed()}
                 {TEMP_UNIT}
             </Typography>

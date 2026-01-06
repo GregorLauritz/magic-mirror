@@ -9,7 +9,7 @@ import { useTimeContext } from '../../hooks/useTimeContext'
 import { useGetUserSettings } from '../../apis/user_settings'
 import { useRegisterUpdateTrigger } from '../../hooks/useRegisterUpdateTrigger'
 
-const MAX_BIRTHDAYS = 4
+const MAX_BIRTHDAYS = 5
 
 export const Birthdays = () => {
     const { addDailyUpdateTrigger } = useTimeContext()
@@ -35,7 +35,7 @@ export const Birthdays = () => {
         return birthdays.list
             .slice(0, MAX_BIRTHDAYS)
             .map((data) => <BirthdayItem item={data} key={data.name} />)
-    }, [birthdays?.list, isLoading, error])
+    }, [birthdays, isLoading, error])
 
     return (
         <SmallCard>
@@ -45,7 +45,7 @@ export const Birthdays = () => {
                 </Typography>
                 <CakeIcon fontSize="small" />
             </Stack>
-            <Stack direction="column" spacing={2}>
+            <Stack direction="column" spacing={1.5}>
                 {listItems}
             </Stack>
         </SmallCard>

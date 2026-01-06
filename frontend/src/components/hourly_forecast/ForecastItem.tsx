@@ -1,5 +1,4 @@
 import { Box, Skeleton, Stack, Typography } from '@mui/material'
-import { useEffect, useState } from 'react'
 import {
     PRECIPITATION_UNIT,
     TEMP_UNIT,
@@ -17,16 +16,6 @@ interface IForecastItem {
 }
 
 const ForecastItem = ({ item, isLoading }: IForecastItem) => {
-    const [hours, setHours] = useState('')
-    const [minutes, setMinutes] = useState('')
-
-    useEffect(() => {
-        if (!item?.time) return
-        const t = new Date(item.time)
-        setHours(parseTime(t.getHours()))
-        setMinutes(parseTime(t.getMinutes()))
-    }, [item?.time])
-
     const {
         data: icon,
         isLoading: iconLoading,
@@ -50,15 +39,17 @@ const ForecastItem = ({ item, isLoading }: IForecastItem) => {
     }
 
     return (
-        <Stack direction={'column'}>
+        <Stack direction={'column'} spacing={0.5} alignItems={'center'}>
             <Typography variant="subtitle2" color="text.primary" align="center">
-                {hours}:{minutes}
+                {parseTime(new Date(item.time).getHours())}:
+                {parseTime(new Date(item.time).getMinutes())}
             </Typography>
             <Box
                 component="img"
                 src={iconError || iconLoading ? unknownWeatherIcon : icon}
                 alt="Weather Icon"
                 loading="lazy"
+                sx={{ maxWidth: '100%', height: 'auto' }}
             />
             <Typography
                 variant="subtitle2"

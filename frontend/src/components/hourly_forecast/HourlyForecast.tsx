@@ -43,7 +43,7 @@ const HourlyWeather = () => {
         } else {
             return <React.Fragment>Error!</React.Fragment>
         }
-    }, [isWeatherLoading, isLocationLoading, weather?.forecast])
+    }, [isWeatherLoading, isLocationLoading, weather])
 
     if ((!longitude || !latitude) && !isLocationLoading) {
         return (

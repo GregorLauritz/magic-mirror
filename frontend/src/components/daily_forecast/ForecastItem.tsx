@@ -38,7 +38,7 @@ const ForecastItem = ({ item, isLoading }: IForecastItem) => {
     }
 
     return (
-        <Stack direction={'column'}>
+        <Stack direction={'column'} spacing={0.5} alignItems={'center'}>
             <Typography variant="subtitle2" color="text.primary" align="center">
                 {dayName}
             </Typography>
@@ -47,6 +47,7 @@ const ForecastItem = ({ item, isLoading }: IForecastItem) => {
                 src={iconError || !icon ? unknownWeatherIcon : icon}
                 alt="Weather Icon"
                 loading="lazy"
+                sx={{ maxWidth: '100%', height: 'auto' }}
             />
             <Stack direction={'row'} justifyContent={'center'}>
                 <Typography

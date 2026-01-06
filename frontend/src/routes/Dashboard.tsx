@@ -23,18 +23,47 @@ const DashBoardItems = () => {
     return (
         <Box
             sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                justifyContent: 'flex-start',
+                display: 'grid',
+                gridTemplateColumns:
+                    'repeat(auto-fit, minmax(min(155px, 100%), 1fr))',
                 gap: PADDING,
+                width: '100%',
             }}
         >
-            <Time />
-            <Birthdays />
-            <UpcomingEvents />
-            <CurrentWeather />
-            <HourlyWeather />
-            <DailyForecast />
+            <Box sx={{ gridColumn: 'span 1' }}>
+                <Time />
+            </Box>
+            <Box sx={{ gridColumn: 'span 1' }}>
+                <Birthdays />
+            </Box>
+            <Box
+                sx={{
+                    gridColumn: { xs: 'span 1', sm: 'span 2' },
+                }}
+            >
+                <UpcomingEvents />
+            </Box>
+            <Box
+                sx={{
+                    gridColumn: { xs: 'span 1', sm: 'span 2' },
+                }}
+            >
+                <CurrentWeather />
+            </Box>
+            <Box
+                sx={{
+                    gridColumn: { xs: 'span 1', sm: 'span 2' },
+                }}
+            >
+                <HourlyWeather />
+            </Box>
+            <Box
+                sx={{
+                    gridColumn: { xs: 'span 1', sm: 'span 2' },
+                }}
+            >
+                <DailyForecast />
+            </Box>
         </Box>
     )
 }
