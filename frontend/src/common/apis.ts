@@ -12,7 +12,11 @@ export const buildQuery = async (
 }
 
 const buildQueryParam = (query_param: QUERY_PARAM) => {
-    if (query_param.value) {
+    if (
+        query_param.value !== undefined &&
+        query_param.value !== null &&
+        String(query_param.value).trim().length > 0
+    ) {
         return `${query_param.name}=${query_param.value}`
     }
 }
