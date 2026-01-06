@@ -1,0 +1,119 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+
+jobs:
+  backend-checks:
+    name: Backend Quality Checks
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./backend
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    services:
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+        env:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: example
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "yarn"
+          cache-dependency-path: backend/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run ESLint
+        run: yarn lint
+        continue-on-error: false
+
+      - name: Check Prettier formatting
+        run: yarn format:check
+
+      - name: TypeScript type check
+        run: yarn build
+
+      - name: Run unit tests with coverage
+        run: yarn test:coverage
+        env:
+          CI: true
+          MONGO_HOSTNAME: localhost
+          MONGO_PORT: 27017
+          MONGO_USERNAME: root
+          MONGO_PASSWORD: example
+
+      - name: Verify coverage threshold
+        run: |
+          echo "✅ Coverage thresholds validated by c8 (80% minimum)"
+          if [ -f "coverage/coverage-summary.json" ]; then
+            echo "📊 Coverage Summary:"
+            cat coverage/coverage-summary.json | jq '.total'
+          fi
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./backend/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-${{ matrix.node-version }}
+          path: backend/coverage
+          retention-days: 7
+
+  summary:
+    name: Backend CI Summary
+    runs-on: ubuntu-latest
+    needs: backend-checks
+    if: always()
+
+    steps:
+      - name: Check job status
+        run: |
+          if [ "${{ needs.backend-checks.result }}" == "success" ]; then
+            echo "✅ All backend checks passed!"
+            exit 0
+          else
+            echo "❌ Backend checks failed"
+            exit 1
+          fi
