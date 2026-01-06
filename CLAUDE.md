@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Magic Mirror is a personalized smart display dashboard application that shows real-time weather, calendar events, birthdays, and time. It integrates with Google Calendar via OAuth2 and displays information on a full-screen dashboard (originally designed for Raspberry Pi displays).
 
 **Tech Stack:**
-- Frontend: React 18 + TypeScript + Vite + Material-UI
-- Backend: Node.js + Express + TypeScript + MongoDB
+- Frontend: React 18 + TypeScript + Vite + Material-UI + Yarn as package manager
+- Backend: Node.js + Express + TypeScript + MongoDB + Yarn as package manager
 - Auth: OAuth2-Proxy (reverse proxy handling Google OAuth2)
 - Infrastructure: Docker Compose, Ansible, Nginx
 
