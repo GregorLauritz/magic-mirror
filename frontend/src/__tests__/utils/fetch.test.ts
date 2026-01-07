@@ -196,7 +196,6 @@ describe('fetch utilities', () => {
 
     describe('fetchBlob', () => {
         it('should fetch and return blob successfully', async () => {
-            const mockBlob = new Blob(['test data'], { type: 'image/png' })
             const mockStream = new ReadableStream({
                 start(controller) {
                     controller.enqueue(new Uint8Array([1, 2, 3]))
