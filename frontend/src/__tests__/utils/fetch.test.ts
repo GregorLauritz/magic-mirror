@@ -12,9 +12,12 @@ describe('fetch utilities', () => {
 
     describe('fetchRetry', () => {
         it('should successfully fetch with valid response', async () => {
-            const mockResponse = new Response(JSON.stringify({ data: 'test' }), {
-                status: 200,
-            })
+            const mockResponse = new Response(
+                JSON.stringify({ data: 'test' }),
+                {
+                    status: 200,
+                }
+            )
             global.fetch = vi.fn().mockResolvedValue(mockResponse)
 
             const result = await fetchRetry('https://api.example.com/test')
@@ -42,21 +45,31 @@ describe('fetch utilities', () => {
 
             await expect(
                 fetchRetry('https://api.example.com/test', {}, [200])
-            ).rejects.toThrow('Request to https://api.example.com/test failed with status code 500')
+            ).rejects.toThrow(
+                'Request to https://api.example.com/test failed with status code 500'
+            )
         })
 
         it('should retry on failure', async () => {
             const mockError = new Error('Network error')
-            const mockResponse = new Response(JSON.stringify({ data: 'test' }), {
-                status: 200,
-            })
+            const mockResponse = new Response(
+                JSON.stringify({ data: 'test' }),
+                {
+                    status: 200,
+                }
+            )
 
             global.fetch = vi
                 .fn()
                 .mockRejectedValueOnce(mockError)
                 .mockResolvedValueOnce(mockResponse)
 
-            const result = await fetchRetry('https://api.example.com/test', {}, [200], 2)
+            const result = await fetchRetry(
+                'https://api.example.com/test',
+                {},
+                [200],
+                2
+            )
 
             expect(global.fetch).toHaveBeenCalledTimes(2)
             expect(result.status).toBe(200)
@@ -85,9 +98,12 @@ describe('fetch utilities', () => {
         })
 
         it('should pass options to fetch', async () => {
-            const mockResponse = new Response(JSON.stringify({ data: 'test' }), {
-                status: 200,
-            })
+            const mockResponse = new Response(
+                JSON.stringify({ data: 'test' }),
+                {
+                    status: 200,
+                }
+            )
             global.fetch = vi.fn().mockResolvedValue(mockResponse)
 
             const options: RequestInit = {
@@ -97,10 +113,13 @@ describe('fetch utilities', () => {
 
             await fetchRetry('https://api.example.com/test', options)
 
-            expect(global.fetch).toHaveBeenCalledWith('https://api.example.com/test', {
-                ...options,
-                credentials: 'include',
-            })
+            expect(global.fetch).toHaveBeenCalledWith(
+                'https://api.example.com/test',
+                {
+                    ...options,
+                    credentials: 'include',
+                }
+            )
         })
     })
 
@@ -126,7 +145,11 @@ describe('fetch utilities', () => {
             })
             global.fetch = vi.fn().mockResolvedValue(mockResponse)
 
-            const result = await fetchJson('https://api.example.com/test', {}, [200, 404])
+            const result = await fetchJson(
+                'https://api.example.com/test',
+                {},
+                [200, 404]
+            )
 
             expect(result).toEqual(mockData)
         })
@@ -143,21 +166,31 @@ describe('fetch utilities', () => {
                 .mockRejectedValueOnce(mockError)
                 .mockResolvedValueOnce(mockResponse)
 
-            const result = await fetchJson('https://api.example.com/test', {}, [200], 2)
+            const result = await fetchJson(
+                'https://api.example.com/test',
+                {},
+                [200],
+                2
+            )
 
             expect(result).toEqual(mockData)
             expect(global.fetch).toHaveBeenCalledTimes(2)
         })
 
         it('should throw error for non-allowed status codes', async () => {
-            const mockResponse = new Response(JSON.stringify({ error: 'Server error' }), {
-                status: 500,
-            })
+            const mockResponse = new Response(
+                JSON.stringify({ error: 'Server error' }),
+                {
+                    status: 500,
+                }
+            )
             global.fetch = vi.fn().mockResolvedValue(mockResponse)
 
             await expect(
                 fetchJson('https://api.example.com/test', {}, [200])
-            ).rejects.toThrow('Request to https://api.example.com/test failed with status code 500')
+            ).rejects.toThrow(
+                'Request to https://api.example.com/test failed with status code 500'
+            )
         })
     })
 

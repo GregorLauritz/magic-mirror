@@ -21,7 +21,9 @@ describe('useGetCurrentWeather', () => {
     })
 
     const wrapper = ({ children }: { children: ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+            {children}
+        </QueryClientProvider>
     )
 
     it('should fetch current weather successfully', async () => {

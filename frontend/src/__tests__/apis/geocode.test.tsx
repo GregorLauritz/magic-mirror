@@ -21,7 +21,9 @@ describe('useGetGeocode', () => {
     })
 
     const wrapper = ({ children }: { children: ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+            {children}
+        </QueryClientProvider>
     )
 
     it('should fetch geocode successfully', async () => {
@@ -38,7 +40,9 @@ describe('useGetGeocode', () => {
             { name: 'zip_code', value: '10115' },
         ]
 
-        const { result } = renderHook(() => useGetGeocode(params, true), { wrapper })
+        const { result } = renderHook(() => useGetGeocode(params, true), {
+            wrapper,
+        })
 
         await waitFor(() => {
             expect(result.current.isSuccess).toBe(true)
@@ -52,7 +56,9 @@ describe('useGetGeocode', () => {
 
         const params = [{ name: 'city', value: 'Berlin' }]
 
-        const { result } = renderHook(() => useGetGeocode(params, false), { wrapper })
+        const { result } = renderHook(() => useGetGeocode(params, false), {
+            wrapper,
+        })
 
         expect(result.current.isLoading).toBe(false)
         expect(fetchUtils.fetchJson).not.toHaveBeenCalled()
@@ -64,7 +70,9 @@ describe('useGetGeocode', () => {
 
         const params = [{ name: 'city', value: 'Berlin' }]
 
-        const { result } = renderHook(() => useGetGeocode(params, true), { wrapper })
+        const { result } = renderHook(() => useGetGeocode(params, true), {
+            wrapper,
+        })
 
         await waitFor(() => {
             expect(result.current.isError).toBe(true)
@@ -95,7 +103,9 @@ describe('useGetGeocode', () => {
 
         vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue(mockLocation)
 
-        const { result } = renderHook(() => useGetGeocode([], true), { wrapper })
+        const { result } = renderHook(() => useGetGeocode([], true), {
+            wrapper,
+        })
 
         await waitFor(() => {
             expect(result.current.isSuccess).toBe(true)

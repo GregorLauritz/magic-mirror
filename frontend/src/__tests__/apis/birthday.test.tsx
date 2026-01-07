@@ -21,7 +21,9 @@ describe('useGetBirthdays', () => {
     })
 
     const wrapper = ({ children }: { children: ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+            {children}
+        </QueryClientProvider>
     )
 
     it('should fetch birthdays successfully', async () => {
@@ -89,12 +91,18 @@ describe('useGetBirthdays', () => {
 
         vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue(mockBirthdays)
 
-        const { result: result1 } = renderHook(() => useGetBirthdays('cal_123', 3), {
-            wrapper,
-        })
-        const { result: result2 } = renderHook(() => useGetBirthdays('cal_456', 3), {
-            wrapper,
-        })
+        const { result: result1 } = renderHook(
+            () => useGetBirthdays('cal_123', 3),
+            {
+                wrapper,
+            }
+        )
+        const { result: result2 } = renderHook(
+            () => useGetBirthdays('cal_456', 3),
+            {
+                wrapper,
+            }
+        )
 
         await waitFor(() => {
             expect(result1.current.isSuccess).toBe(true)
@@ -109,12 +117,18 @@ describe('useGetBirthdays', () => {
 
         vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue(mockBirthdays)
 
-        const { result: result1 } = renderHook(() => useGetBirthdays('cal_123', 3), {
-            wrapper,
-        })
-        const { result: result2 } = renderHook(() => useGetBirthdays('cal_123', 10), {
-            wrapper,
-        })
+        const { result: result1 } = renderHook(
+            () => useGetBirthdays('cal_123', 3),
+            {
+                wrapper,
+            }
+        )
+        const { result: result2 } = renderHook(
+            () => useGetBirthdays('cal_123', 10),
+            {
+                wrapper,
+            }
+        )
 
         await waitFor(() => {
             expect(result1.current.isSuccess).toBe(true)
@@ -163,12 +177,18 @@ describe('useGetBirthdays', () => {
 
         vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue(mockBirthdays)
 
-        const { result: result1 } = renderHook(() => useGetBirthdays('cal_123', 5), {
-            wrapper,
-        })
-        const { result: result2 } = renderHook(() => useGetBirthdays('cal_456', 10), {
-            wrapper,
-        })
+        const { result: result1 } = renderHook(
+            () => useGetBirthdays('cal_123', 5),
+            {
+                wrapper,
+            }
+        )
+        const { result: result2 } = renderHook(
+            () => useGetBirthdays('cal_456', 10),
+            {
+                wrapper,
+            }
+        )
 
         await waitFor(() => {
             expect(result1.current.isSuccess).toBe(true)

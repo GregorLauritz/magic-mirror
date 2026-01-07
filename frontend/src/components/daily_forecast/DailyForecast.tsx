@@ -1,15 +1,15 @@
 import ForecastItem from './ForecastItem'
 import { useGetDailyWeather } from '../../apis/daily_weather'
 import { MediumCard } from '../CardFrame'
-import { Grid } from '@mui/material'
-import React, { useMemo } from 'react'
+import { Grid, Typography } from '@mui/material'
+import { memo, useMemo } from 'react'
 import { useTimeContext } from '../../hooks/useTimeContext'
 import { useLocation } from '../../hooks/useLocation'
 import ErrorCard from '../error_card/ErrorCard'
 import { DAILY_FORECAST_DAYS } from '../../constants/weather'
 import { useRegisterUpdateTrigger } from '../../hooks/useRegisterUpdateTrigger'
 
-const DailyForecast = () => {
+const DailyForecastComponent = () => {
     const { addDailyUpdateTrigger, timeZone } = useTimeContext()
     const { longitude, latitude, isLoading: isLocationLoading } = useLocation()
 
@@ -27,10 +27,7 @@ const DailyForecast = () => {
 
     useRegisterUpdateTrigger(addDailyUpdateTrigger, refetch)
 
-    const isLoadingData = useMemo(
-        () => isWeatherLoading || isLocationLoading,
-        [isWeatherLoading, isLocationLoading]
-    )
+    const isLoadingData = isWeatherLoading || isLocationLoading
 
     const forecastItems = useMemo(() => {
         if (isLoadingData) {
@@ -39,16 +36,22 @@ const DailyForecast = () => {
                     <ForecastItem item={undefined} isLoading={true} />
                 </Grid>
             ))
-        } else if (weather?.forecast) {
+        }
+
+        if (weather?.forecast) {
             return weather.forecast.map((val) => (
                 <Grid size={3} key={val.date}>
                     <ForecastItem item={val} isLoading={false} />
                 </Grid>
             ))
-        } else {
-            return <React.Fragment>Error!</React.Fragment>
         }
-    }, [weather?.forecast, isLoadingData])
+
+        return (
+            <Typography color="text.secondary">
+                Error loading forecast
+            </Typography>
+        )
+    }, [weather, isLoadingData])
 
     if ((!longitude || !latitude) && !isLocationLoading) {
         return (
@@ -68,5 +71,8 @@ const DailyForecast = () => {
         </MediumCard>
     )
 }
+
+const DailyForecast = memo(DailyForecastComponent)
+DailyForecast.displayName = 'DailyForecast'
 
 export default DailyForecast

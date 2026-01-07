@@ -1,5 +1,5 @@
 import Typography from '@mui/material/Typography'
-import React, { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { Skeleton, Stack } from '@mui/material'
 import CakeIcon from '@mui/icons-material/Cake'
 import BirthdayItem from './BirthdayItem'
@@ -11,7 +11,7 @@ import { useRegisterUpdateTrigger } from '../../hooks/useRegisterUpdateTrigger'
 
 const MAX_BIRTHDAYS = 5
 
-export const Birthdays = () => {
+const BirthdaysComponent = () => {
     const { addDailyUpdateTrigger } = useTimeContext()
     const { data: userSettings } = useGetUserSettings(false)
 
@@ -29,12 +29,21 @@ export const Birthdays = () => {
             return Array.from({ length: MAX_BIRTHDAYS }, (_, i) => (
                 <Skeleton key={i} variant="rounded" />
             ))
-        } else if (error || !birthdays?.list) {
-            return <React.Fragment>Error!</React.Fragment>
         }
+
+        if (error || !birthdays?.list) {
+            return (
+                <Typography color="text.secondary">
+                    Error loading birthdays
+                </Typography>
+            )
+        }
+
         return birthdays.list
             .slice(0, MAX_BIRTHDAYS)
-            .map((data) => <BirthdayItem item={data} key={data.name} />)
+            .map((data) => (
+                <BirthdayItem item={data} key={`${data.name}-${data.date}`} />
+            ))
     }, [birthdays, isLoading, error])
 
     return (
@@ -51,5 +60,8 @@ export const Birthdays = () => {
         </SmallCard>
     )
 }
+
+export const Birthdays = memo(BirthdaysComponent)
+Birthdays.displayName = 'Birthdays'
 
 export default Birthdays

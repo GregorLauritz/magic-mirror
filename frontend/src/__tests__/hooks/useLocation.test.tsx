@@ -46,7 +46,9 @@ describe('useLocation', () => {
             </LocationContext.Provider>
         )
 
-        const { result, rerender } = renderHook(() => useLocation(), { wrapper })
+        const { result, rerender } = renderHook(() => useLocation(), {
+            wrapper,
+        })
 
         expect(result.current.isLoading).toBe(true)
 

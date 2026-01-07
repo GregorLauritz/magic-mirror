@@ -34,7 +34,9 @@ describe('dateParser', () => {
     describe('getLocaleDateString', () => {
         it('should format date according to locale and options', () => {
             const date = new Date('2024-01-15T12:00:00Z')
-            const result = getLocaleDateString(date, 'en-US', { weekday: 'short' })
+            const result = getLocaleDateString(date, 'en-US', {
+                weekday: 'short',
+            })
             expect(result).toBeTruthy()
             expect(typeof result).toBe('string')
         })
@@ -90,9 +92,15 @@ describe('dateParser', () => {
 
     describe('getIsoDate', () => {
         it('should return ISO date string (YYYY-MM-DD)', () => {
-            expect(getIsoDate(new Date('2024-01-15T12:00:00Z'))).toBe('2024-01-15')
-            expect(getIsoDate(new Date('2023-05-05T12:00:00Z'))).toBe('2023-05-05')
-            expect(getIsoDate(new Date('2024-12-31T12:00:00Z'))).toBe('2024-12-31')
+            expect(getIsoDate(new Date('2024-01-15T12:00:00Z'))).toBe(
+                '2024-01-15'
+            )
+            expect(getIsoDate(new Date('2023-05-05T12:00:00Z'))).toBe(
+                '2023-05-05'
+            )
+            expect(getIsoDate(new Date('2024-12-31T12:00:00Z'))).toBe(
+                '2024-12-31'
+            )
         })
     })
 

@@ -133,10 +133,12 @@ describe('LocationContext', () => {
             zip_code: '10115',
         }
 
-        const geocodeSpy = vi.spyOn(geocodeApi, 'useGetGeocode').mockReturnValue({
-            data: undefined,
-            isLoading: false,
-        } as any)
+        const geocodeSpy = vi
+            .spyOn(geocodeApi, 'useGetGeocode')
+            .mockReturnValue({
+                data: undefined,
+                isLoading: false,
+            } as any)
 
         vi.spyOn(userSettingsApi, 'useGetUserSettings').mockReturnValue({
             data: mockUserSettings as any,

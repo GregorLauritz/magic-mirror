@@ -21,7 +21,9 @@ describe('events API hooks', () => {
     })
 
     const wrapper = ({ children }: { children: ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+            {children}
+        </QueryClientProvider>
     )
 
     describe('useGetEvents', () => {
@@ -45,7 +47,9 @@ describe('events API hooks', () => {
                 end: '2024-01-20',
             })
 
-            const { result } = renderHook(() => useGetEvents(params), { wrapper })
+            const { result } = renderHook(() => useGetEvents(params), {
+                wrapper,
+            })
 
             await waitFor(() => {
                 expect(result.current.isSuccess).toBe(true)
@@ -68,12 +72,18 @@ describe('events API hooks', () => {
             const params1 = new URLSearchParams({ cal_id: 'cal_123' })
             const params2 = new URLSearchParams({ cal_id: 'cal_456' })
 
-            const { result: result1 } = renderHook(() => useGetEvents(params1), {
-                wrapper,
-            })
-            const { result: result2 } = renderHook(() => useGetEvents(params2), {
-                wrapper,
-            })
+            const { result: result1 } = renderHook(
+                () => useGetEvents(params1),
+                {
+                    wrapper,
+                }
+            )
+            const { result: result2 } = renderHook(
+                () => useGetEvents(params2),
+                {
+                    wrapper,
+                }
+            )
 
             await waitFor(() => {
                 expect(result1.current.isSuccess).toBe(true)
@@ -89,7 +99,9 @@ describe('events API hooks', () => {
 
             const params = new URLSearchParams({ cal_id: 'cal_123' })
 
-            const { result } = renderHook(() => useGetEvents(params), { wrapper })
+            const { result } = renderHook(() => useGetEvents(params), {
+                wrapper,
+            })
 
             await waitFor(() => {
                 expect(result.current.isError).toBe(true)
@@ -105,7 +117,9 @@ describe('events API hooks', () => {
 
             const params = new URLSearchParams({ cal_id: 'cal_123' })
 
-            const { result } = renderHook(() => useGetEvents(params), { wrapper })
+            const { result } = renderHook(() => useGetEvents(params), {
+                wrapper,
+            })
 
             expect(result.current.isLoading).toBe(true)
             expect(result.current.data).toBeUndefined()

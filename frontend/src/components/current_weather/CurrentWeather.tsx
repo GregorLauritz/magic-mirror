@@ -8,7 +8,7 @@ import { smallFontSize } from '../../assets/styles/theme'
 import { useGetCurrentWeather } from '../../apis/current_weather'
 import { MediumCard } from '../CardFrame'
 import { useGetWeatherIcon } from '../../apis/weather_icon'
-import React, { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { useLocation } from '../../hooks/useLocation'
 import ErrorCard from '../error_card/ErrorCard'
 import { CurrentWeatherResource } from '../../models/current_weather'
@@ -18,14 +18,17 @@ interface WeatherInfoProps {
     weather: CurrentWeatherResource
 }
 
-const WeatherInfo = React.memo<WeatherInfoProps>(({ weather }) => {
-    const precipitationValue =
-        weather.precipitation_sum !== null
-            ? weather.precipitation_sum.toFixed(1)
-            : '-'
+const WeatherInfo = memo<WeatherInfoProps>(({ weather }) => {
+    const precipitationValue = useMemo(
+        () =>
+            weather.precipitation_sum !== null
+                ? weather.precipitation_sum.toFixed(1)
+                : '-',
+        [weather.precipitation_sum]
+    )
 
     return (
-        <React.Fragment>
+        <>
             <Typography variant="h2">
                 {weather.temperature.current.toFixed()}
                 {TEMP_UNIT}
@@ -57,13 +60,13 @@ const WeatherInfo = React.memo<WeatherInfoProps>(({ weather }) => {
             >
                 Precipitation: {precipitationValue} {PRECIPITATION_UNIT}
             </Typography>
-        </React.Fragment>
+        </>
     )
 })
 
 WeatherInfo.displayName = 'WeatherInfo'
 
-const CurrentWeather = () => {
+const CurrentWeatherComponent = () => {
     const { longitude, latitude, isLoading: isLocationLoading } = useLocation()
     const { timeZone } = useTimeContext()
     const {
@@ -84,10 +87,7 @@ const CurrentWeather = () => {
             weather?.weather_icon !== undefined
     )
 
-    const isLoadingData = useMemo(
-        () => isIconLoading || isWeatherLoading || isLocationLoading,
-        [isIconLoading, isWeatherLoading, isLocationLoading]
-    )
+    const isLoadingData = isIconLoading || isWeatherLoading || isLocationLoading
 
     const weatherIconJsx = useMemo(() => {
         if (isLoadingData) {
@@ -106,15 +106,22 @@ const CurrentWeather = () => {
     const weatherData = useMemo(() => {
         if (isLoadingData) {
             return (
-                <React.Fragment>
+                <>
                     <Skeleton variant="rounded" height={80} />
                     <Skeleton variant="rounded" />
                     <Skeleton variant="rounded" />
-                </React.Fragment>
+                </>
             )
-        } else if (error || !weather) {
-            return <React.Fragment>Error!</React.Fragment>
         }
+
+        if (error || !weather) {
+            return (
+                <Typography color="text.secondary">
+                    Error loading weather
+                </Typography>
+            )
+        }
+
         return <WeatherInfo weather={weather} />
     }, [isLoadingData, error, weather])
 
@@ -139,5 +146,8 @@ const CurrentWeather = () => {
         </MediumCard>
     )
 }
+
+const CurrentWeather = memo(CurrentWeatherComponent)
+CurrentWeather.displayName = 'CurrentWeather'
 
 export default CurrentWeather

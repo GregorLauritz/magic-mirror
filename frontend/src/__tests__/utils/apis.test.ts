@@ -68,13 +68,18 @@ describe('apis', () => {
         })
 
         it('should return empty string when all parameters have no values', async () => {
-            const params: QueryParameters = [{ name: 'city' }, { name: 'country' }]
+            const params: QueryParameters = [
+                { name: 'city' },
+                { name: 'country' },
+            ]
             const result = await buildQuery(params)
             expect(result).toBe('')
         })
 
         it('should handle special characters in values', async () => {
-            const params: QueryParameters = [{ name: 'city', value: 'New York' }]
+            const params: QueryParameters = [
+                { name: 'city', value: 'New York' },
+            ]
             const result = await buildQuery(params)
             expect(result).toBe('?city=New York')
         })

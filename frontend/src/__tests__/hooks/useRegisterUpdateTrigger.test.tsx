@@ -7,7 +7,9 @@ describe('useRegisterUpdateTrigger', () => {
         const mockRegisterFn = vi.fn()
         const mockRefetchFn = vi.fn()
 
-        renderHook(() => useRegisterUpdateTrigger(mockRegisterFn, mockRefetchFn))
+        renderHook(() =>
+            useRegisterUpdateTrigger(mockRegisterFn, mockRefetchFn)
+        )
 
         expect(mockRegisterFn).toHaveBeenCalledTimes(1)
         expect(mockRegisterFn).toHaveBeenCalledWith(mockRefetchFn)
@@ -36,7 +38,8 @@ describe('useRegisterUpdateTrigger', () => {
         const mockRefetchFn = vi.fn()
 
         const { rerender } = renderHook(
-            ({ registerFn }) => useRegisterUpdateTrigger(registerFn, mockRefetchFn),
+            ({ registerFn }) =>
+                useRegisterUpdateTrigger(registerFn, mockRefetchFn),
             {
                 initialProps: { registerFn: mockRegisterFn1 },
             }
@@ -57,7 +60,8 @@ describe('useRegisterUpdateTrigger', () => {
         const mockRefetchFn2 = vi.fn()
 
         const { rerender } = renderHook(
-            ({ refetchFn }) => useRegisterUpdateTrigger(mockRegisterFn, refetchFn),
+            ({ refetchFn }) =>
+                useRegisterUpdateTrigger(mockRegisterFn, refetchFn),
             {
                 initialProps: { refetchFn: mockRefetchFn1 },
             }

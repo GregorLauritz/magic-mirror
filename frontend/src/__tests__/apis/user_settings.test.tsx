@@ -21,7 +21,9 @@ describe('useGetUserSettings', () => {
     })
 
     const wrapper = ({ children }: { children: ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+            {children}
+        </QueryClientProvider>
     )
 
     it('should fetch user settings successfully', async () => {
@@ -52,7 +54,9 @@ describe('useGetUserSettings', () => {
     it('should allow 404 status when allowNotFound is true', async () => {
         vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue({})
 
-        const { result } = renderHook(() => useGetUserSettings(true), { wrapper })
+        const { result } = renderHook(() => useGetUserSettings(true), {
+            wrapper,
+        })
 
         await waitFor(() => {
             expect(result.current.isSuccess).toBe(true)
@@ -116,9 +120,12 @@ describe('useGetUserSettings', () => {
 
         vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue(mockUserSettings)
 
-        const { result: result1 } = renderHook(() => useGetUserSettings(false), {
-            wrapper,
-        })
+        const { result: result1 } = renderHook(
+            () => useGetUserSettings(false),
+            {
+                wrapper,
+            }
+        )
         const { result: result2 } = renderHook(() => useGetUserSettings(true), {
             wrapper,
         })
