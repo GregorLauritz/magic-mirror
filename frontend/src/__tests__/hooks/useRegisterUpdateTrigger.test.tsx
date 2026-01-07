@@ -12,7 +12,7 @@ describe('useRegisterUpdateTrigger', () => {
         )
 
         expect(mockRegisterFn).toHaveBeenCalledTimes(1)
-        expect(mockRegisterFn).toHaveBeenCalledWith(mockRefetchFn)
+        expect(mockRegisterFn).toHaveBeenCalledWith(expect.any(Function))
     })
 
     it('should only register once even on re-render', () => {
@@ -68,11 +68,41 @@ describe('useRegisterUpdateTrigger', () => {
         )
 
         expect(mockRegisterFn).toHaveBeenCalledTimes(1)
-        expect(mockRegisterFn).toHaveBeenCalledWith(mockRefetchFn1)
+        expect(mockRegisterFn).toHaveBeenCalledWith(expect.any(Function))
 
         rerender({ refetchFn: mockRefetchFn2 })
 
         // Should not re-register because isRegistered ref is already true
         expect(mockRegisterFn).toHaveBeenCalledTimes(1)
+    })
+
+    it('should call the latest refetchFn when trigger is invoked', () => {
+        const mockRegisterFn = vi.fn()
+        const mockRefetchFn1 = vi.fn()
+        const mockRefetchFn2 = vi.fn()
+
+        const { rerender } = renderHook(
+            ({ refetchFn }) =>
+                useRegisterUpdateTrigger(mockRegisterFn, refetchFn),
+            {
+                initialProps: { refetchFn: mockRefetchFn1 },
+            }
+        )
+
+        // Get the registered trigger function
+        const registeredTrigger = mockRegisterFn.mock.calls[0][0]
+
+        // Call the trigger with the first refetch function
+        registeredTrigger()
+        expect(mockRefetchFn1).toHaveBeenCalledTimes(1)
+        expect(mockRefetchFn2).toHaveBeenCalledTimes(0)
+
+        // Change the refetch function reference
+        rerender({ refetchFn: mockRefetchFn2 })
+
+        // Call the trigger again - should call the NEW refetch function
+        registeredTrigger()
+        expect(mockRefetchFn1).toHaveBeenCalledTimes(1)
+        expect(mockRefetchFn2).toHaveBeenCalledTimes(1)
     })
 })
