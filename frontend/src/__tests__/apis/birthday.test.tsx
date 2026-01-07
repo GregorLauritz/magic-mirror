@@ -28,7 +28,7 @@ describe('useGetBirthdays', () => {
 
     it('should fetch birthdays successfully', async () => {
         const mockBirthdays = {
-            birthdays: [
+            list: [
                 {
                     name: 'John Doe',
                     date: '2024-01-20',
@@ -65,7 +65,7 @@ describe('useGetBirthdays', () => {
     })
 
     it('should use default birthday count when not provided', async () => {
-        const mockBirthdays = { birthdays: [] }
+        const mockBirthdays = { list: [] }
 
         vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue(mockBirthdays)
 
@@ -87,7 +87,7 @@ describe('useGetBirthdays', () => {
     })
 
     it('should handle different calendar IDs', async () => {
-        const mockBirthdays = { birthdays: [] }
+        const mockBirthdays = { list: [] }
 
         vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue(mockBirthdays)
 
@@ -113,7 +113,7 @@ describe('useGetBirthdays', () => {
     })
 
     it('should handle different birthday counts', async () => {
-        const mockBirthdays = { birthdays: [] }
+        const mockBirthdays = { list: [] }
 
         vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue(mockBirthdays)
 
@@ -173,7 +173,7 @@ describe('useGetBirthdays', () => {
     })
 
     it('should have unique query keys for different parameters', async () => {
-        const mockBirthdays = { birthdays: [] }
+        const mockBirthdays = { list: [] }
 
         vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue(mockBirthdays)
 
@@ -200,7 +200,7 @@ describe('useGetBirthdays', () => {
     })
 
     it('should handle empty birthday list', async () => {
-        const mockBirthdays = { birthdays: [] }
+        const mockBirthdays = { list: [] }
 
         vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue(mockBirthdays)
 
