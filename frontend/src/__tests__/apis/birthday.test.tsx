@@ -213,6 +213,6 @@ describe('useGetBirthdays', () => {
         })
 
         expect(result.current.data).toEqual(mockBirthdays)
-        expect(result.current.data?.birthdays).toHaveLength(0)
+        expect(result.current.data?.list).toHaveLength(0)
     })
 })
