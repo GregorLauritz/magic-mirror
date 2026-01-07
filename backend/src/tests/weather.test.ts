@@ -1,11 +1,11 @@
 import assert from 'assert';
 import request from 'supertest';
-import app from 'index';
-import { hasJsonSchemaValidationErrors } from 'services/json_schema';
+import app from '../index';
+import { hasJsonSchemaValidationErrors } from '../services/json_schema';
 import { weather_current_schema } from './json_schemas/current_weather.test';
 import { weather_forecast_schema } from './json_schemas/weather_forecast.test';
 
-const ROUTE = '/weather';
+const ROUTE = '/api/weather';
 
 describe(`Unit test the ${ROUTE} route`, () => {
   const icon_params = {
