@@ -56,7 +56,7 @@ export default [
         },
     },
     {
-        files: ['src/__tests__/**/*.ts', 'src/__tests__/**/*.tsx'],
+        files: ['src/tests/**/*.ts', 'src/tests/**/*.tsx'],
         rules: {
             '@typescript-eslint/no-explicit-any': 'off',
         },

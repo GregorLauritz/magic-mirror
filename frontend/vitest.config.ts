@@ -13,7 +13,7 @@ export default defineConfig({
             reporter: ['text', 'json', 'html', 'lcov'],
             exclude: [
                 'node_modules/',
-                'src/__tests__/',
+                'src/tests/',
                 '**/*.test.ts',
                 '**/*.test.tsx',
                 'src/vite-env.d.ts',
@@ -32,7 +32,7 @@ export default defineConfig({
                 statements: 80,
             },
         },
-        include: ['src/__tests__/**/*.test.{ts,tsx}'],
+        include: ['src/tests/**/*.test.{ts,tsx}'],
         css: {
             modules: {
                 classNameStrategy: 'non-scoped',
