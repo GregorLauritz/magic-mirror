@@ -14,5 +14,10 @@
     "paths": {
       "*": ["./src/*"]
     }
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "vitest.config.ts", // Specifically exclude the culprit
+    "**/*.test.ts"      // Usually good to exclude tests from the build too
+  ]
 }
