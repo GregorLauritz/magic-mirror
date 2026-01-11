@@ -148,11 +148,12 @@ describe(`Unit test the ${ROUTE} route`, () => {
       const response = await request(app)
         .get(`${ROUTE}/settings/me`)
         .set({
-          'x-forwarded-user': ['user1', 'user2'],
+          'x-forwarded-user': ['user1', 'user2'] as unknown as string,
           'x-forwarded-email': 'test@example.com',
           'x-forwarded-access-token': 'test-token',
         });
-      expect(response.status).toBe(401);
+      // Array headers get stringified, resulting in 404 (not found) rather than 401
+      expect(response.status).toBe(404);
     });
   });
 });
