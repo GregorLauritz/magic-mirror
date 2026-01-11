@@ -134,15 +134,17 @@ beforeEach(() => {
     const urlString = url.toString();
 
     // Mock weather API responses
-    if (urlString.includes('open-meteo.com')) {
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-        statusText: 'OK',
-        headers: new Headers(),
-        json: async () => ({
-          latitude: 48.7751458,
-          longitude: 9.165287,
+    try {
+      const parsedUrl = new URL(urlString);
+      if (parsedUrl.hostname === 'open-meteo.com') {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          headers: new Headers(),
+          json: async () => ({
+            latitude: 48.7751458,
+            longitude: 9.165287,
           timezone: 'GMT',
           current_weather: {
             temperature: 15.5,
