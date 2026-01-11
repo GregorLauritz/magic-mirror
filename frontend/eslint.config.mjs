@@ -55,4 +55,10 @@ export default [
             ],
         },
     },
+    {
+        files: ['src/tests/**/*.ts', 'src/tests/**/*.tsx'],
+        rules: {
+            '@typescript-eslint/no-explicit-any': 'off',
+        },
+    },
 ]

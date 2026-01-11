@@ -3,16 +3,27 @@ import { smallFontSize } from '../../assets/styles/theme'
 import { useGetTime } from '../../apis/current_time'
 import { SmallCard } from '../CardFrame'
 import { Stack } from '@mui/material'
+import { memo } from 'react'
 
-export const Time = () => {
+const TimeComponent = () => {
     const { data: time, isLoading, error } = useGetTime()
 
     if (isLoading) {
-        return <SmallCard>Loading...</SmallCard>
+        return (
+            <SmallCard>
+                <Typography color="text.secondary">Loading...</Typography>
+            </SmallCard>
+        )
     }
 
     if (error || !time) {
-        return <SmallCard>Error!</SmallCard>
+        return (
+            <SmallCard>
+                <Typography color="text.secondary">
+                    Error loading time
+                </Typography>
+            </SmallCard>
+        )
     }
 
     return (
@@ -38,5 +49,8 @@ export const Time = () => {
         </SmallCard>
     )
 }
+
+export const Time = memo(TimeComponent)
+Time.displayName = 'Time'
 
 export default Time

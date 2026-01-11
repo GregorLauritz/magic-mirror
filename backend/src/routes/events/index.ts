@@ -88,7 +88,7 @@ async function allCalendarEvents(req: Request, res: Response, next: NextFunction
 
 async function eventsAtDate(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const date = req.params.date;
+    const date = req.params.date as string;
     const timeMin = new Date(date).toISOString();
     const timeMax = new Date(date);
     timeMax.setDate(timeMax.getDate() + 1);

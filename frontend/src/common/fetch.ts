@@ -6,7 +6,12 @@ export const fetchJson = async <T>(
     allowed_status_codes: number[] = [200],
     retries: number = 1
 ): Promise<T> => {
-    const response = await fetchRetry(url, options, allowed_status_codes, retries)
+    const response = await fetchRetry(
+        url,
+        options,
+        allowed_status_codes,
+        retries
+    )
     return response.json() as Promise<T>
 }
 
@@ -16,7 +21,12 @@ export const fetchBlob = async (
     allowed_status_codes: number[] = [200],
     retries: number = 1
 ): Promise<Blob> => {
-    const response = await fetchRetry(url, options, allowed_status_codes, retries)
+    const response = await fetchRetry(
+        url,
+        options,
+        allowed_status_codes,
+        retries
+    )
     const reader = response.body?.getReader()
     const stream = await getReadableStream(reader)
     const streamResponse = new Response(stream)
@@ -31,7 +41,10 @@ export const fetchRetry = async (
     retries: number = 1
 ): Promise<Response> => {
     try {
-        const response = await fetch(url, { ...options, ...DEFAULT_FETCH_CONFIG })
+        const response = await fetch(url, {
+            ...options,
+            ...DEFAULT_FETCH_CONFIG,
+        })
         return checkHttpStatusCode(response, allowed_status_codes, url)
     } catch (err) {
         if (retries <= 1) throw err

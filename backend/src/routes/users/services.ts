@@ -54,7 +54,7 @@ export class UserSettingsRepository {
     );
 
     LOGGER.info(`Upserted settings for user ${sub}`);
-    return result!;
+    return result as IDtoUserSettings;
   }
 }
 

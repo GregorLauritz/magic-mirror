@@ -1,8 +1,7 @@
-import { createContext, useEffect, useMemo, useState, ReactNode } from 'react'
+import { createContext, useMemo, type ReactNode, memo } from 'react'
 import { useGetUserSettings } from '../apis/user_settings'
 import { useGetGeocode } from '../apis/geocode'
-import { QueryParameters } from '../models/apis'
-import { GeoLocation } from '../models/location'
+import { QUERY_PARAM } from '../models/apis'
 
 type LocationContextType = {
     longitude: number
@@ -22,32 +21,22 @@ interface LocationContextProviderProps {
     children: ReactNode
 }
 
-const LocationContextProvider = ({ children }: LocationContextProviderProps) => {
+const LocationContextProviderComponent = ({
+    children,
+}: LocationContextProviderProps) => {
     const { data: userSettings, isLoading: isUserSettingLoading } =
         useGetUserSettings(false)
-    const [queryParameters, setQueryParameters] = useState<QueryParameters>([])
-    const [geoLocation, setGeoLocation] = useState<GeoLocation>({
-        longitude: 0,
-        latitude: 0,
-    })
-    const loadGeocode = useMemo(
-        () => !isUserSettingLoading && queryParameters.length > 0,
-        [isUserSettingLoading, queryParameters]
-    )
-    const { data: apiGeoLocation, isLoading: isGeoCodeLoading } = useGetGeocode(
-        queryParameters,
-        loadGeocode
-    )
 
-    useEffect(() => {
+    const queryParameters = useMemo<QUERY_PARAM[]>(() => {
         if (
             isUserSettingLoading ||
             !userSettings?.city ||
             !userSettings?.country ||
             !userSettings?.zip_code
-        )
-            return
-        setQueryParameters([
+        ) {
+            return []
+        }
+        return [
             {
                 name: 'city',
                 value: userSettings.city,
@@ -60,26 +49,30 @@ const LocationContextProvider = ({ children }: LocationContextProviderProps) => 
                 name: 'zip_code',
                 value: userSettings.zip_code,
             },
-        ])
-    }, [
-        userSettings?.city,
-        userSettings?.country,
-        userSettings?.zip_code,
-        isUserSettingLoading,
-    ])
+        ]
+    }, [userSettings, isUserSettingLoading])
 
-    useEffect(() => {
-        if (apiGeoLocation && !isGeoCodeLoading) {
-            setGeoLocation(apiGeoLocation)
-        }
-    }, [apiGeoLocation, isGeoCodeLoading])
+    console.log('Location query parameters:', queryParameters)
+
+    const { data: apiGeoLocation, isLoading: isGeoCodeLoading } = useGetGeocode(
+        queryParameters,
+        queryParameters.length > 0
+    )
+
+    console.log('Geocode API location data:', apiGeoLocation)
 
     const contextValue = useMemo<LocationContextType>(
         () => ({
-            ...geoLocation,
+            longitude: apiGeoLocation?.longitude ?? 0,
+            latitude: apiGeoLocation?.latitude ?? 0,
             isLoading: isUserSettingLoading || isGeoCodeLoading,
         }),
-        [geoLocation, isUserSettingLoading, isGeoCodeLoading]
+        [
+            apiGeoLocation?.longitude,
+            apiGeoLocation?.latitude,
+            isUserSettingLoading,
+            isGeoCodeLoading,
+        ]
     )
 
     return (
@@ -89,4 +82,8 @@ const LocationContextProvider = ({ children }: LocationContextProviderProps) => 
     )
 }
 
+const LocationContextProvider = memo(LocationContextProviderComponent)
+LocationContextProvider.displayName = 'LocationContextProvider'
+
 export { LocationContext, LocationContextProvider }
+export type { LocationContextType }

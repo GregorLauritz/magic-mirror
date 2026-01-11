@@ -1,5 +1,5 @@
 import Typography from '@mui/material/Typography'
-import React from 'react'
+import { memo, useMemo } from 'react'
 import {
     getLocaleDateString,
     getTimeDifferenceInHours,
@@ -12,36 +12,23 @@ import { DEFAULT_LOCALE } from '../../constants/defaults'
 import { hideTextOverflow } from '../../assets/styles/coloredBox'
 import { Paper, Stack } from '@mui/material'
 
-interface ICalendarEvent {
+interface EventProps {
     item: CalendarEvent
     date: Date
 }
 
-export const Event = ({ item, date }: ICalendarEvent) => {
-    const localeStrOpts: Intl.DateTimeFormatOptions = {
-        month: 'short',
-        day: 'numeric',
-    }
-    const eventTime = getEventTime({ item, date }, localeStrOpts)
-    const details = (
-        <React.Fragment>
-            <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                align="left"
-                sx={{ ...xSmallFontSize, ...hideTextOverflow }}
-            >
-                {eventTime}
-            </Typography>
-            <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                align="left"
-                sx={{ ...xSmallFontSize, ...hideTextOverflow }}
-            >
-                {item.location ?? ''}
-            </Typography>
-        </React.Fragment>
+const EventComponent = ({ item, date }: EventProps) => {
+    const localeStrOpts: Intl.DateTimeFormatOptions = useMemo(
+        () => ({
+            month: 'short',
+            day: 'numeric',
+        }),
+        []
+    )
+
+    const eventTime = useMemo(
+        () => getEventTime({ item, date }, localeStrOpts),
+        [item, date, localeStrOpts]
     )
 
     return (
@@ -59,29 +46,46 @@ export const Event = ({ item, date }: ICalendarEvent) => {
                 >
                     {item.summary ?? ''}
                 </Typography>
-                {details}
+                <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    align="left"
+                    sx={{ ...xSmallFontSize, ...hideTextOverflow }}
+                >
+                    {eventTime}
+                </Typography>
+                <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    align="left"
+                    sx={{ ...xSmallFontSize, ...hideTextOverflow }}
+                >
+                    {item.location ?? ''}
+                </Typography>
             </Stack>
         </Paper>
     )
 }
 
 const getEventTime = (
-    { item, date }: ICalendarEvent,
+    { item, date }: EventProps,
     localeStrOpts: Intl.DateTimeFormatOptions
-) => {
+): string => {
     if (item.allDay && !item.multiDays) {
         return 'All day'
-    } else if (item.allDay && item.multiDays) {
-        return handleMultiFullDayEvent({ item, date }, localeStrOpts)
-    } else {
-        return handleNormalEvent({ item, date }, localeStrOpts)
     }
+
+    if (item.allDay && item.multiDays) {
+        return handleMultiFullDayEvent({ item, date }, localeStrOpts)
+    }
+
+    return handleNormalEvent({ item, date }, localeStrOpts)
 }
 
 const handleMultiFullDayEvent = (
-    { item, date }: ICalendarEvent,
+    { item, date }: EventProps,
     localeStrOpts: Intl.DateTimeFormatOptions
-) => {
+): string => {
     const startDate = new Date(item.start)
     const endDate = new Date(item.end)
     endDate.setSeconds(endDate.getSeconds() - 1)
@@ -110,9 +114,9 @@ const handleMultiFullDayEvent = (
 }
 
 const handleNormalEvent = (
-    { item, date }: ICalendarEvent,
+    { item, date }: EventProps,
     localeStrOpts: Intl.DateTimeFormatOptions
-) => {
+): string => {
     const startDate = new Date(item.start)
     const endDate = new Date(item.end)
     const sameStartDate = isSameDate(date, startDate)
@@ -136,3 +140,6 @@ const handleNormalEvent = (
         startDate
     )}-${eventEndString}${getTimeFromDate(endDate)}`
 }
+
+export const Event = memo(EventComponent)
+Event.displayName = 'Event'

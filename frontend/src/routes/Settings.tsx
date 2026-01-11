@@ -8,11 +8,11 @@ import { useGetUserSettings } from '../apis/user_settings'
 import { putUserSettings } from '../apis/users'
 import { useListCalendars } from '../apis/calendar_list'
 import { UserSettings } from '../models/user_settings'
-import { useCallback } from 'react'
+import { memo, useCallback } from 'react'
 
-const city = 'Stuttgart'
-const country = 'DE'
-const zipCode = '70176'
+const DEFAULT_CITY = 'Stuttgart'
+const DEFAULT_COUNTRY = 'DE'
+const DEFAULT_ZIP_CODE = '70176'
 
 const inputHasChanged = (
     data: SettingsParams,
@@ -28,7 +28,7 @@ const inputHasChanged = (
     )
 }
 
-export const Settings = () => {
+const SettingsComponent = () => {
     const navigate = useNavigate()
 
     const {
@@ -55,6 +55,10 @@ export const Settings = () => {
         [userSettings, refetch]
     )
 
+    const handleBack = useCallback(() => {
+        navigate('/')
+    }, [navigate])
+
     if (isLoading || calIsLoading) return <Box>Loading...</Box>
 
     if (calError || !calList) {
@@ -65,13 +69,13 @@ export const Settings = () => {
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <SettingsForm
                 defaults={{
-                    country: userSettings?.country ?? country,
-                    city: userSettings?.city ?? city,
-                    zipCode: userSettings?.zip_code ?? zipCode,
+                    country: userSettings?.country ?? DEFAULT_COUNTRY,
+                    city: userSettings?.city ?? DEFAULT_CITY,
+                    zipCode: userSettings?.zip_code ?? DEFAULT_ZIP_CODE,
                     birthdayCalId: userSettings?.birthday_cal_id ?? '',
                     eventsCalId: userSettings?.events_cal_id ?? '',
                 }}
-                onBack={() => navigate('/')}
+                onBack={handleBack}
                 showBackButton={error == null}
                 onSend={updateSettings}
                 calendars={calList}
@@ -79,3 +83,6 @@ export const Settings = () => {
         </Box>
     )
 }
+
+export const Settings = memo(SettingsComponent)
+Settings.displayName = 'Settings'

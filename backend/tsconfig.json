@@ -7,6 +7,17 @@
     "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
     "strict": true /* Enable all strict type-checking options. */,
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
-    "baseUrl": "./src"
-  }
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "paths": {
+      "*": ["./src/*"]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "vitest.config.ts", // Specifically exclude the culprit
+    "**/*.test.ts"      // Usually good to exclude tests from the build too
+  ]
 }

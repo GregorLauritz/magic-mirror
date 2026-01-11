@@ -61,4 +61,4 @@ server.app.use((err: ApiError | Error, req: Request, res: Response, _next: NextF
 
 server.start();
 
-export = server.app;
+export default server.app;

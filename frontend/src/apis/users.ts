@@ -3,7 +3,9 @@ import { fetchJson } from '../common/fetch'
 import { UserSettings } from '../models/user_settings'
 import { SettingsParams } from '../components/settings_form/SettingsForm'
 
-export const putUserSettings = async (data: SettingsParams): Promise<UserSettings> => {
+export const putUserSettings = async (
+    data: SettingsParams
+): Promise<UserSettings> => {
     const settings = await getUserSettingsBody(data)
     const body = JSON.stringify(settings)
 

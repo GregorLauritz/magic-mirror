@@ -9,7 +9,22 @@ export const weather_current_schema = {
       type: 'number',
     },
     temperature: {
-      type: 'number',
+      type: 'object',
+      properties: {
+        current: {
+          type: 'number',
+        },
+        min: {
+          type: 'number',
+        },
+        max: {
+          type: 'number',
+        },
+        feels_like: {
+          type: 'number',
+        },
+      },
+      required: ['current', 'min', 'max', 'feels_like'],
     },
     windspeed: {
       type: 'number',
@@ -26,6 +41,9 @@ export const weather_current_schema = {
     description: {
       type: 'string',
     },
+    precipitation_sum: {
+      type: 'number',
+    },
   },
   required: [
     'latitude',
@@ -36,5 +54,6 @@ export const weather_current_schema = {
     'update_time',
     'weather_icon',
     'description',
+    'precipitation_sum',
   ],
 };

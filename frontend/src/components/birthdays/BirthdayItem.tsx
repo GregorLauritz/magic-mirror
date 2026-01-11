@@ -1,43 +1,41 @@
 import { Typography, Paper, Stack } from '@mui/material'
 import { Birthday } from '../../models/birthdays'
 import { PAPER_CARD_COLOR, xSmallFontSize } from '../../assets/styles/theme'
-import { useContext, useEffect, useState } from 'react'
+import { memo, useMemo } from 'react'
 import { getDifferenceInDays } from '../../common/dateParser'
 import { hideTextOverflow } from '../../assets/styles/coloredBox'
-import { TimeContext } from '../../common/TimeContext'
+import { useTimeContext } from '../../hooks/useTimeContext'
 
-interface IBirthdayItem {
+interface BirthdayItemProps {
     item: Birthday
 }
 
-const BirthdayItem = ({ item }: IBirthdayItem) => {
-    const { currentDate } = useContext(TimeContext)
-    const [days, setDays] = useState(0)
-    const [color, setColor] = useState('text.secondary')
-    const [timeText, setTimeText] = useState('')
-    const [fontWeight, setFontWeight] = useState('normal')
+const getFontWeight = (days: number): 'bold' | 'normal' => {
+    return days === 0 ? 'bold' : 'normal'
+}
 
-    useEffect(() => {
+const getColor = (days: number): 'text.primary' | 'text.secondary' => {
+    return days === 0 ? 'text.primary' : 'text.secondary'
+}
+
+const getTimeText = (days: number): string => {
+    if (days === 0) return 'today'
+    if (days === 1) return 'tomorrow'
+    return `${days} days`
+}
+
+const BirthdayItem = memo<BirthdayItemProps>(({ item }) => {
+    const { currentDate } = useTimeContext()
+
+    const days = useMemo(() => {
         const bday = new Date(item.date)
         const today = new Date(currentDate.toDateString())
-        setDays(getDifferenceInDays(today, bday))
+        return getDifferenceInDays(today, bday)
     }, [item.date, currentDate])
 
-    useEffect(() => {
-        if (days === 0) {
-            setFontWeight('bold')
-            setColor('text.primary')
-            setTimeText('today')
-        } else if (days === 1) {
-            setFontWeight('normal')
-            setColor('text.primary')
-            setTimeText(`tomorrow`)
-        } else {
-            setFontWeight('normal')
-            setColor('text.secondary')
-            setTimeText(`${days} days`)
-        }
-    }, [days])
+    const fontWeight = useMemo(() => getFontWeight(days), [days])
+    const color = useMemo(() => getColor(days), [days])
+    const timeText = useMemo(() => getTimeText(days), [days])
 
     return (
         <Paper
@@ -49,17 +47,17 @@ const BirthdayItem = ({ item }: IBirthdayItem) => {
             }}
         >
             <Stack
-                direction={'row'}
+                direction="row"
                 spacing={1}
-                whiteSpace={'nowrap'}
-                overflow={'hidden'}
-                justifyContent={'space-between'}
+                whiteSpace="nowrap"
+                overflow="hidden"
+                justifyContent="space-between"
             >
                 <Typography
                     color={color}
                     fontWeight={fontWeight}
                     fontSize={xSmallFontSize}
-                    sx={{ ...hideTextOverflow }}
+                    sx={hideTextOverflow}
                 >
                     {item.name}
                 </Typography>
@@ -73,6 +71,8 @@ const BirthdayItem = ({ item }: IBirthdayItem) => {
             </Stack>
         </Paper>
     )
-}
+})
+
+BirthdayItem.displayName = 'BirthdayItem'
 
 export default BirthdayItem

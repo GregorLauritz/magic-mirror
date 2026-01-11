@@ -5,7 +5,8 @@ import {
     useMemo,
     useRef,
     useState,
-    ReactNode,
+    memo,
+    type ReactNode,
 } from 'react'
 
 type UpdateTrigger = () => void
@@ -34,7 +35,9 @@ interface TimeContextProviderProps {
     children: ReactNode
 }
 
-const TimeContextProvider = ({ children }: TimeContextProviderProps) => {
+const TimeContextProviderComponent = ({
+    children,
+}: TimeContextProviderProps) => {
     const [timeZone, setTimeZone] = useState<string>(getTimeZone())
     const [currentDate, setCurrentDate] = useState<Date>(new Date())
 
@@ -43,13 +46,19 @@ const TimeContextProvider = ({ children }: TimeContextProviderProps) => {
     const prevHour = useRef<number>(new Date().getHours())
     const prevDay = useRef<number>(new Date().getDate())
 
-    const addHourlyUpdateTrigger = useCallback((trigger: UpdateTrigger): void => {
-        hourlyTriggers.current.add(trigger)
-    }, [])
+    const addHourlyUpdateTrigger = useCallback(
+        (trigger: UpdateTrigger): void => {
+            hourlyTriggers.current.add(trigger)
+        },
+        []
+    )
 
-    const addDailyUpdateTrigger = useCallback((trigger: UpdateTrigger): void => {
-        dailyTriggers.current.add(trigger)
-    }, [])
+    const addDailyUpdateTrigger = useCallback(
+        (trigger: UpdateTrigger): void => {
+            dailyTriggers.current.add(trigger)
+        },
+        []
+    )
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -81,5 +90,8 @@ const TimeContextProvider = ({ children }: TimeContextProviderProps) => {
     return <TimeContext.Provider value={value}>{children}</TimeContext.Provider>
 }
 
+const TimeContextProvider = memo(TimeContextProviderComponent)
+TimeContextProvider.displayName = 'TimeContextProvider'
+
 export { TimeContextProvider, TimeContext }
-export type { UpdateTrigger }
+export type { UpdateTrigger, TimeContextType }

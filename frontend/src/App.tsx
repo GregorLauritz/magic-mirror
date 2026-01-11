@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from 'react-query'
-import React, { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 import MenuAppBar from './components/appbar/MenuAppBar'
 import { PADDING } from './assets/styles/theme'
 import { Box } from '@mui/material'
@@ -24,14 +24,16 @@ interface BaseFrameProps {
     children: ReactNode
 }
 
-const BaseFrame = ({ children }: BaseFrameProps) => {
+const BaseFrame = memo<BaseFrameProps>(({ children }) => {
     return (
-        <React.Fragment>
+        <>
             <MenuAppBar />
             <Box p={PADDING}>{children}</Box>
-        </React.Fragment>
+        </>
     )
-}
+})
+
+BaseFrame.displayName = 'BaseFrame'
 
 const AppFrame = () => {
     return (

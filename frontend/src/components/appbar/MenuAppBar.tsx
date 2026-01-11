@@ -1,4 +1,4 @@
-import * as React from 'react'
+import { memo, useState, useCallback, useMemo, type MouseEvent } from 'react'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
@@ -12,14 +12,13 @@ import { useQueryClient } from 'react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { fetchRetry } from '../../common/fetch'
 import { USERS_API } from '../../constants/api'
-import { useCallback, useMemo } from 'react'
 
-type IMenuItem = {
+type MenuItemType = {
     text: string
     onClick?: () => Promise<void> | void
 }
 
-const deleteUserAccount = async () => {
+const deleteUserAccount = async (): Promise<void> => {
     return fetchRetry(
         `${USERS_API}/me`,
         {
@@ -29,19 +28,20 @@ const deleteUserAccount = async () => {
     ).then(() => logout())
 }
 
-const settingMenuItemMap = new Map<string, Array<string>>([
+const SETTING_MENU_ITEM_MAP = new Map<string, Array<string>>([
     ['/', ['refresh', 'settings', 'logout', 'delaccount']],
     ['/settings', ['logout', 'delaccount']],
 ])
 
-const MenuAppBar = () => {
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
+const MenuAppBarComponent = () => {
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const queryClient = useQueryClient()
     const navigate = useNavigate()
-    const handleMenu = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    const location = useLocation()
+
+    const handleMenu = useCallback((event: MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget)
     }, [])
-    const location = useLocation()
 
     const handleClose = useCallback(() => {
         setAnchorEl(null)
@@ -62,7 +62,7 @@ const MenuAppBar = () => {
 
     const menuItemArray = useMemo(
         () =>
-            new Map<string, IMenuItem>([
+            new Map<string, MenuItemType>([
                 [
                     'refresh',
                     {
@@ -97,7 +97,11 @@ const MenuAppBar = () => {
 
     const menuItems = useMemo(
         () =>
-            getMenuItems(location.pathname, settingMenuItemMap, menuItemArray),
+            getMenuItems(
+                location.pathname,
+                SETTING_MENU_ITEM_MAP,
+                menuItemArray
+            ),
         [location.pathname, menuItemArray]
     )
 
@@ -155,9 +159,9 @@ const MenuAppBar = () => {
 const getMenuItems = (
     path: string,
     settingMenuItemMap: Map<string, Array<string>>,
-    menuItemArray: Map<string, IMenuItem>
-): Array<IMenuItem> => {
-    const menuItems: Array<IMenuItem> = []
+    menuItemArray: Map<string, MenuItemType>
+): Array<MenuItemType> => {
+    const menuItems: Array<MenuItemType> = []
     const items = settingMenuItemMap.get(path)
     items?.forEach((id) => {
         if (menuItemArray.has(id)) {
@@ -166,5 +170,8 @@ const getMenuItems = (
     })
     return menuItems
 }
+
+const MenuAppBar = memo(MenuAppBarComponent)
+MenuAppBar.displayName = 'MenuAppBar'
 
 export default MenuAppBar
