@@ -27,7 +27,8 @@ const DashBoardItems = memo(() => {
                 display: 'grid',
                 gridTemplateColumns:
                     'repeat(auto-fit, minmax(min(155px, 100%), 1fr))',
-                gap: PADDING,
+                columnGap: PADDING,
+                rowGap: PADDING * 0.5,
                 width: '100%',
             }}
         >
