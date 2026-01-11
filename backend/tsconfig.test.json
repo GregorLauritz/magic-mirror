@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "esnext",
     "target": "es2024",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -11,13 +11,7 @@
     "paths": {
       "*": ["*", "node_modules/*"]
     },
-    "moduleResolution": "node"
-  },
-  "ts-node": {
-    "require": ["tsconfig-paths/register"],
-    "transpileOnly": true,
-    "compilerOptions": {
-      "module": "commonjs"
-    }
+    "moduleResolution": "bundler",
+    "types": ["vitest/globals"]
   }
 }

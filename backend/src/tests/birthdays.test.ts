@@ -1,4 +1,4 @@
-import assert from 'assert';
+import { describe, expect, it } from 'vitest';
 import request from 'supertest';
 import app from '../index';
 
@@ -15,48 +15,48 @@ describe(`Unit test the ${ROUTE} route`, () => {
   describe(`Unit testing the ${ROUTE} route`, () => {
     it(`should return OK and valid response structure with cal_id`, async () => {
       const response = await request(app).get(`${ROUTE}?cal_id=${birthday_params.valid_cal_id}`);
-      assert.equal(response.status, 200);
-      assert.ok(response.body, 'Response body should exist');
-      assert.ok('count' in response.body, 'Response should have count property');
-      assert.ok('list' in response.body, 'Response should have list property');
-      assert.ok(Array.isArray(response.body.list), 'List should be an array');
+      expect(response.status).toBe(200);
+      expect(response.body).toBeDefined();
+      expect(response.body).toHaveProperty('count');
+      expect(response.body).toHaveProperty('list');
+      expect(Array.isArray(response.body.list)).toBe(true);
     });
 
     it(`should return OK with count parameter`, async () => {
       const response = await request(app).get(
         `${ROUTE}?cal_id=${birthday_params.valid_cal_id}&count=${birthday_params.ok_count}`,
       );
-      assert.equal(response.status, 200);
-      assert.ok(response.body.list, 'Response should have list');
+      expect(response.status).toBe(200);
+      expect(response.body.list).toBeDefined();
     });
 
     it(`should return 400 for negative count`, async () => {
       const response = await request(app).get(
         `${ROUTE}?cal_id=${birthday_params.valid_cal_id}&count=${birthday_params.neg_count}`,
       );
-      assert.equal(response.status, 400);
+      expect(response.status).toBe(400);
     });
 
     it(`should return 400 for too high count`, async () => {
       const response = await request(app).get(
         `${ROUTE}?cal_id=${birthday_params.valid_cal_id}&count=${birthday_params.too_high_count}`,
       );
-      assert.equal(response.status, 400);
+      expect(response.status).toBe(400);
     });
 
     it(`should return 400 when cal_id is missing`, async () => {
       const response = await request(app).get(ROUTE);
-      assert.equal(response.status, 400);
+      expect(response.status).toBe(400);
     });
 
     it(`should validate birthday structure in response`, async () => {
       const response = await request(app).get(`${ROUTE}?cal_id=${birthday_params.valid_cal_id}`);
       if (response.status === 200 && response.body.list.length > 0) {
         const birthday = response.body.list[0];
-        assert.ok('name' in birthday, 'Birthday should have name property');
-        assert.ok('date' in birthday, 'Birthday should have date property');
-        assert.equal(typeof birthday.name, 'string', 'Birthday name should be string');
-        assert.equal(typeof birthday.date, 'string', 'Birthday date should be string');
+        expect(birthday).toHaveProperty('name');
+        expect(birthday).toHaveProperty('date');
+        expect(typeof birthday.name).toBe('string');
+        expect(typeof birthday.date).toBe('string');
       }
     });
   });

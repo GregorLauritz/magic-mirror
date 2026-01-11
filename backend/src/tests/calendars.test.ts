@@ -1,4 +1,4 @@
-import assert from 'assert';
+import { describe, expect, it } from 'vitest';
 import request from 'supertest';
 import app from '../index';
 
@@ -8,23 +8,23 @@ describe(`Unit test the ${ROUTE} route`, () => {
   describe(`Unit testing the ${ROUTE} route`, () => {
     it(`should return OK status`, async () => {
       const response = await request(app).get(ROUTE);
-      assert.equal(response.status, 200);
+      expect(response.status).toBe(200);
     });
 
     it(`should return array of calendars`, async () => {
       const response = await request(app).get(ROUTE);
-      assert.equal(response.status, 200);
-      assert.ok(Array.isArray(response.body), 'Response should be an array');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
     });
 
     it(`should return calendars with correct structure`, async () => {
       const response = await request(app).get(ROUTE);
       if (response.status === 200 && response.body.length > 0) {
         const calendar = response.body[0];
-        assert.ok('name' in calendar || calendar.name !== undefined, 'Calendar should have name property');
-        assert.ok('id' in calendar || calendar.id !== undefined, 'Calendar should have id property');
-        assert.ok('primary' in calendar, 'Calendar should have primary property');
-        assert.equal(typeof calendar.primary, 'boolean', 'Primary should be boolean');
+        expect('name' in calendar || calendar.name !== undefined).toBe(true);
+        expect('id' in calendar || calendar.id !== undefined).toBe(true);
+        expect('primary' in calendar).toBe(true);
+        expect(typeof calendar.primary).toBe('boolean');
       }
     });
 
@@ -32,16 +32,16 @@ describe(`Unit test the ${ROUTE} route`, () => {
       const response = await request(app).get(ROUTE);
       if (response.status === 200 && response.body.length > 0) {
         const hasPrimary = response.body.some((cal: { primary: boolean }) => cal.primary === true);
-        assert.ok(hasPrimary || response.body.length > 0, 'Should have at least one calendar or a primary one');
+        expect(hasPrimary || response.body.length > 0).toBe(true);
       }
     });
 
     it(`should handle empty calendar list`, async () => {
       const response = await request(app).get(ROUTE);
-      assert.equal(response.status, 200);
+      expect(response.status).toBe(200);
       // Empty array is a valid response
       if (Array.isArray(response.body)) {
-        assert.ok(true, 'Empty array is valid');
+        expect(true).toBe(true);
       }
     });
   });

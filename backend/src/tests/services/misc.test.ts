@@ -1,5 +1,4 @@
-import { expect } from 'chai';
-import { describe, it } from 'mocha';
+import { describe, it, expect } from 'vitest';
 import { requestContainsParam, requestQueryContainsParam } from '../../services/misc';
 import { Request } from 'express';
 
@@ -13,8 +12,8 @@ describe('Miscellaneous Service Utilities', () => {
         },
       } as unknown as Request;
 
-      expect(requestQueryContainsParam(req, 'testParam')).to.be.true;
-      expect(requestQueryContainsParam(req, 'anotherParam')).to.be.true;
+      expect(requestQueryContainsParam(req, 'testParam')).toBe(true);
+      expect(requestQueryContainsParam(req, 'anotherParam')).toBe(true);
     });
 
     it('should return false when query parameter does not exist', () => {
@@ -24,7 +23,7 @@ describe('Miscellaneous Service Utilities', () => {
         },
       } as unknown as Request;
 
-      expect(requestQueryContainsParam(req, 'nonExistent')).to.be.false;
+      expect(requestQueryContainsParam(req, 'nonExistent')).toBe(false);
     });
 
     it('should return false for empty query object', () => {
@@ -32,7 +31,7 @@ describe('Miscellaneous Service Utilities', () => {
         query: {},
       } as unknown as Request;
 
-      expect(requestQueryContainsParam(req, 'anyParam')).to.be.false;
+      expect(requestQueryContainsParam(req, 'anyParam')).toBe(false);
     });
   });
 
@@ -45,8 +44,8 @@ describe('Miscellaneous Service Utilities', () => {
         },
       } as unknown as Request;
 
-      expect(requestContainsParam(req, 'id')).to.be.true;
-      expect(requestContainsParam(req, 'userId')).to.be.true;
+      expect(requestContainsParam(req, 'id')).toBe(true);
+      expect(requestContainsParam(req, 'userId')).toBe(true);
     });
 
     it('should return false when route parameter does not exist', () => {
@@ -56,7 +55,7 @@ describe('Miscellaneous Service Utilities', () => {
         },
       } as unknown as Request;
 
-      expect(requestContainsParam(req, 'nonExistent')).to.be.false;
+      expect(requestContainsParam(req, 'nonExistent')).toBe(false);
     });
 
     it('should return false for empty params object', () => {
@@ -64,7 +63,7 @@ describe('Miscellaneous Service Utilities', () => {
         params: {},
       } as unknown as Request;
 
-      expect(requestContainsParam(req, 'anyParam')).to.be.false;
+      expect(requestContainsParam(req, 'anyParam')).toBe(false);
     });
   });
 });

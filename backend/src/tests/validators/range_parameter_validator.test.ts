@@ -1,5 +1,4 @@
-import { expect } from 'chai';
-import { describe, it } from 'mocha';
+import { describe, it, expect } from 'vitest';
 import { NextFunction, Request, Response } from 'express';
 import { RangeParameterValidator } from '../../services/validators/range_parameter_validator';
 import { EParamType } from '../../services/validators/parameter_validator';
@@ -14,7 +13,7 @@ describe('RangeParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
@@ -28,7 +27,7 @@ describe('RangeParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
@@ -42,7 +41,7 @@ describe('RangeParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
@@ -56,9 +55,9 @@ describe('RangeParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.instanceOf(ApiError);
-        expect((err as ApiError).status).to.equal(400);
-        expect((err as ApiError).message).to.include('out of range');
+        expect(err).toBeInstanceOf(ApiError);
+        expect((err as ApiError).status).toBe(400);
+        expect((err as ApiError).message).toContain('out of range');
         done();
       };
 
@@ -72,9 +71,9 @@ describe('RangeParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.instanceOf(ApiError);
-        expect((err as ApiError).status).to.equal(400);
-        expect((err as ApiError).message).to.include('out of range');
+        expect(err).toBeInstanceOf(ApiError);
+        expect((err as ApiError).status).toBe(400);
+        expect((err as ApiError).message).toContain('out of range');
         done();
       };
 
@@ -88,8 +87,8 @@ describe('RangeParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.instanceOf(ApiError);
-        expect((err as ApiError).status).to.equal(400);
+        expect(err).toBeInstanceOf(ApiError);
+        expect((err as ApiError).status).toBe(400);
         done();
       };
 
@@ -105,9 +104,9 @@ describe('RangeParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.instanceOf(ApiError);
-        expect((err as ApiError).status).to.equal(400);
-        expect((err as ApiError).message).to.include('required');
+        expect(err).toBeInstanceOf(ApiError);
+        expect((err as ApiError).status).toBe(400);
+        expect((err as ApiError).message).toContain('required');
         done();
       };
 
@@ -121,7 +120,7 @@ describe('RangeParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
@@ -137,7 +136,7 @@ describe('RangeParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
@@ -151,8 +150,8 @@ describe('RangeParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.instanceOf(ApiError);
-        expect((err as ApiError).status).to.equal(400);
+        expect(err).toBeInstanceOf(ApiError);
+        expect((err as ApiError).status).toBe(400);
         done();
       };
 
@@ -168,7 +167,7 @@ describe('RangeParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
@@ -182,7 +181,7 @@ describe('RangeParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
@@ -196,7 +195,7 @@ describe('RangeParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 

@@ -1,4 +1,4 @@
-import assert from 'assert';
+import { describe, expect, it } from 'vitest';
 import request from 'supertest';
 import app from '../index';
 
@@ -24,13 +24,13 @@ describe(`Unit test the ${ROUTE} route`, () => {
     describe('GET /settings/me', () => {
       it(`should return 401 when auth headers are missing`, async () => {
         const response = await request(app).get(`${ROUTE}/settings/me`);
-        assert.equal(response.status, 401);
+        expect(response.status).toBe(401);
       });
 
       it(`should return 404 when user settings do not exist`, async () => {
         const response = await request(app).get(`${ROUTE}/settings/me`).set(mockHeaders);
         // Could be 404 (not found) or 200 (found existing settings)
-        assert.ok(response.status === 404 || response.status === 200);
+        expect(response.status === 404 || response.status === 200).toBe(true);
       });
 
       it(`should return user settings when they exist`, async () => {
@@ -40,11 +40,11 @@ describe(`Unit test the ${ROUTE} route`, () => {
         // Then retrieve them
         const response = await request(app).get(`${ROUTE}/settings/me`).set(mockHeaders);
         if (response.status === 200) {
-          assert.ok('country' in response.body, 'Should have country');
-          assert.ok('city' in response.body, 'Should have city');
-          assert.ok('zip_code' in response.body, 'Should have zip_code');
-          assert.ok('events_cal_id' in response.body, 'Should have events_cal_id');
-          assert.ok('birthday_cal_id' in response.body, 'Should have birthday_cal_id');
+          expect('country' in response.body).toBe(true);
+          expect('city' in response.body).toBe(true);
+          expect('zip_code' in response.body).toBe(true);
+          expect('events_cal_id' in response.body).toBe(true);
+          expect('birthday_cal_id' in response.body).toBe(true);
         }
       });
     });
@@ -52,16 +52,16 @@ describe(`Unit test the ${ROUTE} route`, () => {
     describe('PUT /settings/me', () => {
       it(`should return 401 when auth headers are missing`, async () => {
         const response = await request(app).put(`${ROUTE}/settings/me`).send(validUserSettings);
-        assert.equal(response.status, 401);
+        expect(response.status).toBe(401);
       });
 
       it(`should create user settings when they don't exist`, async () => {
         const response = await request(app).put(`${ROUTE}/settings/me`).set(mockHeaders).send(validUserSettings);
-        assert.ok(response.status === 200 || response.status === 500);
+        expect(response.status === 200 || response.status === 500).toBe(true);
         if (response.status === 200) {
-          assert.equal(response.body.country, validUserSettings.country);
-          assert.equal(response.body.city, validUserSettings.city);
-          assert.equal(response.body.zip_code, validUserSettings.zip_code);
+          expect(response.body.country).toBe(validUserSettings.country);
+          expect(response.body.city).toBe(validUserSettings.city);
+          expect(response.body.zip_code).toBe(validUserSettings.zip_code);
         }
       });
 
@@ -73,22 +73,22 @@ describe(`Unit test the ${ROUTE} route`, () => {
         };
 
         const response = await request(app).put(`${ROUTE}/settings/me`).set(mockHeaders).send(updatedSettings);
-        assert.ok(response.status === 200 || response.status === 500);
+        expect(response.status === 200 || response.status === 500).toBe(true);
         if (response.status === 200) {
-          assert.equal(response.body.city, updatedSettings.city);
-          assert.equal(response.body.zip_code, updatedSettings.zip_code);
+          expect(response.body.city).toBe(updatedSettings.city);
+          expect(response.body.zip_code).toBe(updatedSettings.zip_code);
         }
       });
 
       it(`should validate response structure`, async () => {
         const response = await request(app).put(`${ROUTE}/settings/me`).set(mockHeaders).send(validUserSettings);
         if (response.status === 200) {
-          assert.equal(typeof response.body, 'object');
-          assert.equal(typeof response.body.country, 'string');
-          assert.equal(typeof response.body.city, 'string');
-          assert.equal(typeof response.body.zip_code, 'string');
-          assert.equal(typeof response.body.events_cal_id, 'string');
-          assert.equal(typeof response.body.birthday_cal_id, 'string');
+          expect(typeof response.body).toBe('object');
+          expect(typeof response.body.country).toBe('string');
+          expect(typeof response.body.city).toBe('string');
+          expect(typeof response.body.zip_code).toBe('string');
+          expect(typeof response.body.events_cal_id).toBe('string');
+          expect(typeof response.body.birthday_cal_id).toBe('string');
         }
       });
     });
@@ -96,7 +96,7 @@ describe(`Unit test the ${ROUTE} route`, () => {
     describe('DELETE /settings/me', () => {
       it(`should return 401 when auth headers are missing`, async () => {
         const response = await request(app).delete(`${ROUTE}/settings/me`);
-        assert.equal(response.status, 401);
+        expect(response.status).toBe(401);
       });
 
       it(`should delete user settings`, async () => {
@@ -105,12 +105,12 @@ describe(`Unit test the ${ROUTE} route`, () => {
 
         // Then delete them
         const response = await request(app).delete(`${ROUTE}/settings/me`).set(mockHeaders);
-        assert.ok(response.status === 204 || response.status === 500);
+        expect(response.status === 204 || response.status === 500).toBe(true);
       });
 
       it(`should return 204 on successful deletion`, async () => {
         const response = await request(app).delete(`${ROUTE}/settings/me`).set(mockHeaders);
-        assert.ok(response.status === 204 || response.status === 500);
+        expect(response.status === 204 || response.status === 500).toBe(true);
       });
     });
   });
@@ -119,17 +119,17 @@ describe(`Unit test the ${ROUTE} route`, () => {
     describe('DELETE /me', () => {
       it(`should return 401 when auth headers are missing`, async () => {
         const response = await request(app).delete(`${ROUTE}/me`);
-        assert.equal(response.status, 401);
+        expect(response.status).toBe(401);
       });
 
       it(`should delete user account`, async () => {
         const response = await request(app).delete(`${ROUTE}/me`).set(mockHeaders);
-        assert.ok(response.status === 204 || response.status === 500);
+        expect(response.status === 204 || response.status === 500).toBe(true);
       });
 
       it(`should return 204 on successful deletion`, async () => {
         const response = await request(app).delete(`${ROUTE}/me`).set(mockHeaders);
-        assert.ok(response.status === 204 || response.status === 500);
+        expect(response.status === 204 || response.status === 500).toBe(true);
       });
     });
   });
@@ -141,7 +141,7 @@ describe(`Unit test the ${ROUTE} route`, () => {
         'x-forwarded-access-token': 'test-token',
       };
       const response = await request(app).get(`${ROUTE}/settings/me`).set(invalidHeaders);
-      assert.equal(response.status, 401);
+      expect(response.status).toBe(401);
     });
 
     it(`should reject requests with array x-forwarded-user header`, async () => {
@@ -152,7 +152,7 @@ describe(`Unit test the ${ROUTE} route`, () => {
           'x-forwarded-email': 'test@example.com',
           'x-forwarded-access-token': 'test-token',
         });
-      assert.equal(response.status, 401);
+      expect(response.status).toBe(401);
     });
   });
 });

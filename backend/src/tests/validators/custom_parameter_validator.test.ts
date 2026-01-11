@@ -1,5 +1,4 @@
-import { expect } from 'chai';
-import { describe, it } from 'mocha';
+import { describe, it, expect } from 'vitest';
 import { NextFunction, Request, Response } from 'express';
 import { CustomParameterValidator } from '../../services/validators/custom_parameter_validator';
 import { EParamType } from '../../services/validators/parameter_validator';
@@ -15,7 +14,7 @@ describe('CustomParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
@@ -30,9 +29,9 @@ describe('CustomParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.instanceOf(ApiError);
-        expect((err as ApiError).status).to.equal(400);
-        expect((err as ApiError).message).to.include('invalid');
+        expect(err).toBeInstanceOf(ApiError);
+        expect((err as ApiError).status).toBe(400);
+        expect((err as ApiError).message).toContain('invalid');
         done();
       };
 
@@ -51,7 +50,7 @@ describe('CustomParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
@@ -70,8 +69,8 @@ describe('CustomParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.instanceOf(ApiError);
-        expect((err as ApiError).status).to.equal(400);
+        expect(err).toBeInstanceOf(ApiError);
+        expect((err as ApiError).status).toBe(400);
         done();
       };
 
@@ -88,9 +87,9 @@ describe('CustomParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.instanceOf(ApiError);
-        expect((err as ApiError).status).to.equal(400);
-        expect((err as ApiError).message).to.include('required');
+        expect(err).toBeInstanceOf(ApiError);
+        expect((err as ApiError).status).toBe(400);
+        expect((err as ApiError).message).toContain('required');
         done();
       };
 
@@ -105,7 +104,7 @@ describe('CustomParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
@@ -122,7 +121,7 @@ describe('CustomParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
@@ -137,8 +136,8 @@ describe('CustomParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.instanceOf(ApiError);
-        expect((err as ApiError).status).to.equal(400);
+        expect(err).toBeInstanceOf(ApiError);
+        expect((err as ApiError).status).toBe(400);
         done();
       };
 
@@ -158,7 +157,7 @@ describe('CustomParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
@@ -177,7 +176,7 @@ describe('CustomParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
@@ -194,8 +193,8 @@ describe('CustomParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.instanceOf(ApiError);
-        expect((err as ApiError).status).to.equal(400);
+        expect(err).toBeInstanceOf(ApiError);
+        expect((err as ApiError).status).toBe(400);
         done();
       };
 
@@ -212,8 +211,8 @@ describe('CustomParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.instanceOf(ApiError);
-        expect((err as ApiError).status).to.equal(400);
+        expect(err).toBeInstanceOf(ApiError);
+        expect((err as ApiError).status).toBe(400);
         done();
       };
 
@@ -228,7 +227,7 @@ describe('CustomParameterValidator', () => {
       } as unknown as Request;
       const res = {} as Response;
       const next: NextFunction = (err?: unknown) => {
-        expect(err).to.be.undefined;
+        expect(err).toBeUndefined();
         done();
       };
 
