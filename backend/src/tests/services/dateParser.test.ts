@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import {
-  isToday,
-  isSameDate,
-  getISODayStartString,
   getISODayEndString,
-  isIso8601DatetimeString,
-  isDate,
+  getISODayStartString,
   getTimeDiff,
+  isDate,
+  isIso8601DatetimeString,
+  isSameDate,
+  isToday,
   TimeUnit,
 } from '../../services/dateParser';
 

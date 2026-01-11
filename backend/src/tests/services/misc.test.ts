@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { requestQueryContainsParam, requestContainsParam } from '../../services/misc';
+import { requestContainsParam, requestQueryContainsParam } from '../../services/misc';
 import { Request } from 'express';
 
 describe('Miscellaneous Service Utilities', () => {

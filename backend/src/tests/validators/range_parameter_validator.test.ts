@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { RangeParameterValidator } from '../../services/validators/range_parameter_validator';
 import { EParamType } from '../../services/validators/parameter_validator';
 import { ApiError } from '../../models/api/api_error';

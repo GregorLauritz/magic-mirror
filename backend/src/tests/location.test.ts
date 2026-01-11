@@ -75,10 +75,7 @@ describe(`Unit test the ${ROUTE} route`, () => {
         assert.ok(typeof response.body === 'object', 'Response should be object');
         assert.ok(response.body.latitude !== undefined, 'Should have latitude');
         assert.ok(response.body.longitude !== undefined, 'Should have longitude');
-        assert.ok(
-          response.body.latitude >= -90 && response.body.latitude <= 90,
-          'Latitude should be in valid range',
-        );
+        assert.ok(response.body.latitude >= -90 && response.body.latitude <= 90, 'Latitude should be in valid range');
         assert.ok(
           response.body.longitude >= -180 && response.body.longitude <= 180,
           'Longitude should be in valid range',

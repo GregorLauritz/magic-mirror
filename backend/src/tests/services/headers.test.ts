@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { getUserId, getUserEmail, getAccessToken, getAuthenticationHeader } from '../../services/headers';
+import { getAccessToken, getAuthenticationHeader, getUserEmail, getUserId } from '../../services/headers';
 import { ApiError } from '../../models/api/api_error';
 import { IncomingHttpHeaders } from 'http';
 

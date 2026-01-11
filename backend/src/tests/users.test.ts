@@ -145,11 +145,13 @@ describe(`Unit test the ${ROUTE} route`, () => {
     });
 
     it(`should reject requests with array x-forwarded-user header`, async () => {
-      const response = await request(app).get(`${ROUTE}/settings/me`).set({
-        'x-forwarded-user': ['user1', 'user2'],
-        'x-forwarded-email': 'test@example.com',
-        'x-forwarded-access-token': 'test-token',
-      });
+      const response = await request(app)
+        .get(`${ROUTE}/settings/me`)
+        .set({
+          'x-forwarded-user': ['user1', 'user2'],
+          'x-forwarded-email': 'test@example.com',
+          'x-forwarded-access-token': 'test-token',
+        });
       assert.equal(response.status, 401);
     });
   });
