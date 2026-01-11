@@ -278,21 +278,28 @@ beforeEach(() => {
     }
 
     // Mock Google Calendar API
-    if (urlString.includes('googleapis.com')) {
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-        statusText: 'OK',
-        headers: new Headers(),
-        json: async () => ({
-          items: [],
-        }),
-        arrayBuffer: async () => new ArrayBuffer(8),
-        text: async () => '',
-        blob: async () => new Blob(),
-        formData: async () => new FormData(),
-        clone: () => ({ ok: true }) as Response,
-      } as Response);
+    try {
+      const parsedUrl = new URL(urlString);
+      const hostname = parsedUrl.hostname;
+
+      if (hostname === 'googleapis.com' || hostname.endsWith('.googleapis.com')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          headers: new Headers(),
+          json: async () => ({
+            items: [],
+          }),
+          arrayBuffer: async () => new ArrayBuffer(8),
+          text: async () => '',
+          blob: async () => new Blob(),
+          formData: async () => new FormData(),
+          clone: () => ({ ok: true }) as Response,
+        } as Response);
+      }
+    } catch {
+      // If URL parsing fails, fall through to the default mock response below.
     }
 
     // Default mock response
