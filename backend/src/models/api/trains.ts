@@ -2,12 +2,20 @@
  * Types for Deutsche Bahn train data from v6.db.transport.rest API
  */
 
+export interface TrainLocationCoordinates {
+  type: string;
+  id: string;
+  latitude: number;
+  longitude: number;
+}
+
 export interface TrainLocation {
   type: 'location' | 'stop' | 'station';
   id: string;
   name: string;
-  latitude?: number;
-  longitude?: number;
+  location?: TrainLocationCoordinates;
+  // Some stops have a nested station object
+  station?: TrainLocation;
 }
 
 export interface TrainLine {
@@ -45,15 +53,40 @@ export interface TrainDeparture {
   }>;
 }
 
+export interface TrainLeg {
+  origin: TrainLocation;
+  destination: TrainLocation;
+  departure: string;
+  plannedDeparture: string;
+  departureDelay?: number | null;
+  arrival: string;
+  plannedArrival: string;
+  arrivalDelay?: number | null;
+  tripId?: string;
+  line?: TrainLine;
+  direction?: string;
+  departurePlatform?: string;
+  plannedDeparturePlatform?: string;
+  arrivalPlatform?: string;
+  plannedArrivalPlatform?: string;
+  remarks?: Array<{
+    type: string;
+    code?: string;
+    text: string;
+    summary?: string;
+    priority?: number;
+  }>;
+  loadFactor?: string;
+}
+
 export interface TrainJourney {
   type: 'journey';
-  legs: Array<{
-    origin: TrainStop;
-    destination: TrainStop;
-    departure: string;
-    arrival: string;
-    line?: TrainLine;
-    direction?: string;
+  legs: TrainLeg[];
+  refreshToken?: string;
+  remarks?: Array<{
+    type: string;
+    code?: string;
+    text: string;
   }>;
   price?: {
     amount: number;

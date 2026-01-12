@@ -9,35 +9,15 @@ import { DeutscheBahnService } from 'services/deutsche_bahn';
 // Validators
 const queryValidator = new RegexParameterValidator('query', /^.{2,}$/, EParamType.query, true);
 
-const stationIdValidator = new RegexParameterValidator(
-  'stationId',
-  /^[\w-]+$/,
-  EParamType.query,
-  true,
-);
+const stationIdValidator = new RegexParameterValidator('stationId', /^[\w-]+$/, EParamType.query, true);
 
-const fromStationIdValidator = new RegexParameterValidator(
-  'from',
-  /^[\w-]+$/,
-  EParamType.query,
-  true,
-);
+const fromStationIdValidator = new RegexParameterValidator('from', /^[\w-]+$/, EParamType.query, true);
 
 const toStationIdValidator = new RegexParameterValidator('to', /^[\w-]+$/, EParamType.query, true);
 
-const resultsValidator = new RangeParameterValidator(
-  'results',
-  { min: 1, max: 50 },
-  EParamType.query,
-  false,
-);
+const resultsValidator = new RangeParameterValidator('results', { min: 1, max: 50 }, EParamType.query, false);
 
-const durationValidator = new RangeParameterValidator(
-  'duration',
-  { min: 10, max: 720 },
-  EParamType.query,
-  false,
-);
+const durationValidator = new RangeParameterValidator('duration', { min: 10, max: 720 }, EParamType.query, false);
 
 /**
  * GET /api/trains/stations

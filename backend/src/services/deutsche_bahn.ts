@@ -1,15 +1,8 @@
 import { fetchJson } from './fetch';
 import { ApiError } from 'models/api/api_error';
-import {
-  TrainLocation,
-  TrainDeparture,
-  ApiTrainStation,
-  ApiTrainConnection,
-  TrainJourney,
-} from 'models/api/trains';
+import { ApiTrainConnection, ApiTrainStation, TrainDeparture, TrainJourney, TrainLocation } from 'models/api/trains';
 import { LOGGER } from './loggers';
-
-const DB_API_BASE_URL = 'https://v6.db.transport.rest';
+import { DB_API_BASE_URL } from 'config';
 
 export class DeutscheBahnService {
   /**
@@ -26,6 +19,8 @@ export class DeutscheBahnService {
 
       const response = await fetchJson(url);
 
+      LOGGER.info('Deutsche Bahn API response received', { status: response.status });
+
       if (!Array.isArray(response.body)) {
         throw new ApiError('Invalid response from Deutsche Bahn API', undefined, 500);
       }
@@ -33,13 +28,15 @@ export class DeutscheBahnService {
       const locations = response.body as TrainLocation[];
 
       // Filter to only include stations and stops
+
+      LOGGER.info('Found locations', { count: locations.length });
       const stations: ApiTrainStation[] = locations
         .filter((loc) => loc.type === 'station' || loc.type === 'stop')
         .map((loc) => ({
           id: loc.id,
           name: loc.name,
-          latitude: loc.latitude,
-          longitude: loc.longitude,
+          latitude: loc.location?.latitude,
+          longitude: loc.location?.longitude,
         }));
 
       return stations;
@@ -71,11 +68,55 @@ export class DeutscheBahnService {
 
       const response = await fetchJson(url);
 
-      if (!response.body || !Array.isArray(response.body.departures)) {
+      if (!response.body || !Array.isArray(response.body.journeys)) {
         throw new ApiError('Invalid response from Deutsche Bahn API', undefined, 500);
       }
 
-      return response.body.departures as TrainDeparture[];
+      // Transform journeys into TrainDeparture format
+      const departures: TrainDeparture[] = [];
+
+      for (const journey of response.body.journeys) {
+        if (!journey.legs || journey.legs.length === 0) {
+          continue;
+        }
+
+        const firstLeg = journey.legs[0];
+
+        // Skip if missing required data
+        if (!firstLeg.origin || !firstLeg.line) {
+          continue;
+        }
+
+        const departure: TrainDeparture = {
+          tripId: journey.refreshToken || `${firstLeg.origin.id}-${firstLeg.departure}`,
+          stop: {
+            type: firstLeg.origin.type || 'station',
+            id: firstLeg.origin.id,
+            name: firstLeg.origin.name,
+            location: firstLeg.origin.location,
+          },
+          when: firstLeg.departure,
+          plannedWhen: firstLeg.plannedDeparture || firstLeg.departure,
+          delay: firstLeg.departureDelay,
+          platform: firstLeg.departurePlatform,
+          plannedPlatform: firstLeg.plannedDeparturePlatform || firstLeg.departurePlatform,
+          direction: firstLeg.direction || firstLeg.destination?.name || 'Unknown',
+          line: {
+            type: firstLeg.line.type || 'line',
+            id: firstLeg.line.id,
+            name: firstLeg.line.name,
+            mode: firstLeg.line.mode || 'train',
+            product: firstLeg.line.product || 'regional',
+          },
+          remarks: firstLeg.remarks,
+        };
+
+        departures.push(departure);
+      }
+
+      LOGGER.info('Transformed departures from journeys', { count: departures.length });
+
+      return departures;
     } catch (error) {
       LOGGER.error('Error getting train departures', { error, stationId });
       if (error instanceof ApiError) {
@@ -128,13 +169,13 @@ export class DeutscheBahnService {
         connections.push({
           departure: firstLeg.departure,
           arrival: lastLeg.arrival,
-          departureStation: firstLeg.origin.stop.name,
-          arrivalStation: lastLeg.destination.stop.name,
-          departurePlatform: firstLeg.origin.departurePlatform,
-          arrivalPlatform: lastLeg.destination.arrivalPlatform,
+          departureStation: firstLeg.origin.name,
+          arrivalStation: lastLeg.destination.name,
+          departurePlatform: firstLeg.departurePlatform,
+          arrivalPlatform: lastLeg.arrivalPlatform,
           line: firstLeg.line?.name || 'Unknown',
-          direction: firstLeg.direction || lastLeg.destination.stop.name,
-          delay: firstLeg.origin.departureDelay,
+          direction: firstLeg.direction || lastLeg.destination.name,
+          delay: firstLeg.departureDelay ?? undefined,
           duration,
         });
       }

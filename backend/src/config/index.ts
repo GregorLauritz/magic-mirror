@@ -52,7 +52,9 @@ export const REDIRECT_URI = process.env.REDIRECT_URI ?? `${FRONTEND_URL}/`;
 export const REGISTER_REDIRECT_URI = process.env.REGISTER_REDIRECT_URI ?? `${FRONTEND_URL}/registration`;
 export const FAILURE_REDIRECT_URI = process.env.FAILURE_REDIRECT_URI ?? `${FRONTEND_URL}/error`;
 
-export const ALLOWED_URLS = [WEATHER_API_URL, OPENWEATHER_URL, GEOCODE_URL];
+export const DB_API_BASE_URL = 'https://v6.db.transport.rest';
+
+export const ALLOWED_URLS = [WEATHER_API_URL, OPENWEATHER_URL, GEOCODE_URL, DB_API_BASE_URL];
 
 export const RATE_LIMIT = {
   windowMs: 1 * 60 * 1000, // 1 minute

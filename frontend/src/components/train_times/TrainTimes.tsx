@@ -5,7 +5,8 @@ import { memo } from 'react'
 import { useGetTrainConnections } from '../../apis/trains'
 import { useGetUserSettings } from '../../apis/user_settings'
 import { TrainConnection as TrainConnectionType } from '../../models/trains'
-import { xSmallFontSize } from '../../assets/styles/theme'
+import { PAPER_CARD_COLOR, xSmallFontSize } from '../../assets/styles/theme'
+import ErrorCard from '../error_card/ErrorCard'
 
 const TrainTimesComponent = () => {
     const { data: userSettings } = useGetUserSettings(false)
@@ -23,15 +24,21 @@ const TrainTimesComponent = () => {
         error,
     } = useGetTrainConnections(departureStationId, arrivalStationId, enabled)
 
-    if (!enabled) {
-        return null // Don't render if no stations are configured
+    if (!enabled && !isLoading) {
+        return (
+            <ErrorCard
+                Card={MediumCard}
+                error="Departure and or arrival station are not set. Please set them in the settings"
+                showSettingsBtn
+            />
+        )
     }
 
     return (
         <MediumCard>
             <Box height="100%">
                 <Typography variant="body1" marginBottom={1}>
-                    TRAIN TIMES
+                    Train Times
                 </Typography>
                 <Typography
                     variant="body2"
@@ -44,8 +51,12 @@ const TrainTimesComponent = () => {
                 <Stack spacing={1} direction="column">
                     {isLoading && (
                         <>
-                            {Array.from({ length: 3 }, (_, index) => (
-                                <Skeleton key={index} variant="rounded" height={60} />
+                            {Array.from({ length: 2 }, (_, index) => (
+                                <Skeleton
+                                    key={index}
+                                    variant="rounded"
+                                    height={50}
+                                />
                             ))}
                         </>
                     )}
@@ -71,12 +82,14 @@ const TrainTimesComponent = () => {
                     {!isLoading &&
                         !error &&
                         connections &&
-                        connections.map((connection, index) => (
-                            <TrainConnection
-                                key={`${connection.departure}-${index}`}
-                                connection={connection}
-                            />
-                        ))}
+                        connections
+                            .slice(0, 2)
+                            .map((connection, index) => (
+                                <TrainConnection
+                                    key={`${connection.departure}-${index}`}
+                                    connection={connection}
+                                />
+                            ))}
                 </Stack>
             </Box>
         </MediumCard>
@@ -118,7 +131,7 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
             sx={{
                 padding: 1,
                 borderRadius: 1,
-                backgroundColor: 'background.paper',
+                backgroundColor: PAPER_CARD_COLOR,
                 border: 1,
                 borderColor: 'divider',
             }}
@@ -137,7 +150,8 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
                         fontSize={xSmallFontSize}
                         color="text.secondary"
                     >
-                        {connection.line} • {formatDuration(connection.duration)}
+                        {connection.line} •{' '}
+                        {formatDuration(connection.duration)}
                     </Typography>
                 </Box>
                 <Box textAlign="right">

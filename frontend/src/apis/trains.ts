@@ -27,9 +27,9 @@ export const useGetTrainConnections = (
         queryKey: [ServerStateKeysEnum.train_connections, fromStationId, toStationId],
         queryFn: async (): Promise<TrainConnection[]> =>
             fetchJson<TrainConnection[]>(
-                `${TRAINS_API}/connections?from=${encodeURIComponent(fromStationId!)}&to=${encodeURIComponent(toStationId!)}&results=5`
+                `${TRAINS_API}/connections?from=${encodeURIComponent(fromStationId!)}&to=${encodeURIComponent(toStationId!)}&results=2`
             ),
         enabled: enabled && !!fromStationId && !!toStationId,
-        refetchInterval: 60000, // Refetch every minute
+        refetchInterval: 300000, // Refetch every 5 minutes
         staleTime: 30000, // Consider data stale after 30 seconds
     })

@@ -1,6 +1,6 @@
 import { Box, TextField, Button, Autocomplete } from '@mui/material'
 import CountrySelect from '../country_select/CountrySelect'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
     buttonBoxStyle,
     countryBoxStyle,
@@ -55,11 +55,15 @@ export const SettingsForm = ({
     const [birthdayCalendar, setBirthdayCalendar] =
         useState<string>(birthdayCalId)
     const [eventsCalender, setEventsCalender] = useState<string>(eventsCalId)
-    const [departureStation, setDepartureStation] = useState<TrainStation | null>(
-        trainDepartureStationId && trainDepartureStationName
-            ? { id: trainDepartureStationId, name: trainDepartureStationName }
-            : null
-    )
+    const [departureStation, setDepartureStation] =
+        useState<TrainStation | null>(
+            trainDepartureStationId && trainDepartureStationName
+                ? {
+                      id: trainDepartureStationId,
+                      name: trainDepartureStationName,
+                  }
+                : null
+        )
     const [arrivalStation, setArrivalStation] = useState<TrainStation | null>(
         trainArrivalStationId && trainArrivalStationName
             ? { id: trainArrivalStationId, name: trainArrivalStationName }
@@ -67,7 +71,9 @@ export const SettingsForm = ({
     )
     const [departureQuery, setDepartureQuery] = useState('')
     const [arrivalQuery, setArrivalQuery] = useState('')
-    const [departureStations, setDepartureStations] = useState<TrainStation[]>([])
+    const [departureStations, setDepartureStations] = useState<TrainStation[]>(
+        []
+    )
     const [arrivalStations, setArrivalStations] = useState<TrainStation[]>([])
     const currentBirthdayCalendar = useMemo(
         () => calendars.find((c) => c.id === birthdayCalendar),
@@ -78,8 +84,11 @@ export const SettingsForm = ({
         [eventsCalender, calendars]
     )
 
-    const searchDepartureStations = useCallback(
-        async (query: string) => {
+    const searchStations = useCallback(
+        async (
+            query: string,
+            setStations: React.Dispatch<React.SetStateAction<TrainStation[]>>
+        ) => {
             if (query.length >= 2) {
                 try {
                     const response = await fetch(
@@ -87,34 +96,31 @@ export const SettingsForm = ({
                     )
                     if (response.ok) {
                         const stations = await response.json()
-                        setDepartureStations(stations)
+                        setStations(stations)
                     }
                 } catch (error) {
-                    console.error('Error searching departure stations:', error)
+                    console.error('Error searching stations:', error)
                 }
             }
         },
         []
     )
 
-    const searchArrivalStations = useCallback(
-        async (query: string) => {
-            if (query.length >= 2) {
-                try {
-                    const response = await fetch(
-                        `${TRAINS_API}/stations?query=${encodeURIComponent(query)}&results=10`
-                    )
-                    if (response.ok) {
-                        const stations = await response.json()
-                        setArrivalStations(stations)
-                    }
-                } catch (error) {
-                    console.error('Error searching arrival stations:', error)
-                }
-            }
-        },
-        []
-    )
+    // Debounce departure station search
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            searchStations(departureQuery, setDepartureStations)
+        }, 300)
+        return () => clearTimeout(timeoutId)
+    }, [departureQuery, searchStations])
+
+    // Debounce arrival station search
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            searchStations(arrivalQuery, setArrivalStations)
+        }, 300)
+        return () => clearTimeout(timeoutId)
+    }, [arrivalQuery, searchStations])
 
     const onSendButton = useCallback(() => {
         if (country === '') {
@@ -185,7 +191,7 @@ export const SettingsForm = ({
                 <Autocomplete
                     id="events-cal"
                     options={calendars}
-                    value={currentEventsCalendar}
+                    value={currentEventsCalendar ?? null}
                     getOptionLabel={(option) => option.name}
                     onChange={(_, value) =>
                         value && setEventsCalender(value.id)
@@ -194,9 +200,15 @@ export const SettingsForm = ({
                         <TextField
                             {...params}
                             label="Events Calendar"
-                            inputProps={{
-                                ...params.inputProps,
-                                autoComplete: 'new-password', // disable autocomplete and autofill
+                            slotProps={{
+                                input: {
+                                    ...params.InputProps,
+                                    autoComplete: 'new-password', // disable autocomplete and autofill
+                                },
+                                htmlInput: {
+                                    ...params.inputProps,
+                                    autoComplete: 'new-password',
+                                },
                             }}
                         />
                     )}
@@ -206,7 +218,7 @@ export const SettingsForm = ({
                 <Autocomplete
                     id="bday-cal"
                     options={calendars}
-                    value={currentBirthdayCalendar}
+                    value={currentBirthdayCalendar ?? null}
                     getOptionLabel={(option) => option.name}
                     onChange={(_, value) =>
                         value && setBirthdayCalendar(value.id)
@@ -215,9 +227,15 @@ export const SettingsForm = ({
                         <TextField
                             {...params}
                             label="Birthday Calendar"
-                            inputProps={{
-                                ...params.inputProps,
-                                autoComplete: 'new-password', // disable autocomplete and autofill
+                            slotProps={{
+                                input: {
+                                    ...params.InputProps,
+                                    autoComplete: 'new-password', // disable autocomplete and autofill
+                                },
+                                htmlInput: {
+                                    ...params.inputProps,
+                                    autoComplete: 'new-password',
+                                },
                             }}
                         />
                     )}
@@ -229,19 +247,24 @@ export const SettingsForm = ({
                     options={departureStations}
                     value={departureStation}
                     getOptionLabel={(option) => option.name}
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    isOptionEqualToValue={(option, value) =>
+                        option.id === value.id
+                    }
                     onChange={(_, value) => setDepartureStation(value)}
-                    onInputChange={(_, value) => {
-                        setDepartureQuery(value)
-                        searchDepartureStations(value)
-                    }}
+                    onInputChange={(_, value) => setDepartureQuery(value)}
                     renderInput={(params) => (
                         <TextField
                             {...params}
                             label="Departure Station (optional)"
-                            inputProps={{
-                                ...params.inputProps,
-                                autoComplete: 'new-password',
+                            slotProps={{
+                                input: {
+                                    ...params.InputProps,
+                                    autoComplete: 'new-password',
+                                },
+                                htmlInput: {
+                                    ...params.inputProps,
+                                    autoComplete: 'new-password',
+                                },
                             }}
                         />
                     )}
@@ -253,19 +276,24 @@ export const SettingsForm = ({
                     options={arrivalStations}
                     value={arrivalStation}
                     getOptionLabel={(option) => option.name}
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    isOptionEqualToValue={(option, value) =>
+                        option.id === value.id
+                    }
                     onChange={(_, value) => setArrivalStation(value)}
-                    onInputChange={(_, value) => {
-                        setArrivalQuery(value)
-                        searchArrivalStations(value)
-                    }}
+                    onInputChange={(_, value) => setArrivalQuery(value)}
                     renderInput={(params) => (
                         <TextField
                             {...params}
                             label="Arrival Station (optional)"
-                            inputProps={{
-                                ...params.inputProps,
-                                autoComplete: 'new-password',
+                            slotProps={{
+                                input: {
+                                    ...params.InputProps,
+                                    autoComplete: 'new-password',
+                                },
+                                htmlInput: {
+                                    ...params.inputProps,
+                                    autoComplete: 'new-password',
+                                },
                             }}
                         />
                     )}
