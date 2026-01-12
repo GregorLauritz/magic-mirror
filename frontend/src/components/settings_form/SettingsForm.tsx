@@ -7,8 +7,9 @@ import {
     inputBoxStyle,
     parentBoxStyle,
 } from './style'
-import { LOCATION_API } from '../../constants/api'
+import { LOCATION_API, TRAINS_API } from '../../constants/api'
 import { CalendarListItem } from '../../models/calendar'
+import { TrainStation } from '../../models/trains'
 
 export interface SettingsParams {
     country: string
@@ -16,6 +17,10 @@ export interface SettingsParams {
     zipCode: string
     birthdayCalId: string
     eventsCalId: string
+    trainDepartureStationId?: string
+    trainDepartureStationName?: string
+    trainArrivalStationId?: string
+    trainArrivalStationName?: string
 }
 
 interface SettingsFormProps {
@@ -39,6 +44,10 @@ export const SettingsForm = ({
         zipCode: defaultZipCode,
         birthdayCalId,
         eventsCalId,
+        trainDepartureStationId,
+        trainDepartureStationName,
+        trainArrivalStationId,
+        trainArrivalStationName,
     } = defaults
     const city = useRef<HTMLInputElement>(null)
     const zip = useRef<HTMLInputElement>(null)
@@ -46,6 +55,20 @@ export const SettingsForm = ({
     const [birthdayCalendar, setBirthdayCalendar] =
         useState<string>(birthdayCalId)
     const [eventsCalender, setEventsCalender] = useState<string>(eventsCalId)
+    const [departureStation, setDepartureStation] = useState<TrainStation | null>(
+        trainDepartureStationId && trainDepartureStationName
+            ? { id: trainDepartureStationId, name: trainDepartureStationName }
+            : null
+    )
+    const [arrivalStation, setArrivalStation] = useState<TrainStation | null>(
+        trainArrivalStationId && trainArrivalStationName
+            ? { id: trainArrivalStationId, name: trainArrivalStationName }
+            : null
+    )
+    const [departureQuery, setDepartureQuery] = useState('')
+    const [arrivalQuery, setArrivalQuery] = useState('')
+    const [departureStations, setDepartureStations] = useState<TrainStation[]>([])
+    const [arrivalStations, setArrivalStations] = useState<TrainStation[]>([])
     const currentBirthdayCalendar = useMemo(
         () => calendars.find((c) => c.id === birthdayCalendar),
         [birthdayCalendar, calendars]
@@ -53,6 +76,44 @@ export const SettingsForm = ({
     const currentEventsCalendar = useMemo(
         () => calendars.find((c) => c.id === eventsCalender),
         [eventsCalender, calendars]
+    )
+
+    const searchDepartureStations = useCallback(
+        async (query: string) => {
+            if (query.length >= 2) {
+                try {
+                    const response = await fetch(
+                        `${TRAINS_API}/stations?query=${encodeURIComponent(query)}&results=10`
+                    )
+                    if (response.ok) {
+                        const stations = await response.json()
+                        setDepartureStations(stations)
+                    }
+                } catch (error) {
+                    console.error('Error searching departure stations:', error)
+                }
+            }
+        },
+        []
+    )
+
+    const searchArrivalStations = useCallback(
+        async (query: string) => {
+            if (query.length >= 2) {
+                try {
+                    const response = await fetch(
+                        `${TRAINS_API}/stations?query=${encodeURIComponent(query)}&results=10`
+                    )
+                    if (response.ok) {
+                        const stations = await response.json()
+                        setArrivalStations(stations)
+                    }
+                } catch (error) {
+                    console.error('Error searching arrival stations:', error)
+                }
+            }
+        },
+        []
     )
 
     const onSendButton = useCallback(() => {
@@ -71,6 +132,10 @@ export const SettingsForm = ({
                         zipCode: zip.current!.value,
                         birthdayCalId: birthdayCalendar ?? birthdayCalId,
                         eventsCalId: eventsCalender ?? eventsCalId,
+                        trainDepartureStationId: departureStation?.id,
+                        trainDepartureStationName: departureStation?.name,
+                        trainArrivalStationId: arrivalStation?.id,
+                        trainArrivalStationName: arrivalStation?.name,
                     }
                     onSend(data)
                 })
@@ -83,6 +148,8 @@ export const SettingsForm = ({
         onSend,
         birthdayCalId,
         eventsCalId,
+        departureStation,
+        arrivalStation,
     ])
 
     return (
@@ -151,6 +218,54 @@ export const SettingsForm = ({
                             inputProps={{
                                 ...params.inputProps,
                                 autoComplete: 'new-password', // disable autocomplete and autofill
+                            }}
+                        />
+                    )}
+                />
+            </Box>
+            <Box>
+                <Autocomplete
+                    id="departure-station"
+                    options={departureStations}
+                    value={departureStation}
+                    getOptionLabel={(option) => option.name}
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    onChange={(_, value) => setDepartureStation(value)}
+                    onInputChange={(_, value) => {
+                        setDepartureQuery(value)
+                        searchDepartureStations(value)
+                    }}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Departure Station (optional)"
+                            inputProps={{
+                                ...params.inputProps,
+                                autoComplete: 'new-password',
+                            }}
+                        />
+                    )}
+                />
+            </Box>
+            <Box>
+                <Autocomplete
+                    id="arrival-station"
+                    options={arrivalStations}
+                    value={arrivalStation}
+                    getOptionLabel={(option) => option.name}
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    onChange={(_, value) => setArrivalStation(value)}
+                    onInputChange={(_, value) => {
+                        setArrivalQuery(value)
+                        searchArrivalStations(value)
+                    }}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Arrival Station (optional)"
+                            inputProps={{
+                                ...params.inputProps,
+                                autoComplete: 'new-password',
                             }}
                         />
                     )}
