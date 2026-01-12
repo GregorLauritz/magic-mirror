@@ -1,4 +1,4 @@
-import { Box, TextField, Button, Autocomplete } from '@mui/material'
+import { Box, TextField, Button, Autocomplete, FormControlLabel, Checkbox } from '@mui/material'
 import CountrySelect from '../country_select/CountrySelect'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import {
@@ -9,6 +9,7 @@ import {
 } from './style'
 import { LOCATION_API } from '../../constants/api'
 import { CalendarListItem } from '../../models/calendar'
+import { TaskListItem } from '../../models/tasks'
 
 export interface SettingsParams {
     country: string
@@ -16,10 +17,13 @@ export interface SettingsParams {
     zipCode: string
     birthdayCalId: string
     eventsCalId: string
+    taskListIds: string[]
+    showCompletedTasks: boolean
 }
 
 interface SettingsFormProps {
     calendars: CalendarListItem[]
+    taskLists: TaskListItem[]
     defaults: SettingsParams
     showBackButton: boolean
     onSend: (data: SettingsParams) => void
@@ -28,6 +32,7 @@ interface SettingsFormProps {
 
 export const SettingsForm = ({
     calendars,
+    taskLists,
     defaults,
     showBackButton,
     onSend,
@@ -39,6 +44,8 @@ export const SettingsForm = ({
         zipCode: defaultZipCode,
         birthdayCalId,
         eventsCalId,
+        taskListIds,
+        showCompletedTasks,
     } = defaults
     const city = useRef<HTMLInputElement>(null)
     const zip = useRef<HTMLInputElement>(null)
@@ -46,6 +53,12 @@ export const SettingsForm = ({
     const [birthdayCalendar, setBirthdayCalendar] =
         useState<string>(birthdayCalId)
     const [eventsCalender, setEventsCalender] = useState<string>(eventsCalId)
+    const [selectedTaskLists, setSelectedTaskLists] = useState<string[]>(
+        taskListIds
+    )
+    const [showCompleted, setShowCompleted] = useState<boolean>(
+        showCompletedTasks
+    )
     const currentBirthdayCalendar = useMemo(
         () => calendars.find((c) => c.id === birthdayCalendar),
         [birthdayCalendar, calendars]
@@ -53,6 +66,10 @@ export const SettingsForm = ({
     const currentEventsCalendar = useMemo(
         () => calendars.find((c) => c.id === eventsCalender),
         [eventsCalender, calendars]
+    )
+    const currentTaskLists = useMemo(
+        () => taskLists.filter((t) => selectedTaskLists.includes(t.id)),
+        [selectedTaskLists, taskLists]
     )
 
     const onSendButton = useCallback(() => {
@@ -71,6 +88,8 @@ export const SettingsForm = ({
                         zipCode: zip.current!.value,
                         birthdayCalId: birthdayCalendar ?? birthdayCalId,
                         eventsCalId: eventsCalender ?? eventsCalId,
+                        taskListIds: selectedTaskLists,
+                        showCompletedTasks: showCompleted,
                     }
                     onSend(data)
                 })
@@ -80,6 +99,8 @@ export const SettingsForm = ({
         country,
         birthdayCalendar,
         eventsCalender,
+        selectedTaskLists,
+        showCompleted,
         onSend,
         birthdayCalId,
         eventsCalId,
@@ -154,6 +175,39 @@ export const SettingsForm = ({
                             }}
                         />
                     )}
+                />
+            </Box>
+            <Box>
+                <Autocomplete
+                    multiple
+                    id="task-lists"
+                    options={taskLists}
+                    value={currentTaskLists}
+                    getOptionLabel={(option) => option.title}
+                    onChange={(_, value) =>
+                        setSelectedTaskLists(value.map((v) => v.id))
+                    }
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Task Lists (all if empty)"
+                            inputProps={{
+                                ...params.inputProps,
+                                autoComplete: 'new-password',
+                            }}
+                        />
+                    )}
+                />
+            </Box>
+            <Box>
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={showCompleted}
+                            onChange={(e) => setShowCompleted(e.target.checked)}
+                        />
+                    }
+                    label="Show Completed Tasks"
                 />
             </Box>
             <Box sx={buttonBoxStyle}>

@@ -31,5 +31,7 @@ const getUserSettingsBody = async (
         city: data.city,
         events_cal_id: data.eventsCalId,
         birthday_cal_id: data.birthdayCalId,
+        task_list_ids: data.taskListIds,
+        show_completed_tasks: data.showCompletedTasks,
     }
 }
