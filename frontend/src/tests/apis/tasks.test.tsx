@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from 'react-query'
-import { useGetTasks } from '../../apis/tasks'
+import { useGetTasks, useGetTaskLists } from '../../apis/tasks'
 import * as fetchUtils from '../../common/fetch'
 import { ReactNode } from 'react'
 
@@ -220,6 +220,99 @@ describe('tasks API hooks', () => {
             expect(result.current.data.list[0].due).toBe(
                 '2024-02-01T00:00:00Z'
             )
+        })
+    })
+
+    describe('useGetTaskLists', () => {
+        it('should fetch task lists successfully', async () => {
+            const mockTaskLists = [
+                { id: 'list1', title: 'My Tasks' },
+                { id: 'list2', title: 'Work Tasks' },
+            ]
+
+            vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue(mockTaskLists)
+
+            const { result } = renderHook(() => useGetTaskLists(), {
+                wrapper,
+            })
+
+            await waitFor(() => {
+                expect(result.current.isSuccess).toBe(true)
+            })
+
+            expect(result.current.data).toEqual(mockTaskLists)
+            expect(fetchUtils.fetchJson).toHaveBeenCalledWith(
+                expect.stringContaining('/api/tasks/lists')
+            )
+        })
+
+        it('should handle fetch errors', async () => {
+            const mockError = new Error('Task lists API error')
+            vi.spyOn(fetchUtils, 'fetchJson').mockRejectedValue(mockError)
+
+            const { result } = renderHook(() => useGetTaskLists(), {
+                wrapper,
+            })
+
+            await waitFor(() => {
+                expect(result.current.isError).toBe(true)
+            })
+
+            expect(result.current.error).toEqual(mockError)
+        })
+
+        it('should be in loading state initially', () => {
+            vi.spyOn(fetchUtils, 'fetchJson').mockImplementation(
+                () => new Promise(() => {})
+            )
+
+            const { result } = renderHook(() => useGetTaskLists(), {
+                wrapper,
+            })
+
+            expect(result.current.isLoading).toBe(true)
+            expect(result.current.data).toBeUndefined()
+        })
+
+        it('should handle empty task lists', async () => {
+            const mockTaskLists: never[] = []
+
+            vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue(mockTaskLists)
+
+            const { result } = renderHook(() => useGetTaskLists(), {
+                wrapper,
+            })
+
+            await waitFor(() => {
+                expect(result.current.isSuccess).toBe(true)
+            })
+
+            expect(result.current.data).toEqual([])
+            expect(result.current.data?.length).toBe(0)
+        })
+
+        it('should return task lists with correct structure', async () => {
+            const mockTaskLists = [
+                { id: 'list1', title: 'Personal' },
+                { id: 'list2', title: 'Shopping' },
+                { id: 'list3', title: 'Work Projects' },
+            ]
+
+            vi.spyOn(fetchUtils, 'fetchJson').mockResolvedValue(mockTaskLists)
+
+            const { result } = renderHook(() => useGetTaskLists(), {
+                wrapper,
+            })
+
+            await waitFor(() => {
+                expect(result.current.isSuccess).toBe(true)
+            })
+
+            expect(result.current.data?.length).toBe(3)
+            expect(result.current.data?.[0]).toHaveProperty('id')
+            expect(result.current.data?.[0]).toHaveProperty('title')
+            expect(typeof result.current.data?.[0].id).toBe('string')
+            expect(typeof result.current.data?.[0].title).toBe('string')
         })
     })
 })

@@ -11,3 +11,8 @@ export type Task = {
     due?: string
     completed?: string
 }
+
+export type TaskListItem = {
+    id: string
+    title: string
+}

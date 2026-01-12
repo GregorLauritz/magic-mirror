@@ -6,6 +6,8 @@ export interface IDtoUserSettings extends Document {
   zip_code: string;
   events_cal_id: string;
   birthday_cal_id: string;
+  task_list_ids: string[];
+  show_completed_tasks: boolean;
   sub: string;
 }
 
@@ -36,6 +38,16 @@ const UserSettingsSchema = new Schema(
     events_cal_id: {
       type: String,
       required: false,
+    },
+    task_list_ids: {
+      type: [String],
+      required: false,
+      default: [],
+    },
+    show_completed_tasks: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
   },
   { strict: false },

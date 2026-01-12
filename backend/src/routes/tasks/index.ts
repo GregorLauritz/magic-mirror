@@ -47,6 +47,20 @@ class TaskService {
       completed: task.completed || undefined,
     };
   }
+
+  static async getTaskLists(req: Request): Promise<tasks_v1.Schema$TaskLists> {
+    const tasksClient = getGoogleTasks(req);
+    const taskLists = await tasksClient.tasklists.list({ maxResults: 100 });
+    return taskLists.data;
+  }
+
+  static parseTaskLists(taskLists: tasks_v1.Schema$TaskLists) {
+    const items = taskLists.items || [];
+    return items.map((taskList) => ({
+      id: taskList.id,
+      title: taskList.title,
+    }));
+  }
 }
 
 // Route Handlers
@@ -65,8 +79,20 @@ async function allTasks(req: Request, res: Response, next: NextFunction): Promis
   }
 }
 
+async function listTaskLists(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const taskLists = await TaskService.getTaskLists(req);
+    const parsedTaskLists = TaskService.parseTaskLists(taskLists);
+
+    res.status(200).json(parsedTaskLists);
+  } catch (err) {
+    next(new ApiError('Error retrieving task lists', err as Error, 500));
+  }
+}
+
 const router = getRouter();
 
 router.get('/', [taskCountValidator.validate], allTasks);
+router.get('/lists', listTaskLists);
 
 export default router;

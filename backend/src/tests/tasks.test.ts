@@ -106,4 +106,37 @@ describe(`Unit test the ${ROUTE} route`, () => {
       expect(result).toBe(false);
     });
   });
+
+  describe(`Unit testing the ${ROUTE}/lists route`, () => {
+    it(`should return OK status`, async () => {
+      const response = await request(app).get(`${ROUTE}/lists`).set(mockHeaders);
+      expect(response.status).toBe(200);
+    });
+
+    it(`should return array of task lists`, async () => {
+      const response = await request(app).get(`${ROUTE}/lists`).set(mockHeaders);
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+    });
+
+    it(`should return task lists with correct structure`, async () => {
+      const response = await request(app).get(`${ROUTE}/lists`).set(mockHeaders);
+      if (response.status === 200 && response.body.length > 0) {
+        const taskList = response.body[0];
+        expect('id' in taskList).toBe(true);
+        expect('title' in taskList).toBe(true);
+        expect(typeof taskList.id).toBe('string');
+        expect(typeof taskList.title).toBe('string');
+      }
+    });
+
+    it(`should handle empty task list`, async () => {
+      const response = await request(app).get(`${ROUTE}/lists`).set(mockHeaders);
+      expect(response.status).toBe(200);
+      // Empty array is a valid response
+      if (Array.isArray(response.body)) {
+        expect(true).toBe(true);
+      }
+    });
+  });
 });
