@@ -17,3 +17,21 @@ export const useGetUserSettings = (
             ),
         refetchInterval: false,
     })
+
+export const patchUserSettings = async (
+    data: Partial<UserSettings>
+): Promise<UserSettings> => {
+    const body = JSON.stringify(data)
+
+    return fetchJson<UserSettings>(
+        `${USER_SETTINGS_API}/me`,
+        {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body,
+        },
+        [200]
+    )
+}

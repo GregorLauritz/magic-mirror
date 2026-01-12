@@ -20,9 +20,11 @@
         "@emotion/styled": "^11.13.0",
         "@mui/icons-material": "^7.3.7",
         "@mui/material": "^7.3.7",
+        "@types/react-grid-layout": "^2.1.0",
         "moment": "^2.30.1",
         "react": "^19.2.3",
         "react-dom": "^19.2.3",
+        "react-grid-layout": "^2.2.2",
         "react-query": "^3.39.3",
         "react-router-dom": "^7.12.0"
     },
