@@ -40,8 +40,8 @@ export const SettingsForm = ({
         birthdayCalId,
         eventsCalId,
     } = defaults
-    const city = useRef<HTMLInputElement>()
-    const zip = useRef<HTMLInputElement>()
+    const city = useRef<HTMLInputElement>(null)
+    const zip = useRef<HTMLInputElement>(null)
     const [country, setCountry] = useState(defaultCountry)
     const [birthdayCalendar, setBirthdayCalendar] =
         useState<string>(birthdayCalId)

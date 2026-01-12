@@ -1,11 +1,11 @@
-import assert from 'assert';
+import { describe, expect, it } from 'vitest';
 import request from 'supertest';
-import app from 'index';
-import { hasJsonSchemaValidationErrors } from 'services/json_schema';
+import app from '../index';
+import { hasJsonSchemaValidationErrors } from '../services/json_schema';
 import { weather_current_schema } from './json_schemas/current_weather.test';
 import { weather_forecast_schema } from './json_schemas/weather_forecast.test';
 
-const ROUTE = '/weather';
+const ROUTE = '/api/weather';
 
 describe(`Unit test the ${ROUTE} route`, () => {
   const icon_params = {
@@ -28,31 +28,29 @@ describe(`Unit test the ${ROUTE} route`, () => {
 
   describe(`Unit testing the ${ROUTE}/icon route`, () => {
     it(`should return OK status for icon ${icon_params.ok_icon}`, async () => {
-      return request(app)
-        .get(`${ROUTE}/icon/${icon_params.ok_icon}`)
-        .then((response) => assert.equal(response.status, 200));
+      const response = await request(app).get(`${ROUTE}/icon/${icon_params.ok_icon}`);
+      expect(response.status).toBe(200);
     });
     it(`should return 404 status for icon ${icon_params.fault_icon}`, async () => {
-      return request(app)
-        .get(`${ROUTE}/icon/${icon_params.fault_icon}`)
-        .then((response) => assert.equal(response.status, 404));
+      const response = await request(app).get(`${ROUTE}/icon/${icon_params.fault_icon}`);
+      expect(response.status).toBe(404);
     });
   });
 
   describe(`Unit testing the ${ROUTE}/current route`, () => {
     it(`should return OK status for ok test params`, async () => {
-      return request(app)
-        .get(`${ROUTE}/current?latitude=${location_params.ok_latitude}&longitude=${location_params.ok_longitude}`)
-        .then((response) => {
-          assert.equal(response.status, 200);
-          return hasJsonSchemaValidationErrors(weather_current_schema, response.body);
-        })
-        .then((result) => assert.equal(result, false));
+      const response = await request(app).get(
+        `${ROUTE}/current?latitude=${location_params.ok_latitude}&longitude=${location_params.ok_longitude}`,
+      );
+      expect(response.status).toBe(200);
+      const result = await hasJsonSchemaValidationErrors(weather_current_schema, response.body);
+      expect(result).toBe(false);
     });
     it(`should return 400 status for bad test params`, async () => {
-      return request(app)
-        .get(`${ROUTE}/current?latitude=${location_params.fault_latitude}&longitude=${location_params.fault_longitude}`)
-        .then((response) => assert.equal(response.status, 400));
+      const response = await request(app).get(
+        `${ROUTE}/current?latitude=${location_params.fault_latitude}&longitude=${location_params.fault_longitude}`,
+      );
+      expect(response.status).toBe(400);
     });
   });
 
@@ -61,30 +59,27 @@ describe(`Unit test the ${ROUTE} route`, () => {
       const response = await request(app).get(
         `${ROUTE}/forecast?latitude=${location_params.ok_latitude}&longitude=${location_params.ok_longitude}&days=${forecast_params.okay_days}`,
       );
-      assert.equal(response.status, 200);
+      expect(response.status).toBe(200);
       const result = await hasJsonSchemaValidationErrors(weather_forecast_schema, response.body);
-      return assert.equal(result, false);
+      expect(result).toBe(false);
     });
     it(`should return 400 status for bad test params`, async () => {
-      return request(app)
-        .get(
-          `${ROUTE}/forecast?latitude=${location_params.fault_latitude}&longitude=${location_params.fault_longitude}`,
-        )
-        .then((response) => assert.equal(response.status, 400));
+      const response = await request(app).get(
+        `${ROUTE}/forecast?latitude=${location_params.fault_latitude}&longitude=${location_params.fault_longitude}`,
+      );
+      expect(response.status).toBe(400);
     });
     it(`should return 400 status for 1000 day forcast`, async () => {
-      return request(app)
-        .get(
-          `${ROUTE}/forecast?latitude=${location_params.ok_latitude}&longitude=${location_params.ok_longitude}&days=${forecast_params.too_many_days}`,
-        )
-        .then((response) => assert.equal(response.status, 400));
+      const response = await request(app).get(
+        `${ROUTE}/forecast?latitude=${location_params.ok_latitude}&longitude=${location_params.ok_longitude}&days=${forecast_params.too_many_days}`,
+      );
+      expect(response.status).toBe(400);
     });
     it(`should return 400 status for negative day forcast`, async () => {
-      return request(app)
-        .get(
-          `${ROUTE}/forecast?latitude=${location_params.ok_latitude}&longitude=${location_params.ok_longitude}&days=${forecast_params.neg_days}`,
-        )
-        .then((response) => assert.equal(response.status, 400));
+      const response = await request(app).get(
+        `${ROUTE}/forecast?latitude=${location_params.ok_latitude}&longitude=${location_params.ok_longitude}&days=${forecast_params.neg_days}`,
+      );
+      expect(response.status).toBe(400);
     });
   });
 });

@@ -4,5 +4,7 @@
   vars_prompt:
     - name: client_secret
       prompt: Enter the OAuth2 Client Secret
+    - name: geocode_api_key
+      prompt: Enter the Geocode API Key
   roles:
     - setup_backend

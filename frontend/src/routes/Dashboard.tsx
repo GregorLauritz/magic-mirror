@@ -8,8 +8,9 @@ import UpcomingEvents from '../components/upcoming_events/UpcomingEvents'
 import { TimeContextProvider } from '../common/TimeContext'
 import { LocationContextProvider } from '../common/LocationContext'
 import { PADDING } from '../assets/styles/theme'
+import { memo } from 'react'
 
-export const Dashboard = () => {
+const DashboardComponent = () => {
     return (
         <LocationContextProvider>
             <TimeContextProvider>
@@ -19,14 +20,15 @@ export const Dashboard = () => {
     )
 }
 
-const DashBoardItems = () => {
+const DashBoardItems = memo(() => {
     return (
         <Box
             sx={{
                 display: 'grid',
                 gridTemplateColumns:
                     'repeat(auto-fit, minmax(min(155px, 100%), 1fr))',
-                gap: PADDING,
+                columnGap: PADDING,
+                rowGap: PADDING * 0.5,
                 width: '100%',
             }}
         >
@@ -66,4 +68,9 @@ const DashBoardItems = () => {
             </Box>
         </Box>
     )
-}
+})
+
+DashBoardItems.displayName = 'DashBoardItems'
+
+export const Dashboard = memo(DashboardComponent)
+Dashboard.displayName = 'Dashboard'

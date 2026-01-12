@@ -1,32 +1,38 @@
-import { Theme } from '@emotion/react'
-import { SxProps } from '@mui/material'
+import { type Theme } from '@emotion/react'
+import { type SxProps } from '@mui/material'
 import Card from '@mui/material/Card'
-import { ReactNode, memo } from 'react'
+import { type ReactNode, memo } from 'react'
 import { card_small, card_medium, card_large } from '../assets/styles/cards'
 
 export interface CardProps {
     children: ReactNode
 }
 
-interface ICardProps {
+interface InternalCardProps {
     children: ReactNode
     theme: SxProps<Theme>
 }
 
-const ICard = memo<ICardProps>(({ children, theme }) => {
+const InternalCard = memo<InternalCardProps>(({ children, theme }) => {
     return <Card sx={theme}>{children}</Card>
 })
 
-ICard.displayName = 'ICard'
+InternalCard.displayName = 'InternalCard'
 
-export const SmallCard = ({ children }: CardProps) => {
-    return <ICard theme={card_small}>{children}</ICard>
-}
+export const SmallCard = memo<CardProps>(({ children }) => {
+    return <InternalCard theme={card_small}>{children}</InternalCard>
+})
 
-export const MediumCard = ({ children }: CardProps) => {
-    return <ICard theme={card_medium}>{children}</ICard>
-}
+SmallCard.displayName = 'SmallCard'
 
-export const LargeCard = ({ children }: CardProps) => {
-    return <ICard theme={card_large}>{children}</ICard>
-}
+export const MediumCard = memo<CardProps>(({ children }) => {
+    return <InternalCard theme={card_medium}>{children}</InternalCard>
+})
+
+MediumCard.displayName = 'MediumCard'
+
+export const LargeCard = memo<CardProps>(({ children }) => {
+    return <InternalCard theme={card_large}>{children}</InternalCard>
+})
+
+LargeCard.displayName = 'LargeCard'

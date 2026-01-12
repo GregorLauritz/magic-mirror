@@ -4,7 +4,7 @@ import { MediumCard } from '../CardFrame'
 import { CalendarEvent } from '../../models/calendar'
 import { Event } from './Event'
 import { xSmallFontSize } from '../../assets/styles/theme'
-import React, { ReactElement, useMemo } from 'react'
+import { memo, type ReactElement, useMemo } from 'react'
 import { EventTexts, TodayEventTexts, NextDaysEventTexts } from './types'
 import { useGetEvents } from '../../apis/events'
 import {
@@ -17,7 +17,7 @@ import { useGetUserSettings } from '../../apis/user_settings'
 import { ServerStateKeysEnum } from '../../common/statekeys'
 import { useQuery } from 'react-query'
 
-const UpcomingEvents = () => {
+const UpcomingEventsComponent = () => {
     const { currentDate } = useTimeContext()
 
     // These dates are recomputed whenever currentDate changes
@@ -108,19 +108,25 @@ const EventsOnDay = ({
 
     if (isLoading) {
         return (
-            <React.Fragment>
+            <>
                 {Array.from({ length: maxEvents }, (_, index) => (
                     <Skeleton key={index} variant="rounded" />
                 ))}
-            </React.Fragment>
+            </>
         )
-    } else if (error) {
-        return <NoEventsItem timeFrame={'Error while loading events'} />
-    } else if (events === undefined || events.count === 0) {
+    }
+
+    if (error) {
+        return <NoEventsItem timeFrame="Error while loading events" />
+    }
+
+    if (events === undefined || events.count === 0) {
         return <NoEventsItem timeFrame={eventTexts.noEvents} />
-    } else if (events.count <= maxEvents) {
+    }
+
+    if (events.count <= maxEvents) {
         return events.list.map((ev) => (
-            <Event item={ev} date={date} key={ev.start} />
+            <Event item={ev} date={date} key={`${ev.start}-${ev.summary}`} />
         ))
     }
 
@@ -129,7 +135,7 @@ const EventsOnDay = ({
         `${events.count - (maxEvents - 1)}`
     )
     const summaryEventList = events.list.slice(maxEvents - 1)
-    const CalendarEvent: CalendarEvent = {
+    const mergedEvent: CalendarEvent = {
         summary,
         description: '',
         start: summaryEventList[0].start,
@@ -142,12 +148,16 @@ const EventsOnDay = ({
     const displayEventList = events.list.slice(0, maxEvents - 1)
 
     return (
-        <React.Fragment>
+        <>
             {displayEventList.map((ev) => (
-                <Event item={ev} date={date} key={ev.summary} />
+                <Event
+                    item={ev}
+                    date={date}
+                    key={`${ev.start}-${ev.summary}`}
+                />
             ))}
-            <Event item={CalendarEvent} date={date} key={CalendarEvent.start} />
-        </React.Fragment>
+            <Event item={mergedEvent} date={date} key={mergedEvent.start} />
+        </>
     )
 }
 
@@ -165,17 +175,22 @@ const useGetMinTime = (date: Date, isCurrentDay: boolean) =>
         refetchInterval: 300000, // 5 minutes
     })
 
-const NoEventsItem = ({ timeFrame }: { timeFrame: string }): ReactElement => {
+const NoEventsItem = memo<{ timeFrame: string }>(({ timeFrame }) => {
     return (
         <Typography color="text.secondary" sx={xSmallFontSize}>
             {timeFrame}
         </Typography>
     )
-}
+})
+
+NoEventsItem.displayName = 'NoEventsItem'
 
 const getMaxDateEndDate = (events: Array<CalendarEvent>): Date => {
     const endDates = events.map((item) => new Date(item.end).getTime())
     return new Date(Math.max(...endDates))
 }
+
+const UpcomingEvents = memo(UpcomingEventsComponent)
+UpcomingEvents.displayName = 'UpcomingEvents'
 
 export default UpcomingEvents

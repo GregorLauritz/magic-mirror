@@ -49,15 +49,17 @@ LABEL maintainer="magic-mirror" \
 ENV REACT_APP_NODE_ENV=production
 
 # Create non-root user for nginx
-RUN addgroup -g 101 -S nginx-app && \
-    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx-app -g nginx-app nginx-app && \
+RUN addgroup -g 102 -S nginx-app && \
+    adduser -S -D -H -u 102 -h /var/cache/nginx -s /sbin/nologin -G nginx-app -g nginx-app nginx-app && \
     # Create necessary directories with proper permissions
     mkdir -p /var/www/frontend/html /var/cache/nginx /var/run /var/log/nginx && \
     chown -R nginx-app:nginx-app /var/www/frontend /var/cache/nginx /var/run /var/log/nginx && \
     # Set proper permissions for nginx directories
     chmod -R 755 /var/www/frontend && \
     # Remove default nginx config
-    rm -f /etc/nginx/conf.d/default.conf
+    rm -f /etc/nginx/conf.d/default.conf && \
+    # Fix /run directory permissions for PID file access
+    chmod 777 /run
 
 # Copy built application from builder stage
 COPY --from=builder --chown=nginx-app:nginx-app /opt/app/dist /var/www/frontend/html
