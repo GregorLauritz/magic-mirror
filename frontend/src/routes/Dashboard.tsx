@@ -5,6 +5,7 @@ import DailyForecast from '../components/daily_forecast/DailyForecast'
 import Birthdays from '../components/birthdays/Birthdays'
 import HourlyWeather from '../components/hourly_forecast/HourlyForecast'
 import UpcomingEvents from '../components/upcoming_events/UpcomingEvents'
+import Tasks from '../components/tasks/Tasks'
 import { TimeContextProvider } from '../common/TimeContext'
 import { LocationContextProvider } from '../common/LocationContext'
 import { PADDING } from '../assets/styles/theme'
@@ -37,6 +38,9 @@ const DashBoardItems = memo(() => {
             </Box>
             <Box sx={{ gridColumn: 'span 1' }}>
                 <Birthdays />
+            </Box>
+            <Box sx={{ gridColumn: 'span 1' }}>
+                <Tasks />
             </Box>
             <Box
                 sx={{

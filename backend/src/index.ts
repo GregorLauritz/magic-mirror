@@ -5,6 +5,7 @@ import { default as WeatherRoute } from 'routes/weather';
 import { default as EventsRoute } from 'routes/events';
 import { default as CalendarsRoute } from 'routes/calendars';
 import { default as BirthdaysRoute } from 'routes/birthdays';
+import { default as TasksRoute } from 'routes/tasks';
 import { default as UsersRoute } from 'routes/users';
 import { default as LocationRoute } from 'routes/location';
 import { NextFunction, Request, Response } from 'express';
@@ -19,6 +20,7 @@ server.app.use('/api/weather', WeatherRoute);
 server.app.use('/api/events', EventsRoute);
 server.app.use('/api/calendars', CalendarsRoute);
 server.app.use('/api/birthdays', BirthdaysRoute);
+server.app.use('/api/tasks', TasksRoute);
 
 server.app.use('/api/users', UsersRoute);
 server.app.use('/api/location', LocationRoute);

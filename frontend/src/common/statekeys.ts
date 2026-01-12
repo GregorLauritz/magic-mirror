@@ -8,6 +8,7 @@ export enum ServerStateKeysEnum {
     weather_icon,
     events,
     events_day,
+    tasks,
     user_settings,
     geocode,
     calendar_list,
