@@ -20,7 +20,7 @@ export const useSearchTrainStations = (
 
 const DEFAULT_REFETCH_INTERVAL = 300000
 const DEPARTURE_BUFFER = 15000
-const MIN_REFETCH_INTERVAL = 10000
+const MIN_REFETCH_INTERVAL = 15000
 
 /**
  * Calculates the refetch interval based on the earliest train departure time.
