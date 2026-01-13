@@ -57,16 +57,28 @@ const DashBoardItems = memo(() => {
         return DEFAULT_LAYOUT
     }, [userSettings?.widget_layout])
 
-    // Grid configuration
+    // Calculate responsive row height based on screen width
+    const rowHeight = useMemo(() => {
+        if (width < 600) {
+            // xs breakpoint
+            return 120
+        } else if (width < 960) {
+            // sm breakpoint
+            return 150
+        }
+        return 190 // md and above
+    }, [width])
+
+    // Grid configuration with responsive row height
     const gridConfig = useMemo(
         () => ({
             cols: 12,
-            rowHeight: 190,
+            rowHeight,
             margin: [PADDING * SPACING, PADDING * SPACING] as const,
             containerPadding: [0, 0] as const,
             maxRows: Infinity,
         }),
-        []
+        [rowHeight]
     )
 
     // Drag and resize configuration based on edit mode

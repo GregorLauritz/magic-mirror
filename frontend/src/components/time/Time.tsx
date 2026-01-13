@@ -1,5 +1,4 @@
 import Typography from '@mui/material/Typography'
-import { smallFontSize } from '../../assets/styles/theme'
 import { useGetTime } from '../../apis/current_time'
 import { SmallCard } from '../CardFrame'
 import { Stack } from '@mui/material'
@@ -35,14 +34,17 @@ const TimeComponent = () => {
                 <Typography color="text.primary" variant="body1">
                     {time.currentDate}
                 </Typography>
-                <Typography variant="h2">
+                <Typography
+                    variant="h2"
+                    sx={{
+                        fontSize: 'clamp(1.5rem, 6vw, 3rem)',
+                        fontWeight: 500,
+                        lineHeight: 1.2,
+                    }}
+                >
                     {time.hour}:{time.minute}:{time.seconds}
                 </Typography>
-                <Typography
-                    variant="subtitle2"
-                    color="text.secondary"
-                    sx={smallFontSize}
-                >
+                <Typography variant="subtitle2" color="text.secondary">
                     Timezone UTC{time.timezoneOffset}
                 </Typography>
             </Stack>

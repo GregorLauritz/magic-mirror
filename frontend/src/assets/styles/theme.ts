@@ -10,6 +10,38 @@ export const theme = createTheme({
         mode: 'dark',
     },
     spacing: SPACING,
+    typography: {
+        // Enable responsive font sizes
+        fontSize: 14,
+        h1: {
+            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+            fontWeight: 500,
+        },
+        h2: {
+            fontSize: 'clamp(1.75rem, 4vw, 3rem)',
+            fontWeight: 500,
+        },
+        h3: {
+            fontSize: 'clamp(1.5rem, 3.5vw, 2.5rem)',
+            fontWeight: 500,
+        },
+        h4: {
+            fontSize: 'clamp(1.25rem, 3vw, 2rem)',
+            fontWeight: 500,
+        },
+        body1: {
+            fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+        },
+        body2: {
+            fontSize: 'clamp(0.75rem, 1.8vw, 0.875rem)',
+        },
+        subtitle1: {
+            fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+        },
+        subtitle2: {
+            fontSize: 'clamp(0.75rem, 1.8vw, 0.875rem)',
+        },
+    },
     components: {
         MuiCard: {
             styleOverrides: {
