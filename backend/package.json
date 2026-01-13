@@ -61,7 +61,7 @@
     "@types/passport-oauth2-refresh": "^1.1.4",
     "@types/supertest": "^6.0.1",
     "@typescript-eslint/eslint-plugin": "^8.52.0",
-    "@typescript-eslint/parser": "^8.52.0",
+    "@typescript-eslint/parser": "^8.53.0",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/ui": "^4.0.16",
     "eslint": "^9.9.1",
