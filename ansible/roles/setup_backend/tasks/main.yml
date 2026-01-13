@@ -106,6 +106,24 @@
     mode: "0755"
     recurse: true
 
+- name: Run database migrations
+  ansible.builtin.shell:
+    cmd: docker compose -f docker-compose.migrate.yml up --build --abort-on-container-exit
+    chdir: "{{ work_dir }}/docker-compose"
+  become: true
+  become_user: "{{ user_name }}"
+  register: migration_result
+  failed_when: migration_result.rc != 0
+  changed_when: migration_result.rc == 0
+
+- name: Clean up migration containers
+  ansible.builtin.shell:
+    cmd: docker compose -f docker-compose.migrate.yml down
+    chdir: "{{ work_dir }}/docker-compose"
+  become: true
+  become_user: "{{ user_name }}"
+  when: migration_result is defined
+
 - name: Enable & start service {{ service_name }}
   ansible.builtin.service:
     state: "{{ item }}"

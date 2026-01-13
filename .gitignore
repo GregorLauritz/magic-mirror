@@ -134,4 +134,4 @@ frontend/build/
 !ansible/roles/*/**/*.j2
 ansible/pwstore/*.txt
 
-oauth2-proxy/oauth2-proxy.cfg
+oauth2-proxy/oauth2-proxy.cfgbackups/

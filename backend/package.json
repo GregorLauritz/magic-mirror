@@ -14,6 +14,7 @@
     "lint:fix": "eslint ./src --report-unused-disable-directives --fix",
     "format": "prettier --log-level warn --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
+    "migrate": "ts-node -r tsconfig-paths/register src/migrations/run-all.ts",
     "migrate:train-connections": "ts-node -r tsconfig-paths/register src/migrations/001_migrate_train_connections.ts"
   },
   "license": "MIT",

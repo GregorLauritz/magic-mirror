@@ -1,0 +1,40 @@
+name: magic-mirror-migrate
+services:
+  mongo:
+    image: mongo:8.2.3-noble
+    volumes:
+      - ../mongo:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PW}
+    networks:
+      - db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  migrate:
+    build:
+      context: ../backend
+      dockerfile: docker/Dockerfile.migrate
+      args:
+        NODE_IMG_VERSION: ${NODE_IMG_VERSION}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    env_file:
+      - backend.env
+    networks:
+      - db
+    environment:
+      MONGO_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_PASSWORD: ${MONGO_ROOT_PW}
+    volumes:
+      - ../backend/src/migrations:/app/src/migrations:ro
+    command: yarn migrate
+
+networks:
+  db:

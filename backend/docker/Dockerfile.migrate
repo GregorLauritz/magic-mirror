@@ -1,0 +1,16 @@
+ARG NODE_IMG_VERSION=24
+FROM node:${NODE_IMG_VERSION}-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json yarn.lock ./
+
+# Install dependencies
+RUN yarn install --frozen-lockfile --production=false
+
+# Copy source code (including migrations)
+COPY . .
+
+# The command will be specified in docker-compose
+# It will run: yarn migrate

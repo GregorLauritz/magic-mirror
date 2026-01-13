@@ -38,20 +38,42 @@ Migrations are used to safely transform existing data when the database schema c
    - `MONGO_USERNAME`
    - `MONGO_PASSWORD`
 
-### Running a Migration
+### Running Migrations
 
-#### Option 1: Using ts-node directly
+#### Option 1: Run All Migrations (Recommended for Production)
+
+This runs all migrations in numerical order:
 
 ```bash
 cd backend
-npx ts-node src/migrations/001_migrate_train_connections.ts
+yarn migrate
 ```
 
-#### Option 2: Using yarn/npm script (if configured)
+Or using Docker Compose (recommended for production deployments):
+
+```bash
+cd docker-compose
+docker compose -f docker-compose.migrate.yml up --build
+```
+
+The Docker Compose approach:
+- Starts MongoDB with production data volumes
+- Runs all migrations in order
+- Automatically shuts down after completion
+- Ensures migrations run in the same environment as production
+
+#### Option 2: Run a Specific Migration (Development/Testing)
 
 ```bash
 cd backend
 yarn migrate:train-connections
+```
+
+Or directly with ts-node:
+
+```bash
+cd backend
+npx ts-node src/migrations/001_migrate_train_connections.ts
 ```
 
 ### Verifying the Migration
@@ -91,6 +113,56 @@ If you need to rollback a migration:
 4. Add error handling and logging
 5. Document the migration in this README
 6. Test thoroughly before deploying
+
+## Production Deployment
+
+### Automated Deployment with Ansible
+
+The Ansible playbook automatically runs migrations before starting the production services:
+
+1. The playbook copies the code to the remote server
+2. It runs `docker compose -f docker-compose.migrate.yml up` to execute all migrations
+3. Only after successful migration does it start the production services
+
+This ensures database schema is always up-to-date before the application starts.
+
+### Manual Production Deployment
+
+If deploying manually without Ansible:
+
+```bash
+# 1. Backup database first!
+mongodump --out=/backup/$(date +%Y%m%d)
+
+# 2. Run migrations
+cd docker-compose
+docker compose -f docker-compose.migrate.yml up --build
+
+# 3. Verify migrations succeeded (check logs)
+
+# 4. Start production services
+docker compose up -d
+```
+
+## How It Works
+
+### Migration Runner (`run-all.ts`)
+
+The migration runner:
+1. Scans the migrations directory for files matching `\d{3}_*.ts`
+2. Sorts them numerically (001, 002, 003, etc.)
+3. Executes each migration in order
+4. Stops on first failure to prevent data corruption
+5. Reports summary of successful and failed migrations
+
+### Docker Compose Migration Setup
+
+The `docker-compose.migrate.yml` file:
+- Uses the same MongoDB data volume as production (`../mongo:/data/db`)
+- Starts MongoDB with a health check
+- Waits for MongoDB to be healthy before running migrations
+- Runs `yarn migrate` to execute all migrations
+- Automatically exits when migrations complete
 
 ## Migration Checklist
 
