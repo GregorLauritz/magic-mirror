@@ -10,6 +10,7 @@ const EVENTS_ENDPOINT_CONTEXT = 'events'
 const CALENDARS_ENDPOINT_CONTEXT = 'calendars'
 const USERS_CONTEXT = 'users'
 const USER_SETTINGS_CONTEXT = `${USERS_CONTEXT}/settings`
+const TRAINS_ENDPOINT_CONTEXT = 'trains'
 export const WEATHER_API = `${BACKEND_BASE_URL}/${WEATHER_ENDPOINT_CONTEXT}`
 export const BIRHTDAY_API = `${BACKEND_BASE_URL}/${BIRTHDAY_ENDPOINT_CONTEXT}`
 export const USERS_API = `${BACKEND_BASE_URL}/${USERS_CONTEXT}`
@@ -21,6 +22,7 @@ export const LOGIN_URL = `${BACKEND_BASE_URL}/${AUTH_CONTEXT}/login`
 export const REGISTER_URL = `${BACKEND_BASE_URL}/${AUTH_CONTEXT}/register`
 export const LOGOUT_URL = `/oauth2/sign_out`
 export const LOCATION_API = `${BACKEND_BASE_URL}/location`
+export const TRAINS_API = `${BACKEND_BASE_URL}/${TRAINS_ENDPOINT_CONTEXT}`
 export const DEFAULT_FETCH_CONFIG: RequestInit = { credentials: 'include' }
 export const REFETCH_INTERVAL = parseInt(
     import.meta.env.REACT_APP_REFRESH_MILLIS ?? '120000'

@@ -44,6 +44,10 @@ export class UserSettingsRepository {
           city: settings.city,
           events_cal_id: settings.events_cal_id,
           birthday_cal_id: settings.birthday_cal_id,
+          train_departure_station_id: settings?.train_departure_station_id,
+          train_departure_station_name: settings?.train_departure_station_name,
+          train_arrival_station_id: settings?.train_arrival_station_id,
+          train_arrival_station_name: settings?.train_arrival_station_name,
         },
       },
       {
