@@ -21,6 +21,7 @@ import { useGetUserSettings } from '../apis/user_settings'
 import { patchUserSettings } from '../apis/user_settings'
 import { WidgetLayout } from '../models/user_settings'
 import { useGridEditContext } from '../common/GridEditContext'
+import { DEFAULT_LAYOUT } from '../common/constants'
 
 // Styles for grid items to ensure content is visible
 const gridItemSx = {
@@ -28,17 +29,6 @@ const gridItemSx = {
     height: '100%',
     overflow: 'visible',
 }
-
-// Default layout matching the original grid structure (12-column grid)
-const DEFAULT_LAYOUT: WidgetLayout[] = [
-    { i: 'time', x: 0, y: 0, w: 6, h: 1 },
-    { i: 'birthdays', x: 6, y: 0, w: 6, h: 1 },
-    { i: 'events', x: 0, y: 1, w: 12, h: 1 },
-    { i: 'trains', x: 0, y: 2, w: 12, h: 1 },
-    { i: 'current-weather', x: 0, y: 3, w: 12, h: 1 },
-    { i: 'hourly-weather', x: 0, y: 4, w: 12, h: 1 },
-    { i: 'daily-forecast', x: 0, y: 5, w: 12, h: 1 },
-]
 
 const DashboardComponent = () => {
     return (

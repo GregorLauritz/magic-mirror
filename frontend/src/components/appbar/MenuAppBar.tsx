@@ -16,6 +16,8 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { fetchRetry } from '../../common/fetch'
 import { USERS_API } from '../../constants/api'
 import { useGridEditContext } from '../../common/GridEditContext'
+import { patchUserSettings } from '../../apis/user_settings'
+import { DEFAULT_LAYOUT } from '../../common/constants'
 
 type MenuItemType = {
     text: string
@@ -33,7 +35,7 @@ const deleteUserAccount = async (): Promise<void> => {
 }
 
 const SETTING_MENU_ITEM_MAP = new Map<string, Array<string>>([
-    ['/', ['refresh', 'settings', 'logout', 'delaccount']],
+    ['/', ['refresh', 'settings', 'resetlayout', 'logout', 'delaccount']],
     ['/settings', ['logout', 'delaccount']],
 ])
 
@@ -69,6 +71,23 @@ const MenuAppBarComponent = () => {
     const menuItemArray = useMemo(
         () =>
             new Map<string, MenuItemType>([
+                [
+                    'resetlayout',
+                    {
+                        text: 'Reset Layout',
+                        onClick: () =>
+                            patchUserSettings({
+                                widget_layout: DEFAULT_LAYOUT,
+                            })
+                                .then(() => window.location.reload())
+                                .catch((error) => {
+                                    console.error(
+                                        'Failed to save widget layout:',
+                                        error
+                                    )
+                                }),
+                    },
+                ],
                 [
                     'refresh',
                     {
