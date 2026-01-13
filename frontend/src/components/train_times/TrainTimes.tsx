@@ -122,7 +122,7 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
 
     const getDelayColor = (delay?: number): string => {
         if (!delay || delay === 0) return 'text.primary'
-        if (delay > 0 && delay <= 5) return 'warning.main'
+        if (delay > 0 && delay <= 300) return 'warning.main'
         return 'error.main'
     }
 
@@ -170,7 +170,7 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
                             fontSize={xSmallFontSize}
                             color={getDelayColor(connection.delay)}
                         >
-                            +{connection.delay} min
+                            +{connection.delay / 60} min
                         </Typography>
                     )}
                 </Box>
