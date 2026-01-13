@@ -1,4 +1,17 @@
-import { Box, TextField, Button, Autocomplete } from '@mui/material'
+import {
+    Box,
+    TextField,
+    Button,
+    Autocomplete,
+    Typography,
+    IconButton,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Paper,
+    Divider,
+} from '@mui/material'
 import CountrySelect from '../country_select/CountrySelect'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -10,6 +23,12 @@ import {
 import { LOCATION_API, TRAINS_API } from '../../constants/api'
 import { CalendarListItem } from '../../models/calendar'
 import { TrainStation } from '../../models/trains'
+import {
+    TrainConnection,
+    TrainDisplaySettings,
+} from '../../models/user_settings'
+import DeleteIcon from '@mui/icons-material/Delete'
+import AddIcon from '@mui/icons-material/Add'
 
 export interface SettingsParams {
     country: string
@@ -21,6 +40,8 @@ export interface SettingsParams {
     trainDepartureStationName?: string
     trainArrivalStationId?: string
     trainArrivalStationName?: string
+    trainConnections?: TrainConnection[]
+    trainDisplaySettings?: TrainDisplaySettings
 }
 
 interface SettingsFormProps {
@@ -44,37 +65,29 @@ export const SettingsForm = ({
         zipCode: defaultZipCode,
         birthdayCalId,
         eventsCalId,
-        trainDepartureStationId,
-        trainDepartureStationName,
-        trainArrivalStationId,
-        trainArrivalStationName,
+        trainConnections: defaultTrainConnections,
+        trainDisplaySettings: defaultTrainDisplaySettings,
     } = defaults
+
     const city = useRef<HTMLInputElement>(null)
     const zip = useRef<HTMLInputElement>(null)
     const [country, setCountry] = useState(defaultCountry)
     const [birthdayCalendar, setBirthdayCalendar] =
         useState<string>(birthdayCalId)
     const [eventsCalender, setEventsCalender] = useState<string>(eventsCalId)
-    const [departureStation, setDepartureStation] =
-        useState<TrainStation | null>(
-            trainDepartureStationId && trainDepartureStationName
-                ? {
-                      id: trainDepartureStationId,
-                      name: trainDepartureStationName,
-                  }
-                : null
+
+    // Train connections state
+    const [trainConnections, setTrainConnections] = useState<TrainConnection[]>(
+        defaultTrainConnections || []
+    )
+    const [trainDisplaySettings, setTrainDisplaySettings] =
+        useState<TrainDisplaySettings>(
+            defaultTrainDisplaySettings || {
+                mode: 'carousel',
+                carouselInterval: 15,
+            }
         )
-    const [arrivalStation, setArrivalStation] = useState<TrainStation | null>(
-        trainArrivalStationId && trainArrivalStationName
-            ? { id: trainArrivalStationId, name: trainArrivalStationName }
-            : null
-    )
-    const [departureQuery, setDepartureQuery] = useState('')
-    const [arrivalQuery, setArrivalQuery] = useState('')
-    const [departureStations, setDepartureStations] = useState<TrainStation[]>(
-        []
-    )
-    const [arrivalStations, setArrivalStations] = useState<TrainStation[]>([])
+
     const currentBirthdayCalendar = useMemo(
         () => calendars.find((c) => c.id === birthdayCalendar),
         [birthdayCalendar, calendars]
@@ -84,43 +97,40 @@ export const SettingsForm = ({
         [eventsCalender, calendars]
     )
 
-    const searchStations = useCallback(
-        async (
-            query: string,
-            setStations: React.Dispatch<React.SetStateAction<TrainStation[]>>
-        ) => {
-            if (query.length >= 2) {
-                try {
-                    const response = await fetch(
-                        `${TRAINS_API}/stations?query=${encodeURIComponent(query)}&results=10`
-                    )
-                    if (response.ok) {
-                        const stations = await response.json()
-                        setStations(stations)
-                    }
-                } catch (error) {
-                    console.error('Error searching stations:', error)
-                }
-            }
-        },
-        []
-    )
+    const addTrainConnection = () => {
+        if (trainConnections.length < 5) {
+            setTrainConnections([
+                ...trainConnections,
+                {
+                    id: `${Date.now()}`,
+                    departureStationId: '',
+                    departureStationName: '',
+                    arrivalStationId: '',
+                    arrivalStationName: '',
+                },
+            ])
+        }
+    }
 
-    // Debounce departure station search
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            searchStations(departureQuery, setDepartureStations)
-        }, 300)
-        return () => clearTimeout(timeoutId)
-    }, [departureQuery, searchStations])
+    const removeTrainConnection = (id: string) => {
+        setTrainConnections(
+            trainConnections.filter((connection) => connection.id !== id)
+        )
+    }
 
-    // Debounce arrival station search
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            searchStations(arrivalQuery, setArrivalStations)
-        }, 300)
-        return () => clearTimeout(timeoutId)
-    }, [arrivalQuery, searchStations])
+    const updateTrainConnection = (
+        id: string,
+        field: keyof TrainConnection,
+        value: string
+    ) => {
+        setTrainConnections(
+            trainConnections.map((connection) =>
+                connection.id === id
+                    ? { ...connection, [field]: value }
+                    : connection
+            )
+        )
+    }
 
     const onSendButton = useCallback(() => {
         if (country === '') {
@@ -138,10 +148,12 @@ export const SettingsForm = ({
                         zipCode: zip.current!.value,
                         birthdayCalId: birthdayCalendar ?? birthdayCalId,
                         eventsCalId: eventsCalender ?? eventsCalId,
-                        trainDepartureStationId: departureStation?.id,
-                        trainDepartureStationName: departureStation?.name,
-                        trainArrivalStationId: arrivalStation?.id,
-                        trainArrivalStationName: arrivalStation?.name,
+                        trainConnections: trainConnections.filter(
+                            (conn) =>
+                                conn.departureStationId &&
+                                conn.arrivalStationId
+                        ),
+                        trainDisplaySettings,
                     }
                     onSend(data)
                 })
@@ -154,8 +166,8 @@ export const SettingsForm = ({
         onSend,
         birthdayCalId,
         eventsCalId,
-        departureStation,
-        arrivalStation,
+        trainConnections,
+        trainDisplaySettings,
     ])
 
     return (
@@ -203,7 +215,7 @@ export const SettingsForm = ({
                             slotProps={{
                                 input: {
                                     ...params.InputProps,
-                                    autoComplete: 'new-password', // disable autocomplete and autofill
+                                    autoComplete: 'new-password',
                                 },
                                 htmlInput: {
                                     ...params.inputProps,
@@ -230,7 +242,7 @@ export const SettingsForm = ({
                             slotProps={{
                                 input: {
                                     ...params.InputProps,
-                                    autoComplete: 'new-password', // disable autocomplete and autofill
+                                    autoComplete: 'new-password',
                                 },
                                 htmlInput: {
                                     ...params.inputProps,
@@ -241,64 +253,82 @@ export const SettingsForm = ({
                     )}
                 />
             </Box>
-            <Box>
-                <Autocomplete
-                    id="departure-station"
-                    options={departureStations}
-                    value={departureStation}
-                    getOptionLabel={(option) => option.name}
-                    isOptionEqualToValue={(option, value) =>
-                        option.id === value.id
+
+            {/* Train Connections Section */}
+            <Divider sx={{ my: 2 }} />
+            <Typography variant="h6" gutterBottom>
+                Train Connections (optional)
+            </Typography>
+
+            {/* Train Display Settings */}
+            <Box
+                sx={{
+                    display: 'flex',
+                    gap: 2,
+                    mb: 2,
+                }}
+            >
+                <FormControl fullWidth>
+                    <InputLabel>Display Mode</InputLabel>
+                    <Select
+                        value={trainDisplaySettings.mode}
+                        label="Display Mode"
+                        onChange={(e) =>
+                            setTrainDisplaySettings({
+                                ...trainDisplaySettings,
+                                mode: e.target.value as 'carousel' | 'multiple',
+                            })
+                        }
+                    >
+                        <MenuItem value="carousel">
+                            Carousel (rotate through connections)
+                        </MenuItem>
+                        <MenuItem value="multiple">
+                            Multiple Cards (one per connection)
+                        </MenuItem>
+                    </Select>
+                </FormControl>
+
+                <TextField
+                    label="Carousel Interval (seconds)"
+                    type="number"
+                    value={trainDisplaySettings.carouselInterval}
+                    onChange={(e) =>
+                        setTrainDisplaySettings({
+                            ...trainDisplaySettings,
+                            carouselInterval: Math.max(
+                                5,
+                                parseInt(e.target.value) || 15
+                            ),
+                        })
                     }
-                    onChange={(_, value) => setDepartureStation(value)}
-                    onInputChange={(_, value) => setDepartureQuery(value)}
-                    renderInput={(params) => (
-                        <TextField
-                            {...params}
-                            label="Departure Station (optional)"
-                            slotProps={{
-                                input: {
-                                    ...params.InputProps,
-                                    autoComplete: 'new-password',
-                                },
-                                htmlInput: {
-                                    ...params.inputProps,
-                                    autoComplete: 'new-password',
-                                },
-                            }}
-                        />
-                    )}
+                    disabled={trainDisplaySettings.mode !== 'carousel'}
+                    fullWidth
                 />
             </Box>
-            <Box>
-                <Autocomplete
-                    id="arrival-station"
-                    options={arrivalStations}
-                    value={arrivalStation}
-                    getOptionLabel={(option) => option.name}
-                    isOptionEqualToValue={(option, value) =>
-                        option.id === value.id
-                    }
-                    onChange={(_, value) => setArrivalStation(value)}
-                    onInputChange={(_, value) => setArrivalQuery(value)}
-                    renderInput={(params) => (
-                        <TextField
-                            {...params}
-                            label="Arrival Station (optional)"
-                            slotProps={{
-                                input: {
-                                    ...params.InputProps,
-                                    autoComplete: 'new-password',
-                                },
-                                htmlInput: {
-                                    ...params.inputProps,
-                                    autoComplete: 'new-password',
-                                },
-                            }}
-                        />
-                    )}
+
+            {/* Train Connections List */}
+            {trainConnections.map((connection) => (
+                <TrainConnectionEditor
+                    key={connection.id}
+                    connection={connection}
+                    onUpdate={updateTrainConnection}
+                    onRemove={removeTrainConnection}
                 />
-            </Box>
+            ))}
+
+            {/* Add Connection Button */}
+            {trainConnections.length < 5 && (
+                <Button
+                    variant="outlined"
+                    startIcon={<AddIcon />}
+                    onClick={addTrainConnection}
+                    sx={{ mb: 2 }}
+                >
+                    Add Train Connection ({trainConnections.length}/5)
+                </Button>
+            )}
+
             <Box sx={buttonBoxStyle}>
                 <Button variant="outlined" onClick={onSendButton}>
                     Send
@@ -310,6 +340,188 @@ export const SettingsForm = ({
                 )}
             </Box>
         </Box>
+    )
+}
+
+interface TrainConnectionEditorProps {
+    connection: TrainConnection
+    onUpdate: (
+        id: string,
+        field: keyof TrainConnection,
+        value: string
+    ) => void
+    onRemove: (id: string) => void
+}
+
+const TrainConnectionEditor = ({
+    connection,
+    onUpdate,
+    onRemove,
+}: TrainConnectionEditorProps) => {
+    const [departureQuery, setDepartureQuery] = useState('')
+    const [arrivalQuery, setArrivalQuery] = useState('')
+    const [departureStations, setDepartureStations] = useState<TrainStation[]>(
+        []
+    )
+    const [arrivalStations, setArrivalStations] = useState<TrainStation[]>([])
+
+    const departureStation = useMemo(
+        () =>
+            connection.departureStationId
+                ? {
+                      id: connection.departureStationId,
+                      name: connection.departureStationName,
+                  }
+                : null,
+        [connection.departureStationId, connection.departureStationName]
+    )
+
+    const arrivalStation = useMemo(
+        () =>
+            connection.arrivalStationId
+                ? {
+                      id: connection.arrivalStationId,
+                      name: connection.arrivalStationName,
+                  }
+                : null,
+        [connection.arrivalStationId, connection.arrivalStationName]
+    )
+
+    const searchStations = useCallback(
+        async (
+            query: string,
+            setStations: React.Dispatch<React.SetStateAction<TrainStation[]>>
+        ) => {
+            if (query.length >= 2) {
+                try {
+                    const response = await fetch(
+                        `${TRAINS_API}/stations?query=${encodeURIComponent(query)}&results=10`
+                    )
+                    if (response.ok) {
+                        const stations = await response.json()
+                        setStations(stations)
+                    }
+                } catch (error) {
+                    console.error('Error searching stations:', error)
+                }
+            }
+        },
+        []
+    )
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            searchStations(departureQuery, setDepartureStations)
+        }, 300)
+        return () => clearTimeout(timeoutId)
+    }, [departureQuery, searchStations])
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            searchStations(arrivalQuery, setArrivalStations)
+        }, 300)
+        return () => clearTimeout(timeoutId)
+    }, [arrivalQuery, searchStations])
+
+    return (
+        <Paper
+            elevation={2}
+            sx={{
+                p: 2,
+                mb: 2,
+                position: 'relative',
+            }}
+        >
+            <IconButton
+                size="small"
+                onClick={() => onRemove(connection.id)}
+                sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                }}
+            >
+                <DeleteIcon />
+            </IconButton>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Autocomplete
+                    options={departureStations}
+                    value={departureStation}
+                    getOptionLabel={(option) => option.name}
+                    isOptionEqualToValue={(option, value) =>
+                        option.id === value.id
+                    }
+                    onChange={(_, value) => {
+                        onUpdate(
+                            connection.id,
+                            'departureStationId',
+                            value?.id || ''
+                        )
+                        onUpdate(
+                            connection.id,
+                            'departureStationName',
+                            value?.name || ''
+                        )
+                    }}
+                    onInputChange={(_, value) => setDepartureQuery(value)}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Departure Station"
+                            slotProps={{
+                                input: {
+                                    ...params.InputProps,
+                                    autoComplete: 'new-password',
+                                },
+                                htmlInput: {
+                                    ...params.inputProps,
+                                    autoComplete: 'new-password',
+                                },
+                            }}
+                        />
+                    )}
+                />
+
+                <Autocomplete
+                    options={arrivalStations}
+                    value={arrivalStation}
+                    getOptionLabel={(option) => option.name}
+                    isOptionEqualToValue={(option, value) =>
+                        option.id === value.id
+                    }
+                    onChange={(_, value) => {
+                        onUpdate(
+                            connection.id,
+                            'arrivalStationId',
+                            value?.id || ''
+                        )
+                        onUpdate(
+                            connection.id,
+                            'arrivalStationName',
+                            value?.name || ''
+                        )
+                    }}
+                    onInputChange={(_, value) => setArrivalQuery(value)}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Arrival Station"
+                            slotProps={{
+                                input: {
+                                    ...params.InputProps,
+                                    autoComplete: 'new-password',
+                                },
+                                htmlInput: {
+                                    ...params.inputProps,
+                                    autoComplete: 'new-password',
+                                },
+                            }}
+                        />
+                    )}
+                />
+            </Box>
+        </Paper>
     )
 }
 

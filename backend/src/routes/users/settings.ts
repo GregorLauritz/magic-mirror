@@ -44,6 +44,11 @@ class UserSettingsService {
       train_departure_station_name: userSettings?.train_departure_station_name,
       train_arrival_station_id: userSettings?.train_arrival_station_id,
       train_arrival_station_name: userSettings?.train_arrival_station_name,
+      train_connections: userSettings?.train_connections,
+      train_display_settings: userSettings?.train_display_settings || {
+        mode: 'carousel',
+        carouselInterval: 15,
+      },
     };
   }
 }

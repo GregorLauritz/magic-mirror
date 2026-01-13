@@ -35,5 +35,7 @@ const getUserSettingsBody = async (
         train_departure_station_name: data.trainDepartureStationName,
         train_arrival_station_id: data.trainArrivalStationId,
         train_arrival_station_name: data.trainArrivalStationName,
+        train_connections: data.trainConnections,
+        train_display_settings: data.trainDisplaySettings,
     }
 }
