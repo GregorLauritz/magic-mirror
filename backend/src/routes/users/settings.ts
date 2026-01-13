@@ -27,6 +27,11 @@ class UserSettingsService {
     await this.repository.delete(sub);
   }
 
+  async patchSettings(sub: string, settings: Partial<ApiDtoUserSettings>): Promise<ApiDtoUserSettings | null> {
+    const patchedSettings = await this.repository.patch(sub, settings);
+    return patchedSettings ? this.parseUserSettings(patchedSettings) : null;
+  }
+
   private parseUserSettings(userSettings: IDtoUserSettings): ApiDtoUserSettings {
     return {
       zip_code: userSettings.zip_code,
@@ -34,6 +39,7 @@ class UserSettingsService {
       city: userSettings.city,
       events_cal_id: userSettings.events_cal_id,
       birthday_cal_id: userSettings.birthday_cal_id,
+      widget_layout: userSettings.widget_layout,
       train_departure_station_id: userSettings?.train_departure_station_id,
       train_departure_station_name: userSettings?.train_departure_station_name,
       train_arrival_station_id: userSettings?.train_arrival_station_id,
@@ -80,4 +86,18 @@ const deleteMeUserSettings = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export { deleteMeUserSettings, getMeUserSettings, putMeUserSettings };
+const patchMeUserSettings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const sub = getUserId(req.headers);
+    const patchedSettings = await userSettingsService.patchSettings(sub, req.body);
+    if (!patchedSettings) {
+      res.status(404).json({ error: 'User settings not found' });
+      return;
+    }
+    res.status(200).json(patchedSettings);
+  } catch (err) {
+    next(err instanceof ApiError ? err : new ApiError('Error patching user settings', err as Error, 500));
+  }
+};
+
+export { deleteMeUserSettings, getMeUserSettings, patchMeUserSettings, putMeUserSettings };

@@ -5,13 +5,19 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import AccountCircle from '@mui/icons-material/AccountCircle'
+import EditIcon from '@mui/icons-material/Edit'
+import EditOffIcon from '@mui/icons-material/EditOff'
 import MenuItem from '@mui/material/MenuItem'
 import Menu from '@mui/material/Menu'
+import Tooltip from '@mui/material/Tooltip'
 import { logout } from '../../apis/logout'
 import { useQueryClient } from 'react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { fetchRetry } from '../../common/fetch'
 import { USERS_API } from '../../constants/api'
+import { useGridEditContext } from '../../common/GridEditContext'
+import { patchUserSettings } from '../../apis/user_settings'
+import { DEFAULT_LAYOUT } from '../../common/constants'
 
 type MenuItemType = {
     text: string
@@ -29,7 +35,7 @@ const deleteUserAccount = async (): Promise<void> => {
 }
 
 const SETTING_MENU_ITEM_MAP = new Map<string, Array<string>>([
-    ['/', ['refresh', 'settings', 'logout', 'delaccount']],
+    ['/', ['refresh', 'settings', 'resetlayout', 'logout', 'delaccount']],
     ['/settings', ['logout', 'delaccount']],
 ])
 
@@ -38,6 +44,8 @@ const MenuAppBarComponent = () => {
     const queryClient = useQueryClient()
     const navigate = useNavigate()
     const location = useLocation()
+    const { isEditMode, toggleEditMode } = useGridEditContext()
+    const isDashboard = location.pathname === '/'
 
     const handleMenu = useCallback((event: MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget)
@@ -63,6 +71,23 @@ const MenuAppBarComponent = () => {
     const menuItemArray = useMemo(
         () =>
             new Map<string, MenuItemType>([
+                [
+                    'resetlayout',
+                    {
+                        text: 'Reset Layout',
+                        onClick: () =>
+                            patchUserSettings({
+                                widget_layout: DEFAULT_LAYOUT,
+                            })
+                                .then(() => window.location.reload())
+                                .catch((error) => {
+                                    console.error(
+                                        'Failed to save widget layout:',
+                                        error
+                                    )
+                                }),
+                    },
+                ],
                 [
                     'refresh',
                     {
@@ -116,6 +141,24 @@ const MenuAppBarComponent = () => {
                     >
                         Magic Mirror
                     </Typography>
+                    {isDashboard && (
+                        <Tooltip
+                            title={
+                                isEditMode
+                                    ? 'Disable layout editing'
+                                    : 'Enable layout editing'
+                            }
+                        >
+                            <IconButton
+                                size="large"
+                                aria-label="toggle layout editing"
+                                onClick={toggleEditMode}
+                                color="inherit"
+                            >
+                                {isEditMode ? <EditOffIcon /> : <EditIcon />}
+                            </IconButton>
+                        </Tooltip>
+                    )}
                     <IconButton
                         size="large"
                         aria-label="account of current user"

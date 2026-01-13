@@ -8,8 +8,27 @@ import UpcomingEvents from '../components/upcoming_events/UpcomingEvents'
 import TrainTimes from '../components/train_times/TrainTimes'
 import { TimeContextProvider } from '../common/TimeContext'
 import { LocationContextProvider } from '../common/LocationContext'
-import { PADDING } from '../assets/styles/theme'
-import { memo } from 'react'
+import { memo, useCallback, useMemo, useRef } from 'react'
+import { PADDING, SPACING } from '../assets/styles/theme'
+import {
+    GridLayout,
+    useContainerWidth,
+    Layout as RGLLayout,
+} from 'react-grid-layout'
+import 'react-grid-layout/css/styles.css'
+import 'react-resizable/css/styles.css'
+import { useGetUserSettings } from '../apis/user_settings'
+import { patchUserSettings } from '../apis/user_settings'
+import { WidgetLayout } from '../models/user_settings'
+import { useGridEditContext } from '../common/GridEditContext'
+import { DEFAULT_LAYOUT } from '../common/constants'
+
+// Styles for grid items to ensure content is visible
+const gridItemSx = {
+    background: 'transparent',
+    height: '100%',
+    overflow: 'visible',
+}
 
 const DashboardComponent = () => {
     return (
@@ -22,58 +41,115 @@ const DashboardComponent = () => {
 }
 
 const DashBoardItems = memo(() => {
+    const { data: userSettings } = useGetUserSettings(true)
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const { width, containerRef, mounted } = useContainerWidth()
+    const { isEditMode } = useGridEditContext()
+
+    // Use saved layout or default layout
+    const layout = useMemo<WidgetLayout[]>(() => {
+        if (
+            userSettings?.widget_layout &&
+            userSettings.widget_layout.length > 0
+        ) {
+            return userSettings.widget_layout
+        }
+        return DEFAULT_LAYOUT
+    }, [userSettings?.widget_layout])
+
+    // Grid configuration
+    const gridConfig = useMemo(
+        () => ({
+            cols: 12,
+            rowHeight: 190,
+            margin: [PADDING * SPACING, PADDING * SPACING] as const,
+            containerPadding: [0, 0] as const,
+            maxRows: Infinity,
+        }),
+        []
+    )
+
+    // Drag and resize configuration based on edit mode
+    const dragConfig = useMemo(
+        () => ({
+            enabled: isEditMode,
+        }),
+        [isEditMode]
+    )
+
+    const resizeConfig = useMemo(
+        () => ({
+            enabled: isEditMode,
+        }),
+        [isEditMode]
+    )
+
+    // Save layout to backend when it changes (debounced)
+    const handleLayoutChange = useCallback((newLayout: RGLLayout) => {
+        // Clear any pending save
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current)
+        }
+
+        // Debounce the save to avoid too many API calls
+        saveTimeoutRef.current = setTimeout(() => {
+            const widgetLayout: WidgetLayout[] = newLayout.map((item) => ({
+                i: item.i,
+                x: item.x,
+                y: item.y,
+                w: item.w,
+                h: item.h,
+            }))
+
+            // Save to backend
+            patchUserSettings({ widget_layout: widgetLayout }).catch(
+                (error) => {
+                    console.error('Failed to save widget layout:', error)
+                }
+            )
+        }, 500) // Wait 500ms after last change
+    }, [])
+
     return (
-        <Box
-            sx={{
-                display: 'grid',
-                gridTemplateColumns:
-                    'repeat(auto-fit, minmax(min(155px, 100%), 1fr))',
-                columnGap: PADDING,
-                rowGap: PADDING * 0.5,
-                width: '100%',
-            }}
-        >
-            <Box sx={{ gridColumn: 'span 1' }}>
-                <Time />
-            </Box>
-            <Box sx={{ gridColumn: 'span 1' }}>
-                <Birthdays />
-            </Box>
-            <Box
-                sx={{
-                    gridColumn: { xs: 'span 1', sm: 'span 2' },
-                }}
-            >
-                <UpcomingEvents />
-            </Box>
-            <Box
-                sx={{
-                    gridColumn: { xs: 'span 1', sm: 'span 2' },
-                }}
-            >
-                <TrainTimes />
-            </Box>
-            <Box
-                sx={{
-                    gridColumn: { xs: 'span 1', sm: 'span 2' },
-                }}
-            >
-                <CurrentWeather />
-            </Box>
-            <Box
-                sx={{
-                    gridColumn: { xs: 'span 1', sm: 'span 2' },
-                }}
-            >
-                <HourlyWeather />
-            </Box>
-            <Box
-                sx={{
-                    gridColumn: { xs: 'span 1', sm: 'span 2' },
-                }}
-            >
-                <DailyForecast />
-            </Box>
+        <Box ref={containerRef} sx={{ width: '100%' }}>
+            {mounted && (
+                <GridLayout
+                    className="layout"
+                    layout={layout}
+                    width={width}
+                    gridConfig={gridConfig}
+                    dragConfig={dragConfig}
+                    resizeConfig={resizeConfig}
+                    onDragStop={(newLayout: RGLLayout) =>
+                        handleLayoutChange(newLayout)
+                    }
+                    onResizeStop={(newLayout: RGLLayout) =>
+                        handleLayoutChange(newLayout)
+                    }
+                >
+                    <Box key="time" sx={gridItemSx}>
+                        <Time />
+                    </Box>
+                    <Box key="birthdays" sx={gridItemSx}>
+                        <Birthdays />
+                    </Box>
+                    <Box key="events" sx={gridItemSx}>
+                        <UpcomingEvents />
+                    </Box>
+                    <Box key="trains" sx={gridItemSx}>
+                        <TrainTimes />
+                    </Box>
+                    <Box key="current-weather" sx={gridItemSx}>
+                        <CurrentWeather />
+                    </Box>
+                    <Box key="hourly-weather" sx={gridItemSx}>
+                        <HourlyWeather />
+                    </Box>
+                    <Box key="daily-forecast" sx={gridItemSx}>
+                        <DailyForecast />
+                    </Box>
+                </GridLayout>
+            )}
         </Box>
     )
 })

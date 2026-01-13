@@ -21,7 +21,7 @@ export const useGetTime = (
             getTime(delim, locale).catch((err) => {
                 throw err
             }),
-        refetchInterval: 1000,
+        refetchInterval: 100, // Refetch every 100 ms to keep time updated
     })
 
 const getTime = async (
@@ -32,6 +32,7 @@ const getTime = async (
     const timeObj: TimeObject = {
         hour: parseTime(now.getHours()),
         minute: parseTime(now.getMinutes()),
+        seconds: parseTime(now.getSeconds()),
         currentDate: parseDate(now, delim),
         timezoneOffset: getTimezoneOffset(false),
         weekdayLong: getDayName(now, locale, 'long'),

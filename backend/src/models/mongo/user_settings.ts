@@ -1,5 +1,13 @@
 import { Document, model, Schema } from 'mongoose';
 
+export type WidgetLayout = {
+  i: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+
 export interface IDtoUserSettings extends Document {
   country: string;
   city: string;
@@ -7,6 +15,7 @@ export interface IDtoUserSettings extends Document {
   events_cal_id: string;
   birthday_cal_id: string;
   sub: string;
+  widget_layout?: WidgetLayout[];
   train_departure_station_id?: string;
   train_departure_station_name?: string;
   train_arrival_station_id?: string;
@@ -39,6 +48,10 @@ const UserSettingsSchema = new Schema(
     },
     events_cal_id: {
       type: String,
+      required: false,
+    },
+    widget_layout: {
+      type: Array,
       required: false,
     },
     train_departure_station_id: {
