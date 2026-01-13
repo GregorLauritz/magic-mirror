@@ -8,8 +8,8 @@ import UpcomingEvents from '../components/upcoming_events/UpcomingEvents'
 import TrainTimes from '../components/train_times/TrainTimes'
 import { TimeContextProvider } from '../common/TimeContext'
 import { LocationContextProvider } from '../common/LocationContext'
-import { PADDING } from '../assets/styles/theme'
 import { memo, useCallback, useMemo, useRef } from 'react'
+import { PADDING, SPACING } from '../assets/styles/theme'
 import {
     GridLayout,
     useContainerWidth,
@@ -21,6 +21,13 @@ import { useGetUserSettings } from '../apis/user_settings'
 import { patchUserSettings } from '../apis/user_settings'
 import { WidgetLayout } from '../models/user_settings'
 import { useGridEditContext } from '../common/GridEditContext'
+
+// Styles for grid items to ensure content is visible
+const gridItemSx = {
+    background: 'transparent',
+    height: '100%',
+    overflow: 'visible',
+}
 
 // Default layout matching the original grid structure (12-column grid)
 const DEFAULT_LAYOUT: WidgetLayout[] = [
@@ -64,8 +71,8 @@ const DashBoardItems = memo(() => {
     const gridConfig = useMemo(
         () => ({
             cols: 12,
-            rowHeight: 200,
-            margin: [PADDING, PADDING * 0.5] as const,
+            rowHeight: 190,
+            margin: [PADDING * SPACING, PADDING * SPACING] as const,
             containerPadding: [0, 0] as const,
             maxRows: Infinity,
         }),
@@ -130,34 +137,25 @@ const DashBoardItems = memo(() => {
                         handleLayoutChange(newLayout)
                     }
                 >
-                    <Box key="time" sx={{ background: 'transparent' }}>
+                    <Box key="time" sx={gridItemSx}>
                         <Time />
                     </Box>
-                    <Box key="birthdays" sx={{ background: 'transparent' }}>
+                    <Box key="birthdays" sx={gridItemSx}>
                         <Birthdays />
                     </Box>
-                    <Box key="events" sx={{ background: 'transparent' }}>
+                    <Box key="events" sx={gridItemSx}>
                         <UpcomingEvents />
                     </Box>
-                    <Box key="trains" sx={{ background: 'transparent' }}>
+                    <Box key="trains" sx={gridItemSx}>
                         <TrainTimes />
                     </Box>
-                    <Box
-                        key="current-weather"
-                        sx={{ background: 'transparent' }}
-                    >
+                    <Box key="current-weather" sx={gridItemSx}>
                         <CurrentWeather />
                     </Box>
-                    <Box
-                        key="hourly-weather"
-                        sx={{ background: 'transparent' }}
-                    >
+                    <Box key="hourly-weather" sx={gridItemSx}>
                         <HourlyWeather />
                     </Box>
-                    <Box
-                        key="daily-forecast"
-                        sx={{ background: 'transparent' }}
-                    >
+                    <Box key="daily-forecast" sx={gridItemSx}>
                         <DailyForecast />
                     </Box>
                 </GridLayout>

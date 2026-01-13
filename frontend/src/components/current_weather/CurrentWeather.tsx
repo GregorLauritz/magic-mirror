@@ -4,7 +4,7 @@ import { TEMP_UNIT, PRECIPITATION_UNIT } from '../../constants/weather'
 import { CardMedia, Grid, Skeleton, Stack } from '@mui/material'
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
-import { smallFontSize } from '../../assets/styles/theme'
+import { PADDING, smallFontSize } from '../../assets/styles/theme'
 import { useGetCurrentWeather } from '../../apis/current_weather'
 import { MediumCard } from '../CardFrame'
 import { useGetWeatherIcon } from '../../apis/weather_icon'
@@ -13,6 +13,7 @@ import { useLocation } from '../../hooks/useLocation'
 import ErrorCard from '../error_card/ErrorCard'
 import { CurrentWeatherResource } from '../../models/current_weather'
 import { useTimeContext } from '../../hooks/useTimeContext'
+import { CARD_HEIGHT } from '../../assets/styles/cards'
 
 interface WeatherInfoProps {
     weather: CurrentWeatherResource
@@ -99,6 +100,10 @@ const CurrentWeatherComponent = () => {
                 src={iconError || !icon ? unknownWeatherIcon : icon}
                 alt="Current Weather Icon"
                 loading="lazy"
+                sx={{
+                    maxHeight: CARD_HEIGHT - PADDING * 3,
+                    objectFit: 'contain',
+                }}
             />
         )
     }, [isLoadingData, iconError, icon])

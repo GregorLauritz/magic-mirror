@@ -9,6 +9,7 @@ import { HourlyWeatherResource } from '../../models/hourly_forecast'
 import { parseTime } from '../../common/timeParser'
 import { smallFontSize } from '../../assets/styles/theme'
 import { useGetWeatherIcon } from '../../apis/weather_icon'
+import { CARD_HEIGHT } from '../../assets/styles/cards'
 
 interface IForecastItem {
     item?: HourlyWeatherResource
@@ -49,7 +50,12 @@ const ForecastItem = ({ item, isLoading }: IForecastItem) => {
                 src={iconError || iconLoading ? unknownWeatherIcon : icon}
                 alt="Weather Icon"
                 loading="lazy"
-                sx={{ maxWidth: '100%', height: 'auto' }}
+                sx={{
+                    maxWidth: '100%',
+                    maxHeight: CARD_HEIGHT / 2.3,
+                    height: 'auto',
+                    objectFit: 'contain',
+                }}
             />
             <Typography
                 variant="subtitle2"
