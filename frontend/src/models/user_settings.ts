@@ -26,12 +26,6 @@ export type UserSettings = {
     birthday_cal_id: string
     events_cal_id: string
     widget_layout?: WidgetLayout[]
-    // Legacy single train connection fields (deprecated, but kept for backward compatibility)
-    train_departure_station_id?: string
-    train_departure_station_name?: string
-    train_arrival_station_id?: string
-    train_arrival_station_name?: string
-    // New multi-connection train fields
     train_connections?: TrainConnection[]
     train_display_settings?: TrainDisplaySettings
 }

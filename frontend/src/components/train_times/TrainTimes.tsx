@@ -19,22 +19,6 @@ const TrainTimesComponent = () => {
         carouselInterval: 15,
     }
 
-    // Backward compatibility: if no train_connections but legacy fields exist, use them
-    const hasLegacySettings =
-        !trainConnections.length &&
-        userSettings?.train_departure_station_id &&
-        userSettings?.train_arrival_station_id
-
-    if (hasLegacySettings) {
-        trainConnections.push({
-            id: 'legacy',
-            departureStationId: userSettings!.train_departure_station_id!,
-            departureStationName: userSettings!.train_departure_station_name || '',
-            arrivalStationId: userSettings!.train_arrival_station_id!,
-            arrivalStationName: userSettings!.train_arrival_station_name || '',
-        })
-    }
-
     if (trainConnections.length === 0) {
         return (
             <ErrorCard

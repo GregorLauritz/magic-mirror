@@ -36,10 +36,6 @@ export interface SettingsParams {
     zipCode: string
     birthdayCalId: string
     eventsCalId: string
-    trainDepartureStationId?: string
-    trainDepartureStationName?: string
-    trainArrivalStationId?: string
-    trainArrivalStationName?: string
     trainConnections?: TrainConnection[]
     trainDisplaySettings?: TrainDisplaySettings
 }
