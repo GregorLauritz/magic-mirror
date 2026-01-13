@@ -25,7 +25,6 @@ server.app.use('/api/users', UsersRoute);
 server.app.use('/api/location', LocationRoute);
 server.app.use('/api/trains', TrainsRoute);
 
-// ERROR HANDLING MIDDLEWARE
 server.app.use(EXPRESS_ERROR_LOGGER);
 
 /**
@@ -34,7 +33,6 @@ server.app.use(EXPRESS_ERROR_LOGGER);
  */
 server.app.use((err: ApiError | Error, req: Request, res: Response, _next: NextFunction): void => {
   if (err instanceof ApiError) {
-    // Known API errors with specific status codes
     LOGGER.warn('API Error', {
       message: err.message,
       status: err.status,
@@ -46,7 +44,6 @@ server.app.use((err: ApiError | Error, req: Request, res: Response, _next: NextF
       status: err.status,
     });
   } else {
-    // Unexpected errors - log full details
     LOGGER.error('Unhandled Server Error', {
       error: err.message,
       stack: err.stack,

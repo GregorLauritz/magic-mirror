@@ -71,5 +71,5 @@ export const useGetTrainConnections = (
             ),
         enabled: enabled && !!fromStationId && !!toStationId,
         refetchInterval: (data) => calculateRefetchInterval(data),
-        staleTime: 30000, // Consider data stale after 30 seconds
+        staleTime: MIN_REFETCH_INTERVAL,
     })
