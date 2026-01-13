@@ -8,6 +8,7 @@ import RouteErrorPage from './routes/RouteErrorPage'
 import ErrorPage from './routes/ErrorPage'
 import { Dashboard } from './routes/Dashboard'
 import { Settings } from './routes/Settings'
+import { GridEditContextProvider } from './common/GridEditContext'
 
 const queryCache = new QueryClient({
     defaultOptions: {
@@ -72,7 +73,9 @@ const router = createBrowserRouter([
 export const App = () => {
     return (
         <QueryClientProvider client={queryCache}>
-            <RouterProvider router={router} />
+            <GridEditContextProvider>
+                <RouterProvider router={router} />
+            </GridEditContextProvider>
         </QueryClientProvider>
     )
 }

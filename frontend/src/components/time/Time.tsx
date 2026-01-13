@@ -36,7 +36,7 @@ const TimeComponent = () => {
                     {time.currentDate}
                 </Typography>
                 <Typography variant="h2">
-                    {time.hour}:{time.minute}
+                    {time.hour}:{time.minute}:{time.seconds}
                 </Typography>
                 <Typography
                     variant="subtitle2"

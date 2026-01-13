@@ -20,6 +20,7 @@ import 'react-resizable/css/styles.css'
 import { useGetUserSettings } from '../apis/user_settings'
 import { patchUserSettings } from '../apis/user_settings'
 import { WidgetLayout } from '../models/user_settings'
+import { useGridEditContext } from '../common/GridEditContext'
 
 // Default layout matching the original grid structure (12-column grid)
 const DEFAULT_LAYOUT: WidgetLayout[] = [
@@ -46,6 +47,7 @@ const DashBoardItems = memo(() => {
     const { data: userSettings } = useGetUserSettings(true)
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const { width, containerRef, mounted } = useContainerWidth()
+    const { isEditMode } = useGridEditContext()
 
     // Use saved layout or default layout
     const layout = useMemo<WidgetLayout[]>(() => {
@@ -68,6 +70,21 @@ const DashBoardItems = memo(() => {
             maxRows: Infinity,
         }),
         []
+    )
+
+    // Drag and resize configuration based on edit mode
+    const dragConfig = useMemo(
+        () => ({
+            enabled: isEditMode,
+        }),
+        [isEditMode]
+    )
+
+    const resizeConfig = useMemo(
+        () => ({
+            enabled: isEditMode,
+        }),
+        [isEditMode]
     )
 
     // Save layout to backend when it changes (debounced)
@@ -104,6 +121,8 @@ const DashBoardItems = memo(() => {
                     layout={layout}
                     width={width}
                     gridConfig={gridConfig}
+                    dragConfig={dragConfig}
+                    resizeConfig={resizeConfig}
                     onDragStop={(newLayout: RGLLayout) =>
                         handleLayoutChange(newLayout)
                     }
