@@ -30,18 +30,18 @@ const WeatherInfo = memo<WeatherInfoProps>(({ weather }) => {
 
     return (
         <>
-            <Typography variant="h2">
+            <Typography variant="h3">
                 {weather.temperature.current.toFixed()}
                 {TEMP_UNIT}
             </Typography>
             <Stack direction="row">
                 <ArrowDropUpIcon />
-                <Typography variant="subtitle2" color="text.primary">
+                <Typography variant="subtitle1" color="text.primary">
                     {weather.temperature.max.toFixed()}
                     {TEMP_UNIT}
                 </Typography>
                 <ArrowDropDownIcon />
-                <Typography variant="subtitle2" color="text.primary">
+                <Typography variant="subtitle1" color="text.primary">
                     {weather.temperature.min.toFixed()}
                     {TEMP_UNIT}
                 </Typography>
@@ -60,6 +60,13 @@ const WeatherInfo = memo<WeatherInfoProps>(({ weather }) => {
                 sx={smallFontSize}
             >
                 Precipitation: {precipitationValue} {PRECIPITATION_UNIT}
+            </Typography>
+            <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                sx={smallFontSize}
+            >
+                Windspeed: {weather.windspeed} km/h
             </Typography>
         </>
     )

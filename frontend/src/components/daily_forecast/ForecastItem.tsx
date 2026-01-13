@@ -83,6 +83,14 @@ const ForecastItem = ({ item, isLoading }: IForecastItem) => {
             >
                 {item.precipitation.amount} {item.precipitation.amount_unit}
             </Typography>
+            <Typography
+                variant="subtitle2"
+                color="text.primary"
+                align="center"
+                sx={smallFontSize}
+            >
+                {item.max_wind_speed.value} {item.max_wind_speed.unit}
+            </Typography>
         </Stack>
     )
 }

@@ -15,6 +15,12 @@ export type WeatherForecastResource = {
     sunset: string
     weathercode: number
     description: string
+    max_wind_speed: Windspeed
+}
+
+export type Windspeed = {
+    value: number
+    unit: string
 }
 
 export type Precipitation = {
