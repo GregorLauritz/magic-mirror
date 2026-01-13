@@ -23,11 +23,23 @@ export const weather_current_schema = {
         feels_like: {
           type: 'number',
         },
+        unit: {
+          type: 'string',
+        },
       },
-      required: ['current', 'min', 'max', 'feels_like'],
+      required: ['current', 'min', 'max', 'feels_like', 'unit'],
     },
     windspeed: {
-      type: 'number',
+      type: 'object',
+      properties: {
+        value: {
+          type: 'number',
+        },
+        unit: {
+          type: 'string',
+        },
+      },
+      required: ['value', 'unit'],
     },
     weathercode: {
       type: 'integer',
@@ -41,8 +53,17 @@ export const weather_current_schema = {
     description: {
       type: 'string',
     },
-    precipitation_sum: {
-      type: 'number',
+    precipitation: {
+      type: 'object',
+      properties: {
+        value: {
+          type: 'number',
+        },
+        unit: {
+          type: 'string',
+        },
+      },
+      required: ['value', 'unit'],
     },
   },
   required: [
@@ -54,6 +75,6 @@ export const weather_current_schema = {
     'update_time',
     'weather_icon',
     'description',
-    'precipitation_sum',
+    'precipitation',
   ],
 };

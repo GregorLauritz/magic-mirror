@@ -1,9 +1,4 @@
 import { Box, Skeleton, Stack, Typography } from '@mui/material'
-import {
-    PRECIPITATION_UNIT,
-    TEMP_UNIT,
-    WINDSPEED_UNIT,
-} from '../../constants/weather'
 import unknownWeatherIcon from '../../assets/unknown-weather.svg'
 import { HourlyWeatherResource } from '../../models/hourly_forecast'
 import { parseTime } from '../../common/timeParser'
@@ -63,8 +58,8 @@ const ForecastItem = ({ item, isLoading }: IForecastItem) => {
                 align="center"
                 sx={smallFontSize}
             >
-                {Math.round(item.temperature)}
-                {TEMP_UNIT}
+                {Math.round(item.temperature.value)}
+                {item.temperature.unit}
             </Typography>
             <Typography
                 variant="subtitle2"
@@ -72,7 +67,7 @@ const ForecastItem = ({ item, isLoading }: IForecastItem) => {
                 align="center"
                 sx={smallFontSize}
             >
-                {item.precipitation} {PRECIPITATION_UNIT}
+                {item.precipitation.value} {item.precipitation.unit}
             </Typography>
             <Typography
                 variant="subtitle2"
@@ -80,7 +75,7 @@ const ForecastItem = ({ item, isLoading }: IForecastItem) => {
                 align="center"
                 sx={smallFontSize}
             >
-                {item.windspeed} {WINDSPEED_UNIT}
+                {item.windspeed.value} {item.windspeed.unit}
             </Typography>
         </Stack>
     )

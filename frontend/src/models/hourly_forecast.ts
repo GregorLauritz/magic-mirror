@@ -7,10 +7,25 @@ export type HourlyWeatherObject = {
 
 export type HourlyWeatherResource = {
     time: string
-    temperature: number
-    precipitation: number
+    temperature: HourlyTemperature
+    precipitation: HourlyPrecipitation
     weather_icon: string
     weathercode: number
     description: string
-    windspeed: number
+    windspeed: HourlyWindspeed
+}
+
+export type HourlyTemperature = {
+    value: number
+    unit: string
+}
+
+export type HourlyPrecipitation = {
+    value: number
+    unit: string
+}
+
+export type HourlyWindspeed = {
+    value: number
+    unit: string
 }

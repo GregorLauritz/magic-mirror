@@ -1,6 +1,5 @@
 import Typography from '@mui/material/Typography'
 import unknownWeatherIcon from '../../assets/unknown-weather.svg'
-import { TEMP_UNIT, PRECIPITATION_UNIT } from '../../constants/weather'
 import { CardMedia, Grid, Skeleton, Stack } from '@mui/material'
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
@@ -22,28 +21,28 @@ interface WeatherInfoProps {
 const WeatherInfo = memo<WeatherInfoProps>(({ weather }) => {
     const precipitationValue = useMemo(
         () =>
-            weather.precipitation_sum !== null
-                ? weather.precipitation_sum.toFixed(1)
+            weather.precipitation.value !== null
+                ? weather.precipitation.value.toFixed(1)
                 : '-',
-        [weather.precipitation_sum]
+        [weather.precipitation.value]
     )
 
     return (
         <>
             <Typography variant="h3">
                 {weather.temperature.current.toFixed()}
-                {TEMP_UNIT}
+                {weather.temperature.unit}
             </Typography>
             <Stack direction="row">
                 <ArrowDropUpIcon />
                 <Typography variant="subtitle1" color="text.primary">
                     {weather.temperature.max.toFixed()}
-                    {TEMP_UNIT}
+                    {weather.temperature.unit}
                 </Typography>
                 <ArrowDropDownIcon />
                 <Typography variant="subtitle1" color="text.primary">
                     {weather.temperature.min.toFixed()}
-                    {TEMP_UNIT}
+                    {weather.temperature.unit}
                 </Typography>
             </Stack>
             <Typography
@@ -52,21 +51,21 @@ const WeatherInfo = memo<WeatherInfoProps>(({ weather }) => {
                 sx={smallFontSize}
             >
                 Feels like {weather.temperature.feels_like.toFixed()}
-                {TEMP_UNIT}
+                {weather.temperature.unit}
             </Typography>
             <Typography
                 variant="subtitle2"
                 color="text.secondary"
                 sx={smallFontSize}
             >
-                Precipitation: {precipitationValue} {PRECIPITATION_UNIT}
+                Precipitation: {precipitationValue} {weather.precipitation.unit}
             </Typography>
             <Typography
                 variant="subtitle2"
                 color="text.secondary"
                 sx={smallFontSize}
             >
-                Windspeed: {weather.windspeed} km/h
+                Windspeed: {weather.windspeed.value} {weather.windspeed.unit}
             </Typography>
         </>
     )

@@ -20,8 +20,8 @@ import 'react-resizable/css/styles.css'
 import { useGetUserSettings } from '../apis/user_settings'
 import { patchUserSettings } from '../apis/user_settings'
 import { WidgetLayout } from '../models/user_settings'
-import { useGridEditContext } from '../common/GridEditContext'
-import { DEFAULT_LAYOUT } from '../common/constants'
+import { useGridEditContext } from '../common/useGridEditContext'
+import { DEFAULT_LAYOUT } from '../constants/defaults'
 
 // Styles for grid items to ensure content is visible
 const gridItemSx = {

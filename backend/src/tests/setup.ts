@@ -151,6 +151,15 @@ beforeEach(() => {
             weathercode: 0,
             time: '2024-01-15T12:00',
           },
+          current_weather_units: {
+            time: 'iso8601',
+            interval: 'seconds',
+            temperature: '°C',
+            windspeed: 'km/h',
+            winddirection: '°',
+            is_day: '',
+            weathercode: 'wmo code',
+          },
           hourly: {
             time: [
               '2024-01-15T00:00',
@@ -184,7 +193,17 @@ beforeEach(() => {
             apparent_temperature: [
               13, 13, 12, 12, 11, 11, 12, 13, 14, 15, 16, 17, 18, 18, 18, 17, 16, 15, 14, 13, 13, 12, 12, 12,
             ],
+            precipitation: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            windspeed_10m: [5, 5, 4, 4, 3, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 9, 8, 7, 6, 5, 5, 4, 4, 4],
             weathercode: [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+          },
+          hourly_units: {
+            time: 'iso8601',
+            temperature_2m: '°C',
+            apparent_temperature: '°C',
+            precipitation: 'mm',
+            windspeed_10m: 'km/h',
+            weathercode: 'wmo code',
           },
           daily: {
             time: ['2024-01-15', '2024-01-16', '2024-01-17', '2024-01-18', '2024-01-19'],
@@ -193,6 +212,7 @@ beforeEach(() => {
             weathercode: [0, 1, 2, 3, 0],
             precipitation_sum: [0, 0.5, 1.2, 0, 0],
             precipitation_hours: [0, 1, 2, 0, 0],
+            wind_speed_10m_max: [15, 12, 8, 10, 18],
             sunrise: [
               '2024-01-15T07:30:00',
               '2024-01-16T07:29:00',
@@ -209,9 +229,15 @@ beforeEach(() => {
             ],
           },
           daily_units: {
+            time: 'iso8601',
             temperature_2m_max: '°C',
             temperature_2m_min: '°C',
             precipitation_sum: 'mm',
+            precipitation_hours: 'h',
+            wind_speed_10m_max: 'km/h',
+            weathercode: 'wmo code',
+            sunrise: 'iso8601',
+            sunset: 'iso8601',
           },
         }),
         arrayBuffer: async () => new ArrayBuffer(8),

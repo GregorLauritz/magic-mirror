@@ -1,5 +1,4 @@
 import { Box, Skeleton, Stack, Typography } from '@mui/material'
-import { TEMP_UNIT } from '../../constants/weather'
 import unknownWeatherIcon from '../../assets/unknown-weather.svg'
 import { WeatherForecastResource } from '../../models/daily_forecast'
 import { smallFontSize } from '../../assets/styles/theme'
@@ -63,7 +62,7 @@ const ForecastItem = ({ item, isLoading }: IForecastItem) => {
                     fontSize={smallFontSize}
                 >
                     {Math.round(item.temperature.max).toString() ?? '-'}
-                    {TEMP_UNIT}
+                    {item.temperature.unit}
                 </Typography>
                 &nbsp;
                 <Typography
@@ -72,7 +71,7 @@ const ForecastItem = ({ item, isLoading }: IForecastItem) => {
                     sx={smallFontSize}
                 >
                     {Math.round(item.temperature.min).toString() ?? '-'}
-                    {TEMP_UNIT}
+                    {item.temperature.unit}
                 </Typography>
             </Stack>
             <Typography

@@ -2,12 +2,12 @@ export type CurrentWeather = {
   latitude: number;
   longitude: number;
   temperature: CurrentWeatherTemperature;
-  windspeed: number;
+  windspeed: Windspeed;
   weathercode: number;
   update_time: string;
   weather_icon: string;
   description: string;
-  precipitation_sum: number;
+  precipitation: CurrentPrecipitation;
 };
 
 export type CurrentWeatherTemperature = {
@@ -15,6 +15,12 @@ export type CurrentWeatherTemperature = {
   min: number;
   max: number;
   feels_like: number;
+  unit: string;
+};
+
+export type CurrentPrecipitation = {
+  value: number;
+  unit: string;
 };
 
 export type HourlyWeather = {
@@ -26,12 +32,17 @@ export type HourlyWeather = {
 
 export type HourlyWeatherResource = {
   time: string;
-  temperature: number;
-  precipitation: number;
+  temperature: HourlyTemperature;
+  precipitation: CurrentPrecipitation;
   weather_icon: string;
   weathercode: number;
   description: string;
-  windspeed: number;
+  windspeed: Windspeed;
+};
+
+export type HourlyTemperature = {
+  value: number;
+  unit: string;
 };
 
 export type WeatherForecast = {

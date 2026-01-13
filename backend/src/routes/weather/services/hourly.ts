@@ -89,9 +89,10 @@ const createForecastArray = (
 ): Array<HourlyWeatherResource> => {
   const forecast: Array<HourlyWeatherResource> = [];
   const count = response.hourly.time.length;
+  const units = response.hourly_units;
   for (let i = 0; i < count; i++) {
     if (isValidHourlyForecastTime(response.hourly.time[i], forecastHours)) {
-      forecast.push(createForecastHour(response, i, timezone));
+      forecast.push(createForecastHour(response, i, timezone, units));
     }
   }
   return forecast;
@@ -107,17 +108,31 @@ const isValidHourlyForecastTime = (time: string, forecastHours: number): boolean
 /**
  * Creates a single hour's forecast data
  */
-const createForecastHour = (response: Json, index: number, timezone: string = 'UTC'): HourlyWeatherResource => {
+const createForecastHour = (
+  response: Json,
+  index: number,
+  timezone: string = 'UTC',
+  units: Json,
+): HourlyWeatherResource => {
   const weathercode = response.hourly.weathercode[index];
   const time = response.hourly.time[index];
   const sunIsUp = timeIsDuringDay(time, response.daily.sunrise[0], response.daily.sunset[0]);
   const timeInZone = DateTime.fromISO(time, { zone: 'UTC' }).setZone(timezone).toFormat('yyyy-MM-dd HH:mm ZZZZ');
   return {
     time: timeInZone,
-    temperature: response.hourly.temperature_2m[index],
-    precipitation: response.hourly.precipitation[index],
+    temperature: {
+      value: response.hourly.temperature_2m[index],
+      unit: units.temperature_2m,
+    },
+    precipitation: {
+      value: response.hourly.precipitation[index],
+      unit: units.precipitation,
+    },
     weather_icon: getWeatherIconFromWeathercode(sunIsUp, weathercode),
-    windspeed: response.hourly.windspeed_10m[index],
+    windspeed: {
+      value: response.hourly.windspeed_10m[index],
+      unit: units.windspeed_10m,
+    },
     weathercode: weathercode,
     description: getWeatherDescription(weathercode),
   };
