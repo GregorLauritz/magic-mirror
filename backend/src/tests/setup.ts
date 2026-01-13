@@ -302,6 +302,275 @@ beforeEach(() => {
       // If URL parsing fails, fall through to the default mock response below.
     }
 
+    // Mock Deutsche Bahn API (v6.db.transport.rest)
+    if (urlString.includes('db.transport.rest')) {
+      // Mock /locations endpoint - returns array of stations
+      if (urlString.includes('/locations')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          headers: new Headers(),
+          json: async () => [
+            {
+              type: 'station',
+              id: '8011160',
+              name: 'Berlin Hbf',
+              location: {
+                type: 'location',
+                id: '8011160',
+                latitude: 52.525589,
+                longitude: 13.369438,
+              },
+            },
+            {
+              type: 'station',
+              id: '8011162',
+              name: 'Berlin Ostbahnhof',
+              location: {
+                type: 'location',
+                id: '8011162',
+                latitude: 52.510972,
+                longitude: 13.434567,
+              },
+            },
+            {
+              type: 'station',
+              id: '8089021',
+              name: 'Berlin Friedrichstraße',
+              location: {
+                type: 'location',
+                id: '8089021',
+                latitude: 52.520277,
+                longitude: 13.386944,
+              },
+            },
+          ],
+          arrayBuffer: async () => new ArrayBuffer(8),
+          text: async () => '',
+          blob: async () => new Blob(),
+          formData: async () => new FormData(),
+          clone: () => ({ ok: true }) as Response,
+        } as Response);
+      }
+
+      // Mock /stops/{stationId}/departures endpoint - returns journeys array
+      if (urlString.includes('/stops/') && urlString.includes('/departures')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          headers: new Headers(),
+          json: async () => ({
+            journeys: [
+              {
+                type: 'journey',
+                legs: [
+                  {
+                    origin: {
+                      type: 'station',
+                      id: '8011160',
+                      name: 'Berlin Hbf',
+                      location: { latitude: 52.525589, longitude: 13.369438 },
+                    },
+                    destination: {
+                      type: 'station',
+                      id: '8000261',
+                      name: 'München Hbf',
+                      location: { latitude: 48.140232, longitude: 11.558335 },
+                    },
+                    departure: '2024-01-15T10:00:00+01:00',
+                    plannedDeparture: '2024-01-15T10:00:00+01:00',
+                    departureDelay: 0,
+                    arrival: '2024-01-15T14:30:00+01:00',
+                    departurePlatform: '5',
+                    plannedDeparturePlatform: '5',
+                    direction: 'München Hbf',
+                    line: {
+                      type: 'line',
+                      id: 'ice-1234',
+                      name: 'ICE 1234',
+                      mode: 'train',
+                      product: 'nationalExpress',
+                    },
+                    remarks: [],
+                  },
+                ],
+                refreshToken: 'mock-token-1',
+              },
+              {
+                type: 'journey',
+                legs: [
+                  {
+                    origin: {
+                      type: 'station',
+                      id: '8011160',
+                      name: 'Berlin Hbf',
+                      location: { latitude: 52.525589, longitude: 13.369438 },
+                    },
+                    destination: {
+                      type: 'station',
+                      id: '8000105',
+                      name: 'Frankfurt(Main)Hbf',
+                      location: { latitude: 50.107145, longitude: 8.663789 },
+                    },
+                    departure: '2024-01-15T10:30:00+01:00',
+                    plannedDeparture: '2024-01-15T10:30:00+01:00',
+                    departureDelay: 300,
+                    arrival: '2024-01-15T14:45:00+01:00',
+                    departurePlatform: '8',
+                    plannedDeparturePlatform: '8',
+                    direction: 'Frankfurt(Main)Hbf',
+                    line: {
+                      type: 'line',
+                      id: 'ice-5678',
+                      name: 'ICE 5678',
+                      mode: 'train',
+                      product: 'nationalExpress',
+                    },
+                    remarks: [],
+                  },
+                ],
+                refreshToken: 'mock-token-2',
+              },
+            ],
+          }),
+          arrayBuffer: async () => new ArrayBuffer(8),
+          text: async () => '',
+          blob: async () => new Blob(),
+          formData: async () => new FormData(),
+          clone: () => ({ ok: true }) as Response,
+        } as Response);
+      }
+
+      // Mock /journeys endpoint - returns journeys array for connections
+      if (urlString.includes('/journeys')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          headers: new Headers(),
+          json: async () => ({
+            journeys: [
+              {
+                type: 'journey',
+                legs: [
+                  {
+                    origin: {
+                      type: 'station',
+                      id: '8011160',
+                      name: 'Berlin Hbf',
+                      location: { latitude: 52.525589, longitude: 13.369438 },
+                    },
+                    destination: {
+                      type: 'station',
+                      id: '8000261',
+                      name: 'München Hbf',
+                      location: { latitude: 48.140232, longitude: 11.558335 },
+                    },
+                    departure: '2024-01-15T10:00:00+01:00',
+                    plannedDeparture: '2024-01-15T10:00:00+01:00',
+                    departureDelay: 0,
+                    arrival: '2024-01-15T14:30:00+01:00',
+                    arrivalPlatform: '12',
+                    departurePlatform: '5',
+                    plannedDeparturePlatform: '5',
+                    direction: 'München Hbf',
+                    line: {
+                      type: 'line',
+                      id: 'ice-1234',
+                      name: 'ICE 1234',
+                      mode: 'train',
+                      product: 'nationalExpress',
+                    },
+                    remarks: [],
+                  },
+                ],
+                refreshToken: 'mock-token-1',
+              },
+              {
+                type: 'journey',
+                legs: [
+                  {
+                    origin: {
+                      type: 'station',
+                      id: '8011160',
+                      name: 'Berlin Hbf',
+                      location: { latitude: 52.525589, longitude: 13.369438 },
+                    },
+                    destination: {
+                      type: 'station',
+                      id: '8000261',
+                      name: 'München Hbf',
+                      location: { latitude: 48.140232, longitude: 11.558335 },
+                    },
+                    departure: '2024-01-15T11:00:00+01:00',
+                    plannedDeparture: '2024-01-15T11:00:00+01:00',
+                    departureDelay: 300,
+                    arrival: '2024-01-15T15:30:00+01:00',
+                    arrivalPlatform: '14',
+                    departurePlatform: '7',
+                    plannedDeparturePlatform: '7',
+                    direction: 'München Hbf',
+                    line: {
+                      type: 'line',
+                      id: 'ice-5678',
+                      name: 'ICE 5678',
+                      mode: 'train',
+                      product: 'nationalExpress',
+                    },
+                    remarks: [],
+                  },
+                ],
+                refreshToken: 'mock-token-2',
+              },
+              {
+                type: 'journey',
+                legs: [
+                  {
+                    origin: {
+                      type: 'station',
+                      id: '8011160',
+                      name: 'Berlin Hbf',
+                      location: { latitude: 52.525589, longitude: 13.369438 },
+                    },
+                    destination: {
+                      type: 'station',
+                      id: '8000261',
+                      name: 'München Hbf',
+                      location: { latitude: 48.140232, longitude: 11.558335 },
+                    },
+                    departure: '2024-01-15T12:00:00+01:00',
+                    plannedDeparture: '2024-01-15T12:00:00+01:00',
+                    departureDelay: 0,
+                    arrival: '2024-01-15T16:30:00+01:00',
+                    arrivalPlatform: '12',
+                    departurePlatform: '5',
+                    plannedDeparturePlatform: '5',
+                    direction: 'München Hbf',
+                    line: {
+                      type: 'line',
+                      id: 'ice-9012',
+                      name: 'ICE 9012',
+                      mode: 'train',
+                      product: 'nationalExpress',
+                    },
+                    remarks: [],
+                  },
+                ],
+                refreshToken: 'mock-token-3',
+              },
+            ],
+          }),
+          arrayBuffer: async () => new ArrayBuffer(8),
+          text: async () => '',
+          blob: async () => new Blob(),
+          formData: async () => new FormData(),
+          clone: () => ({ ok: true }) as Response,
+        } as Response);
+      }
+    }
+
     // Default mock response
     return Promise.resolve({
       ok: true,
