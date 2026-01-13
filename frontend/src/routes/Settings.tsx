@@ -84,10 +84,14 @@ const SettingsComponent = () => {
                     zipCode: userSettings?.zip_code ?? DEFAULT_ZIP_CODE,
                     birthdayCalId: userSettings?.birthday_cal_id ?? '',
                     eventsCalId: userSettings?.events_cal_id ?? '',
-                    trainDepartureStationId: userSettings?.train_departure_station_id,
-                    trainDepartureStationName: userSettings?.train_departure_station_name,
-                    trainArrivalStationId: userSettings?.train_arrival_station_id,
-                    trainArrivalStationName: userSettings?.train_arrival_station_name,
+                    trainDepartureStationId:
+                        userSettings?.train_departure_station_id,
+                    trainDepartureStationName:
+                        userSettings?.train_departure_station_name,
+                    trainArrivalStationId:
+                        userSettings?.train_arrival_station_id,
+                    trainArrivalStationName:
+                        userSettings?.train_arrival_station_name,
                 }}
                 onBack={handleBack}
                 showBackButton={error == null}

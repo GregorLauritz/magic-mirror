@@ -24,7 +24,11 @@ export const useGetTrainConnections = (
     enabled: boolean = true
 ): UseQueryResult<TrainConnection[], Error> =>
     useQuery<TrainConnection[], Error>({
-        queryKey: [ServerStateKeysEnum.train_connections, fromStationId, toStationId],
+        queryKey: [
+            ServerStateKeysEnum.train_connections,
+            fromStationId,
+            toStationId,
+        ],
         queryFn: async (): Promise<TrainConnection[]> =>
             fetchJson<TrainConnection[]>(
                 `${TRAINS_API}/connections?from=${encodeURIComponent(fromStationId!)}&to=${encodeURIComponent(toStationId!)}&results=2`
