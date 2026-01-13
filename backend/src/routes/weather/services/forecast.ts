@@ -16,7 +16,8 @@ export const buildWeatherForecastUrl = (req: Request): string => {
     longitude: req.query.longitude as string,
     start_date: startDate,
     end_date: endDate,
-    daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_hours,weathercode,sunrise,sunset',
+    daily:
+      'temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_hours,weathercode,sunrise,sunset,wind_speed_10m_max',
     timezone: (req.query.timezone ?? 'GMT') as string,
     ...WEATHER_UNITS,
   });
@@ -114,5 +115,9 @@ const createForecastDay = (response: Json, index: number): WeatherForecastResour
     sunset: response.daily.sunset[index],
     weathercode: weathercode,
     description: getWeatherDescription(weathercode),
+    max_wind_speed: {
+      value: response.daily.wind_speed_10m_max[index],
+      unit: response.daily_units.wind_speed_10m_max,
+    },
   };
 };

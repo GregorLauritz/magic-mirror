@@ -64,9 +64,16 @@ const createResponseJson = (response: Json): CurrentWeather => {
       min: response.daily.temperature_2m_min[0],
       max: response.daily.temperature_2m_max[0],
       feels_like: response.hourly.apparent_temperature[hourlyIndex],
+      unit: response.current_weather_units.temperature,
     },
-    precipitation_sum: response.daily.precipitation_sum[0],
-    windspeed: response.current_weather.windspeed,
+    precipitation: {
+      value: response.daily.precipitation_sum[0],
+      unit: response.daily_units.precipitation_sum,
+    },
+    windspeed: {
+      value: response.current_weather.windspeed,
+      unit: response.current_weather_units.windspeed,
+    },
     weathercode: response.current_weather.weathercode,
     update_time: response.current_weather.time,
     weather_icon: getWeatherIconFromWeathercode(isDay, response.current_weather.weathercode),

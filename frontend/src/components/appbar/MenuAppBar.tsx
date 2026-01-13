@@ -15,9 +15,9 @@ import { useQueryClient } from 'react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { fetchRetry } from '../../common/fetch'
 import { USERS_API } from '../../constants/api'
-import { useGridEditContext } from '../../common/GridEditContext'
+import { useGridEditContext } from '../../common/useGridEditContext'
 import { patchUserSettings } from '../../apis/user_settings'
-import { DEFAULT_LAYOUT } from '../../common/constants'
+import { DEFAULT_LAYOUT } from '../../constants/defaults'
 
 type MenuItemType = {
     text: string
