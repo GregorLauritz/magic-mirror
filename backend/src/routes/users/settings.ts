@@ -40,6 +40,10 @@ class UserSettingsService {
       events_cal_id: userSettings.events_cal_id,
       birthday_cal_id: userSettings.birthday_cal_id,
       widget_layout: userSettings.widget_layout,
+      train_departure_station_id: userSettings?.train_departure_station_id,
+      train_departure_station_name: userSettings?.train_departure_station_name,
+      train_arrival_station_id: userSettings?.train_arrival_station_id,
+      train_arrival_station_name: userSettings?.train_arrival_station_name,
     };
   }
 }

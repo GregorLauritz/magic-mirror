@@ -31,5 +31,9 @@ const getUserSettingsBody = async (
         city: data.city,
         events_cal_id: data.eventsCalId,
         birthday_cal_id: data.birthdayCalId,
+        train_departure_station_id: data.trainDepartureStationId,
+        train_departure_station_name: data.trainDepartureStationName,
+        train_arrival_station_id: data.trainArrivalStationId,
+        train_arrival_station_name: data.trainArrivalStationName,
     }
 }

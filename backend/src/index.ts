@@ -7,6 +7,7 @@ import { default as CalendarsRoute } from 'routes/calendars';
 import { default as BirthdaysRoute } from 'routes/birthdays';
 import { default as UsersRoute } from 'routes/users';
 import { default as LocationRoute } from 'routes/location';
+import { default as TrainsRoute } from 'routes/trains';
 import { NextFunction, Request, Response } from 'express';
 import { ApiError } from 'models/api/api_error';
 import { EXPRESS_ERROR_LOGGER, LOGGER } from 'services/loggers';
@@ -22,8 +23,8 @@ server.app.use('/api/birthdays', BirthdaysRoute);
 
 server.app.use('/api/users', UsersRoute);
 server.app.use('/api/location', LocationRoute);
+server.app.use('/api/trains', TrainsRoute);
 
-// ERROR HANDLING MIDDLEWARE
 server.app.use(EXPRESS_ERROR_LOGGER);
 
 /**
@@ -32,7 +33,6 @@ server.app.use(EXPRESS_ERROR_LOGGER);
  */
 server.app.use((err: ApiError | Error, req: Request, res: Response, _next: NextFunction): void => {
   if (err instanceof ApiError) {
-    // Known API errors with specific status codes
     LOGGER.warn('API Error', {
       message: err.message,
       status: err.status,
@@ -44,7 +44,6 @@ server.app.use((err: ApiError | Error, req: Request, res: Response, _next: NextF
       status: err.status,
     });
   } else {
-    // Unexpected errors - log full details
     LOGGER.error('Unhandled Server Error', {
       error: err.message,
       stack: err.stack,

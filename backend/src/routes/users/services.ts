@@ -45,6 +45,10 @@ export class UserSettingsRepository {
           events_cal_id: settings.events_cal_id,
           birthday_cal_id: settings.birthday_cal_id,
           widget_layout: settings.widget_layout,
+          train_departure_station_id: settings?.train_departure_station_id,
+          train_departure_station_name: settings?.train_departure_station_name,
+          train_arrival_station_id: settings?.train_arrival_station_id,
+          train_arrival_station_name: settings?.train_arrival_station_name,
         },
       },
       {
@@ -75,6 +79,14 @@ export class UserSettingsRepository {
     if (settings.events_cal_id !== undefined) updateFields.events_cal_id = settings.events_cal_id;
     if (settings.birthday_cal_id !== undefined) updateFields.birthday_cal_id = settings.birthday_cal_id;
     if (settings.widget_layout !== undefined) updateFields.widget_layout = settings.widget_layout;
+    if (settings.train_departure_station_id !== undefined)
+      updateFields.train_departure_station_id = settings.train_departure_station_id;
+    if (settings.train_departure_station_name !== undefined)
+      updateFields.train_departure_station_name = settings.train_departure_station_name;
+    if (settings.train_arrival_station_id !== undefined)
+      updateFields.train_arrival_station_id = settings.train_arrival_station_id;
+    if (settings.train_arrival_station_name !== undefined)
+      updateFields.train_arrival_station_name = settings.train_arrival_station_name;
 
     const result = await DtoUserSettings.findOneAndUpdate(
       { sub },

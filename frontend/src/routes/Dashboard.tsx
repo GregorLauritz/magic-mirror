@@ -5,6 +5,7 @@ import DailyForecast from '../components/daily_forecast/DailyForecast'
 import Birthdays from '../components/birthdays/Birthdays'
 import HourlyWeather from '../components/hourly_forecast/HourlyForecast'
 import UpcomingEvents from '../components/upcoming_events/UpcomingEvents'
+import TrainTimes from '../components/train_times/TrainTimes'
 import { TimeContextProvider } from '../common/TimeContext'
 import { LocationContextProvider } from '../common/LocationContext'
 import { PADDING } from '../assets/styles/theme'
@@ -24,9 +25,10 @@ const DEFAULT_LAYOUT: WidgetLayout[] = [
     { i: 'time', x: 0, y: 0, w: 6, h: 1 },
     { i: 'birthdays', x: 6, y: 0, w: 6, h: 1 },
     { i: 'events', x: 0, y: 1, w: 12, h: 1 },
-    { i: 'current-weather', x: 0, y: 2, w: 12, h: 1 },
-    { i: 'hourly-weather', x: 0, y: 3, w: 12, h: 1 },
-    { i: 'daily-forecast', x: 0, y: 4, w: 12, h: 1 },
+    { i: 'trains', x: 0, y: 2, w: 12, h: 1 },
+    { i: 'current-weather', x: 0, y: 3, w: 12, h: 1 },
+    { i: 'hourly-weather', x: 0, y: 4, w: 12, h: 1 },
+    { i: 'daily-forecast', x: 0, y: 5, w: 12, h: 1 },
 ]
 
 const DashboardComponent = () => {
@@ -94,6 +96,9 @@ const DashBoardItems = memo(() => {
                 </Box>
                 <Box key="events" sx={{ background: 'transparent' }}>
                     <UpcomingEvents />
+                </Box>
+                <Box key="trains" sx={{ background: 'transparent' }}>
+                    <TrainTimes />
                 </Box>
                 <Box key="current-weather" sx={{ background: 'transparent' }}>
                     <CurrentWeather />

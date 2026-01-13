@@ -12,4 +12,6 @@ export enum ServerStateKeysEnum {
     geocode,
     calendar_list,
     min_time,
+    train_stations,
+    train_connections,
 }

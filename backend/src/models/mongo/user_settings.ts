@@ -16,6 +16,10 @@ export interface IDtoUserSettings extends Document {
   birthday_cal_id: string;
   sub: string;
   widget_layout?: WidgetLayout[];
+  train_departure_station_id?: string;
+  train_departure_station_name?: string;
+  train_arrival_station_id?: string;
+  train_arrival_station_name?: string;
 }
 
 const UserSettingsSchema = new Schema(
@@ -48,6 +52,22 @@ const UserSettingsSchema = new Schema(
     },
     widget_layout: {
       type: Array,
+      required: false,
+    },
+    train_departure_station_id: {
+      type: String,
+      required: false,
+    },
+    train_departure_station_name: {
+      type: String,
+      required: false,
+    },
+    train_arrival_station_id: {
+      type: String,
+      required: false,
+    },
+    train_arrival_station_name: {
+      type: String,
       required: false,
     },
   },

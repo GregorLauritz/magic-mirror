@@ -1,14 +1,15 @@
 import { Box, TextField, Button, Autocomplete } from '@mui/material'
 import CountrySelect from '../country_select/CountrySelect'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
     buttonBoxStyle,
     countryBoxStyle,
     inputBoxStyle,
     parentBoxStyle,
 } from './style'
-import { LOCATION_API } from '../../constants/api'
+import { LOCATION_API, TRAINS_API } from '../../constants/api'
 import { CalendarListItem } from '../../models/calendar'
+import { TrainStation } from '../../models/trains'
 
 export interface SettingsParams {
     country: string
@@ -16,6 +17,10 @@ export interface SettingsParams {
     zipCode: string
     birthdayCalId: string
     eventsCalId: string
+    trainDepartureStationId?: string
+    trainDepartureStationName?: string
+    trainArrivalStationId?: string
+    trainArrivalStationName?: string
 }
 
 interface SettingsFormProps {
@@ -39,6 +44,10 @@ export const SettingsForm = ({
         zipCode: defaultZipCode,
         birthdayCalId,
         eventsCalId,
+        trainDepartureStationId,
+        trainDepartureStationName,
+        trainArrivalStationId,
+        trainArrivalStationName,
     } = defaults
     const city = useRef<HTMLInputElement>(null)
     const zip = useRef<HTMLInputElement>(null)
@@ -46,6 +55,26 @@ export const SettingsForm = ({
     const [birthdayCalendar, setBirthdayCalendar] =
         useState<string>(birthdayCalId)
     const [eventsCalender, setEventsCalender] = useState<string>(eventsCalId)
+    const [departureStation, setDepartureStation] =
+        useState<TrainStation | null>(
+            trainDepartureStationId && trainDepartureStationName
+                ? {
+                      id: trainDepartureStationId,
+                      name: trainDepartureStationName,
+                  }
+                : null
+        )
+    const [arrivalStation, setArrivalStation] = useState<TrainStation | null>(
+        trainArrivalStationId && trainArrivalStationName
+            ? { id: trainArrivalStationId, name: trainArrivalStationName }
+            : null
+    )
+    const [departureQuery, setDepartureQuery] = useState('')
+    const [arrivalQuery, setArrivalQuery] = useState('')
+    const [departureStations, setDepartureStations] = useState<TrainStation[]>(
+        []
+    )
+    const [arrivalStations, setArrivalStations] = useState<TrainStation[]>([])
     const currentBirthdayCalendar = useMemo(
         () => calendars.find((c) => c.id === birthdayCalendar),
         [birthdayCalendar, calendars]
@@ -54,6 +83,44 @@ export const SettingsForm = ({
         () => calendars.find((c) => c.id === eventsCalender),
         [eventsCalender, calendars]
     )
+
+    const searchStations = useCallback(
+        async (
+            query: string,
+            setStations: React.Dispatch<React.SetStateAction<TrainStation[]>>
+        ) => {
+            if (query.length >= 2) {
+                try {
+                    const response = await fetch(
+                        `${TRAINS_API}/stations?query=${encodeURIComponent(query)}&results=10`
+                    )
+                    if (response.ok) {
+                        const stations = await response.json()
+                        setStations(stations)
+                    }
+                } catch (error) {
+                    console.error('Error searching stations:', error)
+                }
+            }
+        },
+        []
+    )
+
+    // Debounce departure station search
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            searchStations(departureQuery, setDepartureStations)
+        }, 300)
+        return () => clearTimeout(timeoutId)
+    }, [departureQuery, searchStations])
+
+    // Debounce arrival station search
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            searchStations(arrivalQuery, setArrivalStations)
+        }, 300)
+        return () => clearTimeout(timeoutId)
+    }, [arrivalQuery, searchStations])
 
     const onSendButton = useCallback(() => {
         if (country === '') {
@@ -71,6 +138,10 @@ export const SettingsForm = ({
                         zipCode: zip.current!.value,
                         birthdayCalId: birthdayCalendar ?? birthdayCalId,
                         eventsCalId: eventsCalender ?? eventsCalId,
+                        trainDepartureStationId: departureStation?.id,
+                        trainDepartureStationName: departureStation?.name,
+                        trainArrivalStationId: arrivalStation?.id,
+                        trainArrivalStationName: arrivalStation?.name,
                     }
                     onSend(data)
                 })
@@ -83,6 +154,8 @@ export const SettingsForm = ({
         onSend,
         birthdayCalId,
         eventsCalId,
+        departureStation,
+        arrivalStation,
     ])
 
     return (
@@ -118,7 +191,7 @@ export const SettingsForm = ({
                 <Autocomplete
                     id="events-cal"
                     options={calendars}
-                    value={currentEventsCalendar}
+                    value={currentEventsCalendar ?? null}
                     getOptionLabel={(option) => option.name}
                     onChange={(_, value) =>
                         value && setEventsCalender(value.id)
@@ -127,9 +200,15 @@ export const SettingsForm = ({
                         <TextField
                             {...params}
                             label="Events Calendar"
-                            inputProps={{
-                                ...params.inputProps,
-                                autoComplete: 'new-password', // disable autocomplete and autofill
+                            slotProps={{
+                                input: {
+                                    ...params.InputProps,
+                                    autoComplete: 'new-password', // disable autocomplete and autofill
+                                },
+                                htmlInput: {
+                                    ...params.inputProps,
+                                    autoComplete: 'new-password',
+                                },
                             }}
                         />
                     )}
@@ -139,7 +218,7 @@ export const SettingsForm = ({
                 <Autocomplete
                     id="bday-cal"
                     options={calendars}
-                    value={currentBirthdayCalendar}
+                    value={currentBirthdayCalendar ?? null}
                     getOptionLabel={(option) => option.name}
                     onChange={(_, value) =>
                         value && setBirthdayCalendar(value.id)
@@ -148,9 +227,73 @@ export const SettingsForm = ({
                         <TextField
                             {...params}
                             label="Birthday Calendar"
-                            inputProps={{
-                                ...params.inputProps,
-                                autoComplete: 'new-password', // disable autocomplete and autofill
+                            slotProps={{
+                                input: {
+                                    ...params.InputProps,
+                                    autoComplete: 'new-password', // disable autocomplete and autofill
+                                },
+                                htmlInput: {
+                                    ...params.inputProps,
+                                    autoComplete: 'new-password',
+                                },
+                            }}
+                        />
+                    )}
+                />
+            </Box>
+            <Box>
+                <Autocomplete
+                    id="departure-station"
+                    options={departureStations}
+                    value={departureStation}
+                    getOptionLabel={(option) => option.name}
+                    isOptionEqualToValue={(option, value) =>
+                        option.id === value.id
+                    }
+                    onChange={(_, value) => setDepartureStation(value)}
+                    onInputChange={(_, value) => setDepartureQuery(value)}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Departure Station (optional)"
+                            slotProps={{
+                                input: {
+                                    ...params.InputProps,
+                                    autoComplete: 'new-password',
+                                },
+                                htmlInput: {
+                                    ...params.inputProps,
+                                    autoComplete: 'new-password',
+                                },
+                            }}
+                        />
+                    )}
+                />
+            </Box>
+            <Box>
+                <Autocomplete
+                    id="arrival-station"
+                    options={arrivalStations}
+                    value={arrivalStation}
+                    getOptionLabel={(option) => option.name}
+                    isOptionEqualToValue={(option, value) =>
+                        option.id === value.id
+                    }
+                    onChange={(_, value) => setArrivalStation(value)}
+                    onInputChange={(_, value) => setArrivalQuery(value)}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Arrival Station (optional)"
+                            slotProps={{
+                                input: {
+                                    ...params.InputProps,
+                                    autoComplete: 'new-password',
+                                },
+                                htmlInput: {
+                                    ...params.inputProps,
+                                    autoComplete: 'new-password',
+                                },
                             }}
                         />
                     )}
