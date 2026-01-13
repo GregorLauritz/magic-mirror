@@ -98,7 +98,7 @@ export class UserSettingsRepository {
     );
 
     LOGGER.info(`Patched settings for user ${sub}`);
-    return result;
+    return result as IDtoUserSettings;
   }
 }
 

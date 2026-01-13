@@ -10,15 +10,16 @@ import { TimeContextProvider } from '../common/TimeContext'
 import { LocationContextProvider } from '../common/LocationContext'
 import { PADDING } from '../assets/styles/theme'
 import { memo, useCallback, useMemo, useRef } from 'react'
-import RGL, { Layout as RGLLayout } from 'react-grid-layout'
+import {
+    GridLayout,
+    useContainerWidth,
+    Layout as RGLLayout,
+} from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 import { useGetUserSettings } from '../apis/user_settings'
 import { patchUserSettings } from '../apis/user_settings'
 import { WidgetLayout } from '../models/user_settings'
-
-// @ts-expect-error - WidthProvider exists but not in types
-const ReactGridLayout = RGL.WidthProvider(RGL)
 
 // Default layout matching the original grid structure (12-column grid)
 const DEFAULT_LAYOUT: WidgetLayout[] = [
@@ -44,14 +45,30 @@ const DashboardComponent = () => {
 const DashBoardItems = memo(() => {
     const { data: userSettings } = useGetUserSettings(true)
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const { width, containerRef, mounted } = useContainerWidth()
 
     // Use saved layout or default layout
     const layout = useMemo<WidgetLayout[]>(() => {
-        if (userSettings?.widget_layout && userSettings.widget_layout.length > 0) {
+        if (
+            userSettings?.widget_layout &&
+            userSettings.widget_layout.length > 0
+        ) {
             return userSettings.widget_layout
         }
         return DEFAULT_LAYOUT
     }, [userSettings?.widget_layout])
+
+    // Grid configuration
+    const gridConfig = useMemo(
+        () => ({
+            cols: 12,
+            rowHeight: 200,
+            margin: [PADDING, PADDING * 0.5] as const,
+            containerPadding: [0, 0] as const,
+            maxRows: Infinity,
+        }),
+        []
+    )
 
     // Save layout to backend when it changes (debounced)
     const handleLayoutChange = useCallback((newLayout: RGLLayout) => {
@@ -71,45 +88,61 @@ const DashBoardItems = memo(() => {
             }))
 
             // Save to backend
-            patchUserSettings({ widget_layout: widgetLayout }).catch((error) => {
-                console.error('Failed to save widget layout:', error)
-            })
+            patchUserSettings({ widget_layout: widgetLayout }).catch(
+                (error) => {
+                    console.error('Failed to save widget layout:', error)
+                }
+            )
         }, 500) // Wait 500ms after last change
     }, [])
 
     return (
-        <Box sx={{ width: '100%' }}>
-            <ReactGridLayout
-                className="layout"
-                layout={layout}
-                rowHeight={200}
-                margin={[PADDING, PADDING * 0.5]}
-                containerPadding={[0, 0]}
-                onDragStop={handleLayoutChange}
-                onResizeStop={handleLayoutChange}
-            >
-                <Box key="time" sx={{ background: 'transparent' }}>
-                    <Time />
-                </Box>
-                <Box key="birthdays" sx={{ background: 'transparent' }}>
-                    <Birthdays />
-                </Box>
-                <Box key="events" sx={{ background: 'transparent' }}>
-                    <UpcomingEvents />
-                </Box>
-                <Box key="trains" sx={{ background: 'transparent' }}>
-                    <TrainTimes />
-                </Box>
-                <Box key="current-weather" sx={{ background: 'transparent' }}>
-                    <CurrentWeather />
-                </Box>
-                <Box key="hourly-weather" sx={{ background: 'transparent' }}>
-                    <HourlyWeather />
-                </Box>
-                <Box key="daily-forecast" sx={{ background: 'transparent' }}>
-                    <DailyForecast />
-                </Box>
-            </ReactGridLayout>
+        <Box ref={containerRef} sx={{ width: '100%' }}>
+            {mounted && (
+                <GridLayout
+                    className="layout"
+                    layout={layout}
+                    width={width}
+                    gridConfig={gridConfig}
+                    onDragStop={(newLayout: RGLLayout) =>
+                        handleLayoutChange(newLayout)
+                    }
+                    onResizeStop={(newLayout: RGLLayout) =>
+                        handleLayoutChange(newLayout)
+                    }
+                >
+                    <Box key="time" sx={{ background: 'transparent' }}>
+                        <Time />
+                    </Box>
+                    <Box key="birthdays" sx={{ background: 'transparent' }}>
+                        <Birthdays />
+                    </Box>
+                    <Box key="events" sx={{ background: 'transparent' }}>
+                        <UpcomingEvents />
+                    </Box>
+                    <Box key="trains" sx={{ background: 'transparent' }}>
+                        <TrainTimes />
+                    </Box>
+                    <Box
+                        key="current-weather"
+                        sx={{ background: 'transparent' }}
+                    >
+                        <CurrentWeather />
+                    </Box>
+                    <Box
+                        key="hourly-weather"
+                        sx={{ background: 'transparent' }}
+                    >
+                        <HourlyWeather />
+                    </Box>
+                    <Box
+                        key="daily-forecast"
+                        sx={{ background: 'transparent' }}
+                    >
+                        <DailyForecast />
+                    </Box>
+                </GridLayout>
+            )}
         </Box>
     )
 })
