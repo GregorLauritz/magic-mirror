@@ -4,8 +4,9 @@ import { randomUUID } from 'crypto';
 export const SERVER_PORT = parseInt(process.env.SERVER_PORT ?? String(3001));
 export const SESSION_SECRET = process.env.SESSION_SECRET ?? randomUUID();
 export const SERVER_HOSTNAME = process.env.SERVER_HOSTNAME ?? 'localhost';
+
 export const mongoDbData: IDatabaseConnection = {
-  hostname: process.env.MONGO_HOSTNAME ?? 'mongo',
+  hostname: process.env.MONGO_HOSTNAME ?? 'ferretdb',
   port: parseInt(process.env.MONGO_PORT ?? '27017'),
   username: process.env.MONGO_USERNAME,
   password: process.env.MONGO_PASSWORD,
@@ -18,6 +19,10 @@ export const mongoDbData: IDatabaseConnection = {
     {
       name: 'ssl',
       value: process.env.MONGO_SSL ?? 'false',
+    },
+    {
+      name: 'authMechanism',
+      value: 'PLAIN',
     },
   ],
 };

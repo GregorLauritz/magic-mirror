@@ -8,7 +8,7 @@ Magic Mirror is a personalized smart display dashboard application that shows re
 
 **Tech Stack:**
 - Frontend: React 18 + TypeScript + Vite + Material-UI + Yarn as package manager
-- Backend: Node.js + Express + TypeScript + MongoDB + Yarn as package manager
+- Backend: Node.js + Express + TypeScript + FerretDB (MongoDB-compatible with SQLite backend) + Yarn as package manager
 - Auth: OAuth2-Proxy (reverse proxy handling Google OAuth2)
 - Infrastructure: Docker Compose, Ansible, Nginx
 
@@ -48,6 +48,7 @@ docker compose -f docker-compose.dev.yml up      # Dev with hot reload
 docker compose -f docker-compose.yml up          # Production
 docker compose -f docker-compose.test.yml up     # Tests
 docker compose -f docker-compose.sonar.yml up    # SonarQube
+docker compose -f docker-compose.migrate.yml up  # Migrate MongoDB to FerretDB
 ```
 
 ## Architecture Overview
@@ -203,7 +204,11 @@ All backend routes prefixed with `/api/`:
 
 ## Database
 
-**MongoDB Collections:**
+**Database Technology:** FerretDB with SQLite backend
+
+FerretDB is a MongoDB-compatible database that translates MongoDB wire protocol to SQLite. It allows the application to use the Mongoose ODM and MongoDB drivers without code changes, while storing data in a lightweight SQLite database.
+
+**Collections:**
 
 1. **users** - Google OAuth user data
    - Fields: email, displayName, given_name, family_name, photo, sub, access_token, refresh_token
@@ -213,9 +218,44 @@ All backend routes prefixed with `/api/`:
    - Fields: sub, country, city, zip_code, events_cal_id, birthday_cal_id
    - Index: sub (unique)
 
+3. **allowed_user_email** - Whitelisted user emails
+   - Fields: email
+   - Index: email (unique)
+
 **Connection:** Configured via env vars in `backend/src/config/index.ts`:
-- `MONGO_HOSTNAME`, `MONGO_PORT`, `MONGO_USERNAME`, `MONGO_PASSWORD`
+- `MONGO_HOSTNAME` - Default: `ferretdb`
+- `MONGO_PORT` - Default: `27017` (FerretDB listens on MongoDB's default port)
+- `MONGO_USERNAME`, `MONGO_PASSWORD`
+- `DATABASE_TYPE` - Set to `ferretdb` (adds `authMechanism=PLAIN` for FerretDB)
 - Auth uses `authSource=admin`
+
+**Data Storage:**
+- FerretDB data is stored in `/ferretdb/data/data.sqlite`
+- SQLite database files are excluded from git via `.gitignore`
+
+### Migrating from MongoDB to FerretDB
+
+If you have existing MongoDB data, use the migration tools:
+
+1. **Prepare:** Ensure MongoDB data exists in `/mongo` directory
+2. **Run migration:**
+   ```bash
+   cd docker-compose
+   docker compose -f docker-compose.migrate.yml up
+   ```
+3. **Verify:** Check migration logs for successful completion
+4. **Switch:** Use regular docker-compose files (they now use FerretDB)
+
+See `/migration/README.md` for detailed migration instructions.
+
+### FerretDB Limitations
+
+- **Transactions:** Limited SQLite transaction support (not an issue for this app)
+- **Change Streams:** Not supported (not used in this app)
+- **Performance:** May be slower than MongoDB for very large datasets
+- **Advanced Aggregations:** Some complex pipeline operations may not work
+
+These limitations don't affect this application as it uses basic CRUD operations and simple queries.
 
 ## Configuration
 
@@ -322,11 +362,11 @@ const queryCache = new QueryClient({
 **Docker Compose services:**
 1. `frontend` - Nginx serving Vite build (port 3000 internal)
 2. `backend` - Express app (port 3001 internal)
-3. `mongo` - MongoDB (port 27017 internal)
+3. `ferretdb` - FerretDB with SQLite backend (port 27017 internal)
 4. `oauth2-proxy` - Auth gateway (port 443 external)
 
 **Networks:**
-- `db` - Backend ↔ MongoDB
+- `db` - Backend ↔ FerretDB
 - `app` - OAuth2-Proxy ↔ Backend/Frontend
 
 **Ansible deployment** (for Raspberry Pi):

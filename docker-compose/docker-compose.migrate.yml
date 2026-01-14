@@ -1,0 +1,67 @@
+name: magic-mirror-migration
+services:
+  # Source MongoDB database
+  mongo-source:
+    image: mongo:8.2.3-noble
+    hostname: mongo-source
+    volumes:
+      - ../mongo:/data/db
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PW}
+    networks:
+      - migration
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Destination FerretDB database
+  ferretdb-destination:
+    image: ghcr.io/ferretdb/ferretdb:latest
+    hostname: ferretdb-destination
+    volumes:
+      - ../ferretdb/data:/state
+    ports:
+      - 27018:27017
+    environment:
+      - FERRETDB_POSTGRESQL_URL=sqlite:///state/data.sqlite
+      - FERRETDB_TELEMETRY=disable
+    networks:
+      - migration
+    command: --listen-addr=:27017
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "27017"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Migration service
+  migration:
+    build:
+      context: ../migration
+      dockerfile: Dockerfile
+      args:
+        NODE_IMG_VERSION: ${NODE_IMG_VERSION:-22}
+    depends_on:
+      mongo-source:
+        condition: service_healthy
+      ferretdb-destination:
+        condition: service_healthy
+    networks:
+      - migration
+    environment:
+      SOURCE_MONGO_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PW}@mongo-source:27017/?authSource=admin
+      TARGET_MONGO_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PW}@ferretdb-destination:27017/?authSource=admin&authMechanism=PLAIN
+      MONGO_DATABASE: ${MONGO_DATABASE:-magic-mirror}
+    volumes:
+      - ../migration:/app
+      - /app/node_modules
+
+networks:
+  migration:

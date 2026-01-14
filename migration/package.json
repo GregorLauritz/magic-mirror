@@ -1,0 +1,17 @@
+{
+  "name": "magic-mirror-migration",
+  "version": "1.0.0",
+  "description": "Migration script from MongoDB to FerretDB",
+  "main": "migrate.js",
+  "scripts": {
+    "migrate": "ts-node migrate.ts"
+  },
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
