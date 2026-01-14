@@ -29,7 +29,7 @@ services:
     hostname: backend
     depends_on:
       - oauth2-proxy
-      - mongo
+      - ferretdb
     volumes:
       - ../backend/src:/opt/src
       - ../backend/ssl:/etc/express
@@ -39,21 +39,24 @@ services:
       - nginx
       - db
     environment:
+      MONGO_HOSTNAME: ferretdb
       MONGO_USERNAME: ${MONGO_ROOT_USER}
       MONGO_PASSWORD: ${MONGO_ROOT_PW}
-  mongo:
-    image: mongo:8.2.3-noble
+      DATABASE_TYPE: ferretdb
+  ferretdb:
+    image: ghcr.io/ferretdb/ferretdb:latest
     restart: unless-stopped
-    hostname: mongo
+    hostname: ferretdb
     volumes:
-      - ../mongo:/data/db
+      - ../ferretdb/data:/state
     ports:
       - 27017:27017
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PW}
+      - FERRETDB_POSTGRESQL_URL=sqlite:///state/data.sqlite
+      - FERRETDB_TELEMETRY=disable
     networks:
       - db
+    command: --listen-addr=:27017
   oauth2-proxy:
     build:
       context: ../oauth2-proxy
