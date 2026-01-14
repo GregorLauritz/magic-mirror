@@ -5,7 +5,7 @@
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {
       "version": "latest",
-      "moby": true,
+      "moby": false,
       "dockerDashComposeVersion": "v2"
     },
     "ghcr.io/devcontainers/features/common-utils:2": {
@@ -44,7 +44,7 @@
           "editor.defaultFormatter": "redhat.vscode-yaml"
         },
         "[python]": {
-          "editor.defaultFormatter": "ms-python.autopep8"
+          "editor.defaultFormatter": "ms-python.python"
         },
         "editor.formatOnPaste": true,
         "editor.formatOnSave": true,
@@ -114,13 +114,7 @@
 
   "remoteUser": "node",
 
-  "forwardPorts": [
-    3000,
-    3001,
-    9229,
-    27017,
-    443
-  ],
+  "forwardPorts": [3000, 3001, 9229, 27017, 443],
 
   "portsAttributes": {
     "3000": {
@@ -145,7 +139,5 @@
     }
   },
 
-  "runArgs": [
-    "--name=magic-mirror-devcontainer"
-  ]
+  "runArgs": ["--name=magic-mirror-devcontainer"]
 }
