@@ -21,7 +21,7 @@ COPY package.json yarn.lock ./
 
 # Install dependencies with frozen lockfile for reproducible builds
 # Use --production=false to include devDependencies needed for build
-RUN yarn install --frozen-lockfile --production=false --network-timeout 100000 && \
+RUN yarn install --immutable --production=false --network-timeout 100000 && \
     yarn cache clean
 
 # Copy only necessary source files

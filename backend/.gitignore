@@ -13,3 +13,7 @@ dist
 dist-ssr
 *.local
 
+
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
