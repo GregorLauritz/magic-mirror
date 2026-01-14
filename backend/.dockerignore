@@ -2,3 +2,7 @@ node_modules
 README.md
 dist
 docker/
+
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
