@@ -146,8 +146,7 @@ export const SettingsForm = ({
                         eventsCalId: eventsCalender ?? eventsCalId,
                         trainConnections: trainConnections.filter(
                             (conn) =>
-                                conn.departureStationId &&
-                                conn.arrivalStationId
+                                conn.departureStationId && conn.arrivalStationId
                         ),
                         trainDisplaySettings,
                     }
@@ -341,11 +340,7 @@ export const SettingsForm = ({
 
 interface TrainConnectionEditorProps {
     connection: TrainConnection
-    onUpdate: (
-        id: string,
-        field: keyof TrainConnection,
-        value: string
-    ) => void
+    onUpdate: (id: string, field: keyof TrainConnection, value: string) => void
     onRemove: (id: string) => void
 }
 

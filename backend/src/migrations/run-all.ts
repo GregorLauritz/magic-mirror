@@ -22,7 +22,7 @@ async function runAllMigrations(): Promise<void> {
 
   // Get all migration files (numbered with pattern: 001_*.ts, 002_*.ts, etc.)
   const migrationFiles = readdirSync(migrationsDir)
-    .filter(file => /^\d{3}_.*\.ts$/.test(file) && file !== 'run-all.ts')
+    .filter((file) => /^\d{3}_.*\.ts$/.test(file) && file !== 'run-all.ts')
     .sort(); // Sort to ensure numerical order
 
   if (migrationFiles.length === 0) {
@@ -49,8 +49,8 @@ async function runAllMigrations(): Promise<void> {
 
       // Look for the exported migration function
       // Try common export patterns: default export or named export matching the migration
-      const migrationFunction = migrationModule.default ||
-                               Object.values(migrationModule).find(exp => typeof exp === 'function');
+      const migrationFunction =
+        migrationModule.default || Object.values(migrationModule).find((exp) => typeof exp === 'function');
 
       if (typeof migrationFunction !== 'function') {
         throw new Error(`Migration ${migrationName} does not export a function`);
@@ -61,7 +61,6 @@ async function runAllMigrations(): Promise<void> {
 
       LOGGER.info(`✓ Migration ${migrationName} completed successfully`);
       successCount++;
-
     } catch (error) {
       LOGGER.error(`✗ Migration ${migrationName} failed:`, error);
       failureCount++;

@@ -49,12 +49,12 @@ async function migrateTrainConnections(): Promise<void> {
     const UserSettingsModel = mongoose.connection.collection('usersettings');
 
     // Find all documents with legacy train connection fields
-    const legacyDocs = await UserSettingsModel.find({
+    const legacyDocs = (await UserSettingsModel.find({
       $or: [
         { train_departure_station_id: { $exists: true, $ne: null, $ne: '' } },
-        { train_arrival_station_id: { $exists: true, $ne: null, $ne: '' } }
-      ]
-    }).toArray() as unknown as LegacyUserSettings[];
+        { train_arrival_station_id: { $exists: true, $ne: null, $ne: '' } },
+      ],
+    }).toArray()) as unknown as LegacyUserSettings[];
 
     LOGGER.info(`Found ${legacyDocs.length} documents with legacy train connection fields`);
 
@@ -105,7 +105,7 @@ async function migrateTrainConnections(): Promise<void> {
             train_arrival_station_id: '',
             train_arrival_station_name: '',
           },
-        }
+        },
       );
 
       if (updateResult.modifiedCount > 0) {
@@ -118,7 +118,6 @@ async function migrateTrainConnections(): Promise<void> {
 
     LOGGER.info('Migration completed');
     LOGGER.info(`Summary: ${migratedCount} migrated, ${skippedCount} skipped`);
-
   } catch (error) {
     LOGGER.error('Migration failed', error);
     throw error;
