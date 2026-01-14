@@ -22,7 +22,7 @@ RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate
 COPY package.json yarn.lock ./
 
 # Install production dependencies only with frozen lockfile for reproducibility
-RUN yarn install --production --frozen-lockfile --non-interactive \
+RUN yarn install --production --immutable --non-interactive \
     && yarn cache clean
 
 # =============================================================================
