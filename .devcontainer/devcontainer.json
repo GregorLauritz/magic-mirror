@@ -1,0 +1,115 @@
+{
+  "name": "Magic Mirror Development Environment",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+
+  // Configure which ports to forward
+  "forwardPorts": [
+    3000,  // Frontend dev server
+    3001,  // Backend API server
+    9229,  // Node.js debugger
+    27017  // MongoDB
+  ],
+
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend",
+      "onAutoForward": "notify"
+    },
+    "3001": {
+      "label": "Backend API",
+      "onAutoForward": "notify"
+    },
+    "9229": {
+      "label": "Node Debugger",
+      "onAutoForward": "silent"
+    },
+    "27017": {
+      "label": "MongoDB",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // Features to add to the dev container
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "moby": true,
+      "dockerDashComposeVersion": "v2"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    }
+  },
+
+  // VS Code extensions to install
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // TypeScript & JavaScript
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+
+        // React
+        "dsznajder.es7-react-js-snippets",
+
+        // Node.js
+        "ms-vscode.vscode-typescript-next",
+
+        // Docker
+        "ms-azuretools.vscode-docker",
+
+        // MongoDB
+        "mongodb.mongodb-vscode",
+
+        // Git
+        "eamodio.gitlens",
+
+        // General utilities
+        "christian-kohler.path-intellisense",
+        "usernamehw.errorlens",
+        "ms-vscode.vscode-json-languageservice"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "eslint.workingDirectories": [
+          "./frontend",
+          "./backend"
+        ],
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "typescript.enablePromptUseWorkspaceTsdk": true,
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
+      }
+    }
+  },
+
+  // Run commands after container is created
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  // Use 'forwardPorts' to make a list of ports inside the container available locally
+  "remoteUser": "node",
+
+  // Keep containers running
+  "shutdownAction": "stopCompose",
+
+  // Environment variables
+  "remoteEnv": {
+    "NODE_ENV": "development"
+  }
+}
