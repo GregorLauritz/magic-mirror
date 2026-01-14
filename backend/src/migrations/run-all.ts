@@ -14,6 +14,7 @@ import { LOGGER } from '../services/loggers';
 
 interface MigrationModule {
   default?: () => Promise<void>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
@@ -84,14 +85,15 @@ async function runAllMigrations(): Promise<void> {
 }
 
 // Run migrations if executed directly
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 if (require.main === module) {
   runAllMigrations()
     .then(() => {
-      console.log('All migrations completed successfully');
+      LOGGER.info('All migrations completed successfully');
       process.exit(0);
     })
     .catch((error) => {
-      console.error('Migration process failed:', error);
+      LOGGER.error('Migration process failed:', error);
       process.exit(1);
     });
 }
