@@ -9,7 +9,7 @@
  */
 
 import { readdirSync } from 'fs';
-import { join, basename } from 'path';
+import { basename, join } from 'path';
 import { LOGGER } from '../services/loggers';
 
 interface MigrationModule {
@@ -85,7 +85,7 @@ async function runAllMigrations(): Promise<void> {
 }
 
 // Run migrations if executed directly
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
 if (require.main === module) {
   runAllMigrations()
     .then(() => {

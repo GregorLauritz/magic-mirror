@@ -128,7 +128,7 @@ async function migrateTrainConnections(): Promise<void> {
 }
 
 // Run migration if executed directly
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
 if (require.main === module) {
   migrateTrainConnections()
     .then(() => {

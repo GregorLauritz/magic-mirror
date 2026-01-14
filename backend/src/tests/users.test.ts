@@ -288,10 +288,7 @@ describe(`Unit test the ${ROUTE} route`, () => {
         train_connections: maxConnections,
       };
 
-      const response = await request(app)
-        .put(`${ROUTE}/settings/me`)
-        .set(trainMockHeaders)
-        .send(settingsWithMaxTrains);
+      const response = await request(app).put(`${ROUTE}/settings/me`).set(trainMockHeaders).send(settingsWithMaxTrains);
 
       expect(response.status === 200 || response.status === 500).toBe(true);
       if (response.status === 200) {
