@@ -16,7 +16,7 @@ const TrainTimesComponent = () => {
     const trainConnections = userSettings?.train_connections || []
     const trainDisplaySettings = userSettings?.train_display_settings || {
         mode: 'carousel',
-        carouselInterval: 15,
+        carousel_interval: 15,
     }
 
     if (trainConnections.length === 0) {
@@ -34,7 +34,7 @@ const TrainTimesComponent = () => {
         return (
             <TrainTimesCarousel
                 trainConnections={trainConnections}
-                carouselInterval={trainDisplaySettings.carouselInterval}
+                carouselInterval={trainDisplaySettings.carousel_interval}
             />
         )
     }
@@ -45,10 +45,10 @@ const TrainTimesComponent = () => {
             {trainConnections.map((connection) => (
                 <TrainTimesCard
                     key={connection.id}
-                    departureStationId={connection.departureStationId}
-                    arrivalStationId={connection.arrivalStationId}
-                    departureStationName={connection.departureStationName}
-                    arrivalStationName={connection.arrivalStationName}
+                    departure_station_id={connection.departure_station_id}
+                    arrival_station_id={connection.arrival_station_id}
+                    departure_station_name={connection.departure_station_name}
+                    arrival_station_name={connection.arrival_station_name}
                 />
             ))}
         </>
@@ -58,10 +58,10 @@ const TrainTimesComponent = () => {
 interface TrainTimesCarouselProps {
     trainConnections: Array<{
         id: string
-        departureStationId: string
-        departureStationName: string
-        arrivalStationId: string
-        arrivalStationName: string
+        departure_station_id: string
+        departure_station_name: string
+        arrival_station_id: string
+        arrival_station_name: string
     }>
     carouselInterval: number
 }
@@ -96,10 +96,10 @@ const TrainTimesCarouselComponent = ({
 
     return (
         <TrainTimesCard
-            departureStationId={currentConnection.departureStationId}
-            arrivalStationId={currentConnection.arrivalStationId}
-            departureStationName={currentConnection.departureStationName}
-            arrivalStationName={currentConnection.arrivalStationName}
+            departure_station_id={currentConnection.departure_station_id}
+            arrival_station_id={currentConnection.arrival_station_id}
+            departure_station_name={currentConnection.departure_station_name}
+            arrival_station_name={currentConnection.arrival_station_name}
             showCarouselControls={trainConnections.length > 1}
             currentIndex={currentIndex}
             totalConnections={trainConnections.length}
@@ -113,10 +113,10 @@ const TrainTimesCarousel = memo(TrainTimesCarouselComponent)
 TrainTimesCarousel.displayName = 'TrainTimesCarousel'
 
 interface TrainTimesCardProps {
-    departureStationId: string
-    arrivalStationId: string
-    departureStationName: string
-    arrivalStationName: string
+    departure_station_id: string
+    arrival_station_id: string
+    departure_station_name: string
+    arrival_station_name: string
     showCarouselControls?: boolean
     currentIndex?: number
     totalConnections?: number
@@ -125,23 +125,27 @@ interface TrainTimesCardProps {
 }
 
 const TrainTimesCardComponent = ({
-    departureStationId,
-    arrivalStationId,
-    departureStationName,
-    arrivalStationName,
+    departure_station_id,
+    arrival_station_id,
+    departure_station_name,
+    arrival_station_name,
     showCarouselControls = false,
     currentIndex = 0,
     totalConnections = 1,
     onPrevious,
     onNext,
 }: TrainTimesCardProps) => {
-    const enabled = !!departureStationId && !!arrivalStationId
+    const enabled = !!departure_station_id && !!arrival_station_id
 
     const {
         data: connections,
         isLoading,
         error,
-    } = useGetTrainConnections(departureStationId, arrivalStationId, enabled)
+    } = useGetTrainConnections(
+        departure_station_id,
+        arrival_station_id,
+        enabled
+    )
 
     return (
         <MediumCard>
@@ -185,7 +189,7 @@ const TrainTimesCardComponent = ({
                     color="text.secondary"
                     marginBottom={2}
                 >
-                    {departureStationName} → {arrivalStationName}
+                    {departure_station_name} → {arrival_station_name}
                 </Typography>
                 <Stack spacing={1} direction="column">
                     {isLoading && (

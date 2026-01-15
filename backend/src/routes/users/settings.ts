@@ -40,10 +40,10 @@ class UserSettingsService {
       events_cal_id: userSettings.events_cal_id,
       birthday_cal_id: userSettings.birthday_cal_id,
       widget_layout: userSettings.widget_layout,
-      train_connections: userSettings?.train_connections,
+      train_connections: userSettings?.train_connections ?? [],
       train_display_settings: userSettings?.train_display_settings || {
         mode: 'carousel',
-        carouselInterval: 15,
+        carousel_interval: 15,
       },
     };
   }

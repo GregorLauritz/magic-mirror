@@ -8,15 +8,15 @@ export type WidgetLayout = {
 
 export type TrainConnection = {
     id: string
-    departureStationId: string
-    departureStationName: string
-    arrivalStationId: string
-    arrivalStationName: string
+    departure_station_id: string
+    departure_station_name: string
+    arrival_station_id: string
+    arrival_station_name: string
 }
 
 export type TrainDisplaySettings = {
     mode: 'carousel' | 'multiple'
-    carouselInterval: number // in seconds, default 15
+    carousel_interval: number // in seconds, default 15
 }
 
 export type UserSettings = {

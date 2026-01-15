@@ -15,16 +15,14 @@ export const StationAutocomplete = ({
     onChange,
 }: StationAutocompleteProps) => {
     const [options, setOptions] = useState<TrainStation[]>([])
-    const [inputValue, setInputValue] = useState('')
+    const [inputValue, setInputValue] = useState(value?.name ?? '')
     const [loading, setLoading] = useState(false)
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-    // Initialize input value from the selected value
+    // Sync input value when the external value changes (e.g., on initial load)
     useEffect(() => {
-        if (value) {
-            setInputValue(value.name)
-        }
-    }, [value])
+        setInputValue(value?.name ?? '')
+    }, [value?.id, value?.name])
 
     const searchStations = useCallback(async (query: string) => {
         if (query.length < 2) {
@@ -50,20 +48,21 @@ export const StationAutocomplete = ({
 
     const handleInputChange = useCallback(
         (_: React.SyntheticEvent, newInputValue: string, reason: string) => {
-            setInputValue(newInputValue)
-
             // Clear any pending timeout
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current)
                 timeoutRef.current = null
             }
 
-            // Only search when user is typing
+            // Only update input value and search when user is typing
             if (reason === 'input') {
+                setInputValue(newInputValue)
                 timeoutRef.current = setTimeout(() => {
                     searchStations(newInputValue)
                 }, 300)
             }
+            // When a selection is made or cleared, the value prop will update
+            // and the useEffect will sync the inputValue
         },
         [searchStations]
     )
@@ -94,10 +93,9 @@ export const StationAutocomplete = ({
             isOptionEqualToValue={(option, val) => option.id === val.id}
             filterOptions={(x) => x}
             onChange={(_, newValue) => {
+                // Immediately update input value for responsiveness
+                setInputValue(newValue?.name ?? '')
                 onChange(newValue)
-                if (newValue) {
-                    setInputValue(newValue.name)
-                }
             }}
             onInputChange={handleInputChange}
             renderInput={(params) => (

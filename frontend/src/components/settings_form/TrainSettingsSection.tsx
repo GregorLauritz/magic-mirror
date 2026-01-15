@@ -15,6 +15,8 @@ import {
     TrainDisplaySettings,
 } from '../../models/user_settings'
 import { TrainConnectionEditor } from './TrainConnectionEditor'
+import { useCallback } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 
 const MAX_CONNECTIONS = 5
 const MIN_CAROUSEL_INTERVAL = 5
@@ -23,7 +25,11 @@ const DEFAULT_CAROUSEL_INTERVAL = 15
 interface TrainSettingsSectionProps {
     connections: TrainConnection[]
     displaySettings: TrainDisplaySettings
-    onConnectionsChange: (connections: TrainConnection[]) => void
+    onConnectionsChange: (
+        updater:
+            | TrainConnection[]
+            | ((prev: TrainConnection[]) => TrainConnection[])
+    ) => void
     onDisplaySettingsChange: (settings: TrainDisplaySettings) => void
 }
 
@@ -33,30 +39,34 @@ export const TrainSettingsSection = ({
     onConnectionsChange,
     onDisplaySettingsChange,
 }: TrainSettingsSectionProps) => {
-    const addConnection = () => {
-        if (connections.length < MAX_CONNECTIONS) {
-            onConnectionsChange([
-                ...connections,
-                {
-                    id: `${Date.now()}`,
-                    departureStationId: '',
-                    departureStationName: '',
-                    arrivalStationId: '',
-                    arrivalStationName: '',
-                },
-            ])
-        }
-    }
+    const addConnection = useCallback(() => {
+        onConnectionsChange((prev) => [
+            ...prev,
+            {
+                id: uuidv4(),
+                departureStationId: '',
+                departureStationName: '',
+                arrivalStationId: '',
+                arrivalStationName: '',
+            },
+        ])
+    }, [onConnectionsChange])
 
-    const removeConnection = (id: string) => {
-        onConnectionsChange(connections.filter((c) => c.id !== id))
-    }
+    const removeConnection = useCallback(
+        (id: string) => {
+            onConnectionsChange((prev) => prev.filter((c) => c.id !== id))
+        },
+        [onConnectionsChange]
+    )
 
-    const updateConnection = (updated: TrainConnection) => {
-        onConnectionsChange(
-            connections.map((c) => (c.id === updated.id ? updated : c))
-        )
-    }
+    const updateConnection = useCallback(
+        (updated: TrainConnection) => {
+            onConnectionsChange((prev) =>
+                prev.map((c) => (c.id === updated.id ? updated : c))
+            )
+        },
+        [onConnectionsChange]
+    )
 
     const handleModeChange = (mode: 'carousel' | 'multiple') => {
         onDisplaySettingsChange({ ...displaySettings, mode })
@@ -67,7 +77,10 @@ export const TrainSettingsSection = ({
             MIN_CAROUSEL_INTERVAL,
             parseInt(value) || DEFAULT_CAROUSEL_INTERVAL
         )
-        onDisplaySettingsChange({ ...displaySettings, carouselInterval: interval })
+        onDisplaySettingsChange({
+            ...displaySettings,
+            carouselInterval: interval,
+        })
     }
 
     return (
@@ -124,7 +137,8 @@ export const TrainSettingsSection = ({
                     onClick={addConnection}
                     sx={{ mb: 2 }}
                 >
-                    Add Train Connection ({connections.length}/{MAX_CONNECTIONS})
+                    Add Train Connection ({connections.length}/{MAX_CONNECTIONS}
+                    )
                 </Button>
             )}
         </>

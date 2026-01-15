@@ -3,7 +3,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { TrainConnection } from '../../models/user_settings'
 import { TrainStation } from '../../models/trains'
 import { StationAutocomplete } from './StationAutocomplete'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 interface TrainConnectionEditorProps {
     connection: TrainConnection
@@ -18,41 +18,47 @@ export const TrainConnectionEditor = ({
 }: TrainConnectionEditorProps) => {
     const departureStation: TrainStation | null = useMemo(
         () =>
-            connection.departureStationId
+            connection.departure_station_id
                 ? {
-                      id: connection.departureStationId,
-                      name: connection.departureStationName,
+                      id: connection.departure_station_id,
+                      name: connection.departure_station_name,
                   }
                 : null,
-        [connection.departureStationId, connection.departureStationName]
+        [connection.departure_station_id, connection.departure_station_name]
     )
 
     const arrivalStation: TrainStation | null = useMemo(
         () =>
-            connection.arrivalStationId
+            connection.arrival_station_id
                 ? {
-                      id: connection.arrivalStationId,
-                      name: connection.arrivalStationName,
+                      id: connection.arrival_station_id,
+                      name: connection.arrival_station_name,
                   }
                 : null,
-        [connection.arrivalStationId, connection.arrivalStationName]
+        [connection.arrival_station_id, connection.arrival_station_name]
     )
 
-    const handleDepartureChange = (station: TrainStation | null) => {
-        onUpdate({
-            ...connection,
-            departureStationId: station?.id || '',
-            departureStationName: station?.name || '',
-        })
-    }
+    const handleDepartureChange = useCallback(
+        (station: TrainStation | null) => {
+            onUpdate({
+                ...connection,
+                departure_station_id: station?.id || '',
+                departure_station_name: station?.name || '',
+            })
+        },
+        [connection, onUpdate]
+    )
 
-    const handleArrivalChange = (station: TrainStation | null) => {
-        onUpdate({
-            ...connection,
-            arrivalStationId: station?.id || '',
-            arrivalStationName: station?.name || '',
-        })
-    }
+    const handleArrivalChange = useCallback(
+        (station: TrainStation | null) => {
+            onUpdate({
+                ...connection,
+                arrival_station_id: station?.id || '',
+                arrival_station_name: station?.name || '',
+            })
+        },
+        [connection, onUpdate]
+    )
 
     return (
         <Paper

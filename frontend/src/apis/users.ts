@@ -8,7 +8,6 @@ export const putUserSettings = async (
 ): Promise<UserSettings> => {
     const settings = await getUserSettingsBody(data)
     const body = JSON.stringify(settings)
-
     return fetchJson<UserSettings>(
         `${USER_SETTINGS_API}/me`,
         {
@@ -32,6 +31,10 @@ const getUserSettingsBody = async (
         events_cal_id: data.eventsCalId,
         birthday_cal_id: data.birthdayCalId,
         train_connections: data.trainConnections,
-        train_display_settings: data.trainDisplaySettings,
+        train_display_settings: {
+            mode: data.trainDisplaySettings?.mode || 'carousel',
+            carousel_interval:
+                data.trainDisplaySettings?.carousel_interval || 15,
+        },
     }
 }

@@ -1,9 +1,4 @@
-import {
-    Box,
-    TextField,
-    Button,
-    Autocomplete,
-} from '@mui/material'
+import { Box, TextField, Button, Autocomplete } from '@mui/material'
 import CountrySelect from '../country_select/CountrySelect'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import {
@@ -40,7 +35,7 @@ interface SettingsFormProps {
 
 const DEFAULT_TRAIN_DISPLAY_SETTINGS: TrainDisplaySettings = {
     mode: 'carousel',
-    carouselInterval: 15,
+    carousel_interval: 15,
 }
 
 export const SettingsForm = ({
@@ -100,7 +95,8 @@ export const SettingsForm = ({
         validate(country, city.current?.value, zip.current?.value)
             .then(() => {
                 const validConnections = trainConnections.filter(
-                    (conn) => conn.departureStationId && conn.arrivalStationId
+                    (conn) =>
+                        conn.departure_station_id && conn.arrival_station_id
                 )
                 onSend({
                     country,
