@@ -149,10 +149,10 @@ const CurrentWeatherComponent = () => {
     return (
         <MediumCard>
             <Grid container spacing={1}>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                     <Stack spacing={1}>{weatherData}</Stack>
                 </Grid>
-                <Grid size={6}>{weatherIconJsx}</Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>{weatherIconJsx}</Grid>
             </Grid>
         </MediumCard>
     )

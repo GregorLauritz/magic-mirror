@@ -27,7 +27,7 @@ const UpcomingEventsComponent = () => {
     return (
         <MediumCard>
             <Grid container spacing={1} height={'100%'}>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                     <Box>
                         <Typography variant="body1">TODAY</Typography>
                         <Stack spacing={1} direction={'column'}>
@@ -40,7 +40,7 @@ const UpcomingEventsComponent = () => {
                         </Stack>
                     </Box>
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                     <Grid direction="column" spacing={1} height={'100%'}>
                         <Grid size={12} height={'50%'}>
                             <Typography

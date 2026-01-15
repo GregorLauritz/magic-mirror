@@ -32,7 +32,7 @@ const DailyForecastComponent = () => {
     const forecastItems = useMemo(() => {
         if (isLoadingData) {
             return Array.from({ length: DAILY_FORECAST_DAYS }, (_, i) => (
-                <Grid size={3} key={i}>
+                <Grid size={{ xs: 6, sm: 4, md: 3 }} key={i}>
                     <ForecastItem item={undefined} isLoading={true} />
                 </Grid>
             ))
@@ -40,7 +40,7 @@ const DailyForecastComponent = () => {
 
         if (weather?.forecast) {
             return weather.forecast.map((val) => (
-                <Grid size={3} key={val.date}>
+                <Grid size={{ xs: 6, sm: 4, md: 3 }} key={val.date}>
                     <ForecastItem item={val} isLoading={false} />
                 </Grid>
             ))

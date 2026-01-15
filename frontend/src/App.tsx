@@ -29,7 +29,15 @@ const BaseFrame = memo<BaseFrameProps>(({ children }) => {
     return (
         <>
             <MenuAppBar />
-            <Box p={PADDING}>{children}</Box>
+            <Box
+                p={{
+                    xs: PADDING / 2, // Smaller padding on mobile
+                    sm: PADDING,
+                    md: PADDING,
+                }}
+            >
+                {children}
+            </Box>
         </>
     )
 })
