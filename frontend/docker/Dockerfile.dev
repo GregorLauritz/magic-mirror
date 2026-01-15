@@ -1,11 +1,14 @@
 ARG NODE_IMG_VERSION=24-alpine3.23
+ARG YARN_VERSION=4.12.0
 
 FROM node:${NODE_IMG_VERSION}
 
-WORKDIR /opt 
+WORKDIR /opt
 
 COPY . .
 
-RUN yarn install 
+RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate
+
+RUN yarn install
 
 CMD [ "yarn", "dev" ]
