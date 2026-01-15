@@ -4,7 +4,7 @@
 # Build arguments
 ARG NODE_IMG_VERSION=24-alpine3.23
 ARG NODE_ENV=production
-ARG YARN_VERSION=1.22.21
+ARG YARN_VERSION=4.12.0
 
 # =============================================================================
 # Stage 1: Dependencies (for caching)
