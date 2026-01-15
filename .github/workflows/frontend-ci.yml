@@ -29,6 +29,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
         with:
@@ -37,7 +40,7 @@ jobs:
           cache-dependency-path: frontend/yarn.lock
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Run ESLint
         run: yarn lint
