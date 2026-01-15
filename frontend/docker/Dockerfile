@@ -1,6 +1,6 @@
 # Build arguments
 ARG NODE_IMG_VERSION=24-alpine3.23
-ARG YARN_VERSION=1.22.22
+ARG YARN_VERSION=4.12.0
 
 # =============================================================================
 # Stage 1: Builder - Build the React application
