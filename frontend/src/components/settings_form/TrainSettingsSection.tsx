@@ -44,10 +44,10 @@ export const TrainSettingsSection = ({
             ...prev,
             {
                 id: uuidv4(),
-                departureStationId: '',
-                departureStationName: '',
-                arrivalStationId: '',
-                arrivalStationName: '',
+                departure_station_id: '',
+                departure_station_name: '',
+                arrival_station_id: '',
+                arrival_station_name: '',
             },
         ])
     }, [onConnectionsChange])
@@ -79,7 +79,7 @@ export const TrainSettingsSection = ({
         )
         onDisplaySettingsChange({
             ...displaySettings,
-            carouselInterval: interval,
+            carousel_interval: interval,
         })
     }
 
@@ -114,7 +114,7 @@ export const TrainSettingsSection = ({
                 <TextField
                     label="Carousel Interval (seconds)"
                     type="number"
-                    value={displaySettings.carouselInterval}
+                    value={displaySettings.carousel_interval}
                     onChange={(e) => handleIntervalChange(e.target.value)}
                     disabled={displaySettings.mode !== 'carousel'}
                     fullWidth
