@@ -187,7 +187,7 @@ describe(`Unit test the ${ROUTE} route`, () => {
       train_connections: validTrainConnections,
       train_display_settings: {
         mode: 'carousel' as const,
-        carouselInterval: 15,
+        carousel_interval: 15,
       },
     };
 
@@ -201,7 +201,7 @@ describe(`Unit test the ${ROUTE} route`, () => {
         expect(response.body.train_connections.length).toBe(2);
         expect(response.body.train_display_settings).toBeDefined();
         expect(response.body.train_display_settings.mode).toBe('carousel');
-        expect(response.body.train_display_settings.carouselInterval).toBe(15);
+        expect(response.body.train_display_settings.carousel_interval).toBe(15);
       }
     });
 
@@ -301,7 +301,7 @@ describe(`Unit test the ${ROUTE} route`, () => {
         ...validTrainSettings,
         train_display_settings: {
           mode: 'multiple' as const,
-          carouselInterval: 15,
+          carousel_interval: 15,
         },
       };
 
@@ -321,7 +321,7 @@ describe(`Unit test the ${ROUTE} route`, () => {
         ...validTrainSettings,
         train_display_settings: {
           mode: 'carousel' as const,
-          carouselInterval: 30,
+          carousel_interval: 30,
         },
       };
 
@@ -332,7 +332,7 @@ describe(`Unit test the ${ROUTE} route`, () => {
 
       expect(response.status === 200 || response.status === 500).toBe(true);
       if (response.status === 200) {
-        expect(response.body.train_display_settings.carouselInterval).toBe(30);
+        expect(response.body.train_display_settings.carousel_interval).toBe(30);
       }
     });
 
@@ -350,7 +350,7 @@ describe(`Unit test the ${ROUTE} route`, () => {
       if (response.status === 200) {
         expect(response.body.train_display_settings).toBeDefined();
         expect(response.body.train_display_settings.mode).toBe('carousel');
-        expect(response.body.train_display_settings.carouselInterval).toBe(15);
+        expect(response.body.train_display_settings.carousel_interval).toBe(15);
       }
     });
   });

@@ -18,7 +18,7 @@ export type TrainConnection = {
 
 export type TrainDisplaySettings = {
   mode: 'carousel' | 'multiple';
-  carouselInterval: number; // in seconds, default 15
+  carousel_interval: number; // in seconds, default 15
 };
 
 export interface IDtoUserSettings extends Document {
@@ -80,7 +80,7 @@ const UserSettingsSchema = new Schema(
       required: false,
       default: {
         mode: 'carousel',
-        carouselInterval: 15,
+        carousel_interval: 15,
       },
     },
   },
