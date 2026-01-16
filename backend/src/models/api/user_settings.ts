@@ -16,7 +16,7 @@ export type TrainConnection = {
 
 export type TrainDisplaySettings = {
   mode: 'carousel' | 'multiple';
-  carousel_interval: number; // in seconds, default 15
+  carouselInterval: number; // in seconds, default 15
 };
 
 export type ApiDtoUserSettings = {
