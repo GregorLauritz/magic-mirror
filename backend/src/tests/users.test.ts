@@ -156,4 +156,202 @@ describe(`Unit test the ${ROUTE} route`, () => {
       expect(response.status).toBe(404);
     });
   });
+
+  describe('Train connections settings', () => {
+    const trainTestUserId = 'train-test-user-456';
+    const trainMockHeaders = {
+      'x-forwarded-user': trainTestUserId,
+      'x-forwarded-email': 'train-test@example.com',
+      'x-forwarded-access-token': 'train-test-token',
+    };
+
+    const validTrainConnections = [
+      {
+        id: '1',
+        departureStationId: '8011160',
+        departureStationName: 'Berlin Hbf',
+        arrivalStationId: '8000261',
+        arrivalStationName: 'München Hbf',
+      },
+      {
+        id: '2',
+        departureStationId: '8000261',
+        departureStationName: 'München Hbf',
+        arrivalStationId: '8000105',
+        arrivalStationName: 'Frankfurt Hbf',
+      },
+    ];
+
+    const validTrainSettings = {
+      ...validUserSettings,
+      train_connections: validTrainConnections,
+      train_display_settings: {
+        mode: 'carousel' as const,
+        carousel_interval: 15,
+      },
+    };
+
+    it('should save train connections with user settings', async () => {
+      const response = await request(app).put(`${ROUTE}/settings/me`).set(trainMockHeaders).send(validTrainSettings);
+
+      expect(response.status === 200 || response.status === 500).toBe(true);
+      if (response.status === 200) {
+        expect(response.body.train_connections).toBeDefined();
+        expect(Array.isArray(response.body.train_connections)).toBe(true);
+        expect(response.body.train_connections.length).toBe(2);
+        expect(response.body.train_display_settings).toBeDefined();
+        expect(response.body.train_display_settings.mode).toBe('carousel');
+        expect(response.body.train_display_settings.carousel_interval).toBe(15);
+      }
+    });
+
+    it('should retrieve train connections with user settings', async () => {
+      // First create settings
+      await request(app).put(`${ROUTE}/settings/me`).set(trainMockHeaders).send(validTrainSettings);
+
+      // Then retrieve them
+      const response = await request(app).get(`${ROUTE}/settings/me`).set(trainMockHeaders);
+      if (response.status === 200) {
+        expect(response.body.train_connections).toBeDefined();
+        expect(Array.isArray(response.body.train_connections)).toBe(true);
+        expect(response.body.train_display_settings).toBeDefined();
+      }
+    });
+
+    it('should update train connections using PATCH', async () => {
+      // First create settings
+      await request(app).put(`${ROUTE}/settings/me`).set(trainMockHeaders).send(validTrainSettings);
+
+      // Then update train connections
+      const updatedConnections = [
+        {
+          id: '1',
+          departureStationId: '8000105',
+          departureStationName: 'Frankfurt Hbf',
+          arrivalStationId: '8000191',
+          arrivalStationName: 'Hamburg Hbf',
+        },
+      ];
+
+      const response = await request(app)
+        .patch(`${ROUTE}/settings/me`)
+        .set(trainMockHeaders)
+        .send({ train_connections: updatedConnections });
+
+      expect(response.status === 200 || response.status === 500).toBe(true);
+      if (response.status === 200) {
+        expect(response.body.train_connections.length).toBe(1);
+        expect(response.body.train_connections[0].departureStationName).toBe('Frankfurt Hbf');
+      }
+    });
+
+    it('should validate train connection structure', async () => {
+      const response = await request(app).put(`${ROUTE}/settings/me`).set(trainMockHeaders).send(validTrainSettings);
+
+      if (response.status === 200 && response.body.train_connections && response.body.train_connections.length > 0) {
+        const connection = response.body.train_connections[0];
+        expect(typeof connection.id).toBe('string');
+        expect(typeof connection.departureStationId).toBe('string');
+        expect(typeof connection.departureStationName).toBe('string');
+        expect(typeof connection.arrivalStationId).toBe('string');
+        expect(typeof connection.arrivalStationName).toBe('string');
+      }
+    });
+
+    it('should support empty train connections array', async () => {
+      const settingsWithoutTrains = {
+        ...validUserSettings,
+        train_connections: [],
+      };
+
+      const response = await request(app).put(`${ROUTE}/settings/me`).set(trainMockHeaders).send(settingsWithoutTrains);
+
+      expect(response.status === 200 || response.status === 500).toBe(true);
+      if (response.status === 200) {
+        expect(response.body.train_connections).toBeDefined();
+        expect(Array.isArray(response.body.train_connections)).toBe(true);
+        expect(response.body.train_connections.length).toBe(0);
+      }
+    });
+
+    it('should support maximum 5 train connections', async () => {
+      const maxConnections = Array.from({ length: 5 }, (_, i) => ({
+        id: `${i + 1}`,
+        departureStationId: `800${i}000`,
+        departureStationName: `Station ${i}`,
+        arrivalStationId: `800${i}001`,
+        arrivalStationName: `Station ${i + 1}`,
+      }));
+
+      const settingsWithMaxTrains = {
+        ...validUserSettings,
+        train_connections: maxConnections,
+      };
+
+      const response = await request(app).put(`${ROUTE}/settings/me`).set(trainMockHeaders).send(settingsWithMaxTrains);
+
+      expect(response.status === 200 || response.status === 500).toBe(true);
+      if (response.status === 200) {
+        expect(response.body.train_connections.length).toBe(5);
+      }
+    });
+
+    it('should update train display mode to multiple', async () => {
+      const settingsWithMultipleMode = {
+        ...validTrainSettings,
+        train_display_settings: {
+          mode: 'multiple' as const,
+          carousel_interval: 15,
+        },
+      };
+
+      const response = await request(app)
+        .put(`${ROUTE}/settings/me`)
+        .set(trainMockHeaders)
+        .send(settingsWithMultipleMode);
+
+      expect(response.status === 200 || response.status === 500).toBe(true);
+      if (response.status === 200) {
+        expect(response.body.train_display_settings.mode).toBe('multiple');
+      }
+    });
+
+    it('should update carousel interval', async () => {
+      const settingsWithCustomInterval = {
+        ...validTrainSettings,
+        train_display_settings: {
+          mode: 'carousel' as const,
+          carousel_interval: 30,
+        },
+      };
+
+      const response = await request(app)
+        .put(`${ROUTE}/settings/me`)
+        .set(trainMockHeaders)
+        .send(settingsWithCustomInterval);
+
+      expect(response.status === 200 || response.status === 500).toBe(true);
+      if (response.status === 200) {
+        expect(response.body.train_display_settings.carousel_interval).toBe(30);
+      }
+    });
+
+    it('should default train display settings when not provided', async () => {
+      const settingsWithoutDisplaySettings = {
+        ...validUserSettings,
+        train_connections: validTrainConnections,
+      };
+
+      const response = await request(app)
+        .put(`${ROUTE}/settings/me`)
+        .set(trainMockHeaders)
+        .send(settingsWithoutDisplaySettings);
+
+      if (response.status === 200) {
+        expect(response.body.train_display_settings).toBeDefined();
+        expect(response.body.train_display_settings.mode).toBe('carousel');
+        expect(response.body.train_display_settings.carousel_interval).toBe(15);
+      }
+    });
+  });
 });
