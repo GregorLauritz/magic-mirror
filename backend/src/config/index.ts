@@ -8,8 +8,11 @@ export const ENABLE_HTTPS = (process.env.ENABLE_HTTPS?.toLowerCase() ?? 'false')
 export const SSL_PRIVATE_KEY = process.env.SSL_PRIVATE_KEY ?? '/etc/express/express.key';
 export const SSL_CERTIFICATE = process.env.SSL_CERTIFICATE ?? '/etc/express/express.pem';
 
+// Database type: 'mongodb' or 'ferretdb'
+export const DATABASE_TYPE = process.env.DATABASE_TYPE ?? 'ferretdb';
+
 export const mongoDbData: IDatabaseConnection = {
-  hostname: process.env.MONGO_HOSTNAME ?? 'mongo',
+  hostname: process.env.MONGO_HOSTNAME ?? 'ferretdb',
   port: parseInt(process.env.MONGO_PORT ?? '27017'),
   username: process.env.MONGO_USERNAME,
   password: process.env.MONGO_PASSWORD,
@@ -23,6 +26,15 @@ export const mongoDbData: IDatabaseConnection = {
       name: 'ssl',
       value: process.env.MONGO_SSL ?? 'false',
     },
+    // FerretDB specific options
+    ...(DATABASE_TYPE === 'ferretdb'
+      ? [
+          {
+            name: 'authMechanism',
+            value: 'PLAIN',
+          },
+        ]
+      : []),
   ],
 };
 
