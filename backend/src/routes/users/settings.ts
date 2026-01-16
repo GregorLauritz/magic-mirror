@@ -43,7 +43,7 @@ class UserSettingsService {
       train_connections: userSettings?.train_connections ?? [],
       train_display_settings: userSettings?.train_display_settings || {
         mode: 'carousel',
-        carousel_interval: 15,
+        carouselInterval: 15,
       },
     };
   }
