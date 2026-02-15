@@ -8,6 +8,19 @@ export type WidgetLayout = {
   h: number;
 };
 
+export type TrainConnection = {
+  id: string;
+  departure_station_id: string;
+  departure_station_name: string;
+  arrival_station_id: string;
+  arrival_station_name: string;
+};
+
+export type TrainDisplaySettings = {
+  mode: 'carousel' | 'multiple';
+  carousel_interval: number; // in seconds, default 15
+};
+
 export interface IDtoUserSettings extends Document {
   country: string;
   city: string;
@@ -16,10 +29,8 @@ export interface IDtoUserSettings extends Document {
   birthday_cal_id: string;
   sub: string;
   widget_layout?: WidgetLayout[];
-  train_departure_station_id?: string;
-  train_departure_station_name?: string;
-  train_arrival_station_id?: string;
-  train_arrival_station_name?: string;
+  train_connections?: TrainConnection[];
+  train_display_settings?: TrainDisplaySettings;
 }
 
 const UserSettingsSchema = new Schema(
@@ -54,21 +65,23 @@ const UserSettingsSchema = new Schema(
       type: Array,
       required: false,
     },
-    train_departure_station_id: {
-      type: String,
+    train_connections: {
+      type: Array,
       required: false,
+      validate: {
+        validator: function (v: TrainConnection[]) {
+          return v.length <= 5;
+        },
+        message: 'Maximum 5 train connections allowed',
+      },
     },
-    train_departure_station_name: {
-      type: String,
+    train_display_settings: {
+      type: Object,
       required: false,
-    },
-    train_arrival_station_id: {
-      type: String,
-      required: false,
-    },
-    train_arrival_station_name: {
-      type: String,
-      required: false,
+      default: {
+        mode: 'carousel',
+        carousel_interval: 15,
+      },
     },
   },
   { strict: false },

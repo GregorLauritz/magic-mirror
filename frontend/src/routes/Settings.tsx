@@ -24,17 +24,27 @@ const inputHasChanged = (
         zipCode,
         eventsCalId,
         birthdayCalId,
-        trainDepartureStationId,
-        trainArrivalStationId,
+        trainConnections,
+        trainDisplaySettings,
     } = data
+
+    // Check train connections for changes
+    const trainConnectionsChanged =
+        JSON.stringify(trainConnections) !==
+        JSON.stringify(userSettings?.train_connections)
+
+    const trainDisplaySettingsChanged =
+        JSON.stringify(trainDisplaySettings) !==
+        JSON.stringify(userSettings?.train_display_settings)
+
     return (
         country !== userSettings?.country ||
         city !== userSettings?.city ||
         zipCode !== userSettings?.zip_code ||
         eventsCalId !== userSettings?.events_cal_id ||
         birthdayCalId !== userSettings?.birthday_cal_id ||
-        trainDepartureStationId !== userSettings?.train_departure_station_id ||
-        trainArrivalStationId !== userSettings?.train_arrival_station_id
+        trainConnectionsChanged ||
+        trainDisplaySettingsChanged
     )
 }
 
@@ -84,14 +94,8 @@ const SettingsComponent = () => {
                     zipCode: userSettings?.zip_code ?? DEFAULT_ZIP_CODE,
                     birthdayCalId: userSettings?.birthday_cal_id ?? '',
                     eventsCalId: userSettings?.events_cal_id ?? '',
-                    trainDepartureStationId:
-                        userSettings?.train_departure_station_id,
-                    trainDepartureStationName:
-                        userSettings?.train_departure_station_name,
-                    trainArrivalStationId:
-                        userSettings?.train_arrival_station_id,
-                    trainArrivalStationName:
-                        userSettings?.train_arrival_station_name,
+                    trainConnections: userSettings?.train_connections,
+                    trainDisplaySettings: userSettings?.train_display_settings,
                 }}
                 onBack={handleBack}
                 showBackButton={error == null}
