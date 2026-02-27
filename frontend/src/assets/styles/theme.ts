@@ -16,7 +16,7 @@ export const theme = responsiveFontSizes(
             MuiCard: {
                 styleOverrides: {
                     root: {
-                        display: 'inline-block',
+                        display: 'block',
                         padding: 10,
                     },
                 },

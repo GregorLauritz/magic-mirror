@@ -5,19 +5,16 @@ export const card_small = {
     width: '100%',
     height: '100%',
     minHeight: CARD_HEIGHT,
-    minWidth: BASE_CARD_SIZE,
 }
 
 export const card_medium = {
     width: '100%',
     height: '100%',
     minHeight: CARD_HEIGHT,
-    minWidth: BASE_CARD_SIZE,
 }
 
 export const card_large = {
     width: '100%',
     height: '100%',
     minHeight: BASE_CARD_SIZE,
-    minWidth: BASE_CARD_SIZE,
 }
