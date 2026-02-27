@@ -1,6 +1,13 @@
 import { fetchJson } from './fetch';
 import { ApiError } from 'models/api/api_error';
-import { ApiTrainConnection, ApiTrainLeg, ApiTrainStation, TrainDeparture, TrainJourney, TrainLocation } from 'models/api/trains';
+import {
+  ApiTrainConnection,
+  ApiTrainLeg,
+  ApiTrainStation,
+  TrainDeparture,
+  TrainJourney,
+  TrainLocation,
+} from 'models/api/trains';
 import { LOGGER } from './loggers';
 import { DB_API_BASE_URL } from 'config';
 

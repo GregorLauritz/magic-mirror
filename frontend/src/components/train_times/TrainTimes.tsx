@@ -295,7 +295,14 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
                     <Typography
                         variant="body2"
                         fontWeight="bold"
-                        sx={isCancelled ? { textDecoration: 'line-through', color: 'text.disabled' } : undefined}
+                        sx={
+                            isCancelled
+                                ? {
+                                      textDecoration: 'line-through',
+                                      color: 'text.disabled',
+                                  }
+                                : undefined
+                        }
                     >
                         {formatTime(departureTime)} → {formatTime(arrivalTime)}
                     </Typography>
@@ -331,15 +338,16 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
                                     Platform {connection.departurePlatform}
                                 </Typography>
                             )}
-                            {connection.delay !== undefined && connection.delay > 0 && (
-                                <Typography
-                                    variant="body2"
-                                    fontSize={xSmallFontSize}
-                                    color={getDelayColor(connection.delay)}
-                                >
-                                    +{connection.delay / 60} min
-                                </Typography>
-                            )}
+                            {connection.delay !== undefined &&
+                                connection.delay > 0 && (
+                                    <Typography
+                                        variant="body2"
+                                        fontSize={xSmallFontSize}
+                                        color={getDelayColor(connection.delay)}
+                                    >
+                                        +{connection.delay / 60} min
+                                    </Typography>
+                                )}
                         </>
                     )}
                 </Box>

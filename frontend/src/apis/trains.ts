@@ -22,7 +22,9 @@ const REFETCH_INTERVAL_FAR = 300000 // 5 minutes
 const REFETCH_INTERVAL_NEAR = 60000 // 1 minute
 const NEAR_DEPARTURE_THRESHOLD_MS = 5 * 60 * 1000 // 5 minutes in milliseconds
 
-export const getRefetchInterval = (data: TrainConnection[] | undefined): number => {
+export const getRefetchInterval = (
+    data: TrainConnection[] | undefined
+): number => {
     if (!data || data.length === 0) {
         return REFETCH_INTERVAL_FAR
     }
@@ -30,7 +32,8 @@ export const getRefetchInterval = (data: TrainConnection[] | undefined): number 
     const now = Date.now()
 
     const nextConnection = data.reduce((min, connection) =>
-        new Date(connection.departure).getTime() + (connection.delay ?? 0) * 60 * 1000 <
+        new Date(connection.departure).getTime() +
+            (connection.delay ?? 0) * 60 * 1000 <
         new Date(min.departure).getTime() + (min.delay ?? 0) * 60 * 1000
             ? connection
             : min
