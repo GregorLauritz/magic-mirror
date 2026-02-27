@@ -56,10 +56,10 @@ export interface TrainDeparture {
 export interface TrainLeg {
   origin: TrainLocation;
   destination: TrainLocation;
-  departure: string;
+  departure: string | null;
   plannedDeparture: string;
   departureDelay?: number | null;
-  arrival: string;
+  arrival: string | null;
   plannedArrival: string;
   arrivalDelay?: number | null;
   tripId?: string;
@@ -69,6 +69,7 @@ export interface TrainLeg {
   plannedDeparturePlatform?: string;
   arrivalPlatform?: string;
   plannedArrivalPlatform?: string;
+  cancelled?: boolean;
   remarks?: Array<{
     type: string;
     code?: string;
@@ -77,6 +78,8 @@ export interface TrainLeg {
     priority?: number;
   }>;
   loadFactor?: string;
+  walking?: boolean;
+  distance?: number;
 }
 
 export interface TrainJourney {
@@ -102,6 +105,22 @@ export interface ApiTrainStation {
   longitude?: number;
 }
 
+export interface ApiTrainLeg {
+  departure: string;
+  arrival: string;
+  departureStation: string;
+  arrivalStation: string;
+  line?: string;
+  direction?: string;
+  departurePlatform?: string;
+  arrivalPlatform?: string;
+  delay?: number;
+  duration: number;
+  walking: boolean;
+  cancelled: boolean;
+  distance?: number;
+}
+
 export interface ApiTrainConnection {
   departure: string;
   arrival: string;
@@ -109,8 +128,7 @@ export interface ApiTrainConnection {
   arrivalStation: string;
   departurePlatform?: string;
   arrivalPlatform?: string;
-  line: string;
-  direction: string;
   delay?: number;
   duration: number;
+  legs: ApiTrainLeg[];
 }

@@ -65,6 +65,7 @@
         "files.trimTrailingWhitespace": true
       },
       "extensions": [
+        "anthropic.claude-code",
         // TypeScript & JavaScript
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",

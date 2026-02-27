@@ -250,6 +250,10 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
     const departureTime = new Date(connection.departure)
     const arrivalTime = new Date(connection.arrival)
 
+    const isCancelled = connection.legs.some(
+        (leg) => !leg.walking && leg.cancelled
+    )
+
     const formatTime = (date: Date): string => {
         return date.toLocaleTimeString('en-GB', {
             hour: '2-digit',
@@ -279,7 +283,7 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
                 borderRadius: 1,
                 backgroundColor: PAPER_CARD_COLOR,
                 border: 1,
-                borderColor: 'divider',
+                borderColor: isCancelled ? 'error.main' : 'divider',
             }}
         >
             <Box
@@ -288,7 +292,11 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
                 alignItems="center"
             >
                 <Box>
-                    <Typography variant="body2" fontWeight="bold">
+                    <Typography
+                        variant="body2"
+                        fontWeight="bold"
+                        sx={isCancelled ? { textDecoration: 'line-through', color: 'text.disabled' } : undefined}
+                    >
                         {formatTime(departureTime)} → {formatTime(arrivalTime)}
                     </Typography>
                     <Typography
@@ -296,28 +304,43 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
                         fontSize={xSmallFontSize}
                         color="text.secondary"
                     >
-                        {connection.line} •{' '}
-                        {formatDuration(connection.duration)}
+                        {connection.legs
+                            .filter((leg) => !leg.walking)
+                            .map((leg) => leg.line)
+                            .join(' → ')}{' '}
+                        • {formatDuration(connection.duration)}
                     </Typography>
                 </Box>
                 <Box textAlign="right">
-                    {connection.departurePlatform && (
+                    {isCancelled ? (
                         <Typography
                             variant="body2"
                             fontSize={xSmallFontSize}
-                            color="text.secondary"
+                            color="error.main"
                         >
-                            Platform {connection.departurePlatform}
+                            Cancelled
                         </Typography>
-                    )}
-                    {connection.delay !== undefined && connection.delay > 0 && (
-                        <Typography
-                            variant="body2"
-                            fontSize={xSmallFontSize}
-                            color={getDelayColor(connection.delay)}
-                        >
-                            +{connection.delay / 60} min
-                        </Typography>
+                    ) : (
+                        <>
+                            {connection.departurePlatform && (
+                                <Typography
+                                    variant="body2"
+                                    fontSize={xSmallFontSize}
+                                    color="text.secondary"
+                                >
+                                    Platform {connection.departurePlatform}
+                                </Typography>
+                            )}
+                            {connection.delay !== undefined && connection.delay > 0 && (
+                                <Typography
+                                    variant="body2"
+                                    fontSize={xSmallFontSize}
+                                    color={getDelayColor(connection.delay)}
+                                >
+                                    +{connection.delay / 60} min
+                                </Typography>
+                            )}
+                        </>
                     )}
                 </Box>
             </Box>
