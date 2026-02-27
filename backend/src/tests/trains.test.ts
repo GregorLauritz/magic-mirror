@@ -151,10 +151,9 @@ describe(`Unit test the ${ROUTE} route`, () => {
           expect(typeof connection.arrival).toBe('string');
           expect(typeof connection.departureStation).toBe('string');
           expect(typeof connection.arrivalStation).toBe('string');
-          expect(typeof connection.line).toBe('string');
-          expect(typeof connection.direction).toBe('string');
           expect(typeof connection.duration).toBe('number');
           expect(connection.duration).toBeGreaterThan(0);
+          expect(Array.isArray(connection.legs)).toBe(true);
         }
       }
     });

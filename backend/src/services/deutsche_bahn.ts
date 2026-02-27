@@ -1,6 +1,13 @@
 import { fetchJson } from './fetch';
 import { ApiError } from 'models/api/api_error';
-import { ApiTrainConnection, ApiTrainStation, TrainDeparture, TrainJourney, TrainLocation } from 'models/api/trains';
+import {
+  ApiTrainConnection,
+  ApiTrainLeg,
+  ApiTrainStation,
+  TrainDeparture,
+  TrainJourney,
+  TrainLocation,
+} from 'models/api/trains';
 import { LOGGER } from './loggers';
 import { DB_API_BASE_URL } from 'config';
 
@@ -162,21 +169,45 @@ export class DeutscheBahnService {
         const firstLeg = journey.legs[0];
         const lastLeg = journey.legs[journey.legs.length - 1];
 
-        const departure = new Date(firstLeg.departure);
-        const arrival = new Date(lastLeg.arrival);
+        const departureStr = firstLeg.departure ?? firstLeg.plannedDeparture;
+        const arrivalStr = lastLeg.arrival ?? lastLeg.plannedArrival;
+        const departure = new Date(departureStr);
+        const arrival = new Date(arrivalStr);
         const duration = Math.floor((arrival.getTime() - departure.getTime()) / 1000 / 60); // minutes
 
+        const legs: ApiTrainLeg[] = journey.legs.map((leg) => {
+          const legDepartureStr = leg.departure ?? leg.plannedDeparture;
+          const legArrivalStr = leg.arrival ?? leg.plannedArrival;
+          const legDeparture = new Date(legDepartureStr);
+          const legArrival = new Date(legArrivalStr);
+          const legDuration = Math.floor((legArrival.getTime() - legDeparture.getTime()) / 1000 / 60);
+          return {
+            departure: legDepartureStr,
+            arrival: legArrivalStr,
+            departureStation: leg.origin.name,
+            arrivalStation: leg.destination.name,
+            line: leg.line?.name,
+            direction: leg.direction,
+            departurePlatform: leg.departurePlatform ?? undefined,
+            arrivalPlatform: leg.arrivalPlatform ?? undefined,
+            delay: leg.departureDelay ?? undefined,
+            duration: legDuration,
+            walking: leg.walking === true,
+            cancelled: leg.cancelled === true,
+            distance: leg.distance,
+          };
+        });
+
         connections.push({
-          departure: firstLeg.departure,
-          arrival: lastLeg.arrival,
+          departure: departureStr,
+          arrival: arrivalStr,
           departureStation: firstLeg.origin.name,
           arrivalStation: lastLeg.destination.name,
           departurePlatform: firstLeg.departurePlatform,
           arrivalPlatform: lastLeg.arrivalPlatform,
-          line: firstLeg.line?.name || 'Unknown',
-          direction: firstLeg.direction || lastLeg.destination.name,
           delay: firstLeg.departureDelay ?? undefined,
           duration,
+          legs,
         });
       }
 

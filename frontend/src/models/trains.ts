@@ -5,6 +5,22 @@ export type TrainStation = {
     longitude?: number
 }
 
+export type TrainLeg = {
+    departure: string
+    arrival: string
+    departureStation: string
+    arrivalStation: string
+    line?: string
+    direction?: string
+    departurePlatform?: string
+    arrivalPlatform?: string
+    delay?: number
+    duration: number
+    walking: boolean
+    cancelled: boolean
+    distance?: number
+}
+
 export type TrainConnection = {
     departure: string
     arrival: string
@@ -12,8 +28,7 @@ export type TrainConnection = {
     arrivalStation: string
     departurePlatform?: string
     arrivalPlatform?: string
-    line: string
-    direction: string
     delay?: number
     duration: number
+    legs: TrainLeg[]
 }

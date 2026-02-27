@@ -18,40 +18,36 @@ export const useSearchTrainStations = (
         staleTime: 300000, // 5 minutes
     })
 
-const DEFAULT_REFETCH_INTERVAL = 300000
-const DEPARTURE_BUFFER = 15000
-const MIN_REFETCH_INTERVAL = 15000
+const REFETCH_INTERVAL_FAR = 300000 // 5 minutes
+const REFETCH_INTERVAL_NEAR = 60000 // 1 minute
+const NEAR_DEPARTURE_THRESHOLD_MS = 5 * 60 * 1000 // 5 minutes in milliseconds
 
-/**
- * Calculates the refetch interval based on the earliest train departure time.
- * Returns the time until the earliest departure (plus buffer) or the default interval,
- * whichever is smaller.
- */
-const calculateRefetchInterval = (
+export const getRefetchInterval = (
     data: TrainConnection[] | undefined
 ): number => {
     if (!data || data.length === 0) {
-        return DEFAULT_REFETCH_INTERVAL
+        return REFETCH_INTERVAL_FAR
     }
 
     const now = Date.now()
 
-    const earliestDeparture = data.reduce((earliest, connection) => {
-        const departureTime = new Date(connection.departure).getTime()
-        return departureTime < earliest ? departureTime : earliest
-    }, Infinity)
+    const nextConnection = data.reduce((min, connection) =>
+        new Date(connection.departure).getTime() +
+            (connection.delay ?? 0) * 60 * 1000 <
+        new Date(min.departure).getTime() + (min.delay ?? 0) * 60 * 1000
+            ? connection
+            : min
+    )
 
-    if (earliestDeparture === Infinity) {
-        return DEFAULT_REFETCH_INTERVAL
+    const actualDepartureTime =
+        new Date(nextConnection.departure).getTime() +
+        (nextConnection.delay ?? 0) * 60 * 1000
+
+    if (actualDepartureTime - now > NEAR_DEPARTURE_THRESHOLD_MS) {
+        return REFETCH_INTERVAL_FAR
     }
 
-    const timeUntilDeparture = earliestDeparture + DEPARTURE_BUFFER - now
-
-    if (timeUntilDeparture <= 0) {
-        return MIN_REFETCH_INTERVAL
-    }
-
-    return Math.min(timeUntilDeparture, DEFAULT_REFETCH_INTERVAL)
+    return REFETCH_INTERVAL_NEAR
 }
 
 export const useGetTrainConnections = (
@@ -70,6 +66,6 @@ export const useGetTrainConnections = (
                 `${TRAINS_API}/connections?from=${encodeURIComponent(fromStationId!)}&to=${encodeURIComponent(toStationId!)}&results=2`
             ),
         enabled: enabled && !!fromStationId && !!toStationId,
-        refetchInterval: (data) => calculateRefetchInterval(data),
-        staleTime: MIN_REFETCH_INTERVAL,
+        refetchInterval: (data) => getRefetchInterval(data),
+        staleTime: REFETCH_INTERVAL_NEAR,
     })

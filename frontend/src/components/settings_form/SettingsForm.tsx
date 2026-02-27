@@ -1,15 +1,19 @@
 import { Box, TextField, Button, Autocomplete } from '@mui/material'
 import CountrySelect from '../country_select/CountrySelect'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import {
     buttonBoxStyle,
     countryBoxStyle,
     inputBoxStyle,
     parentBoxStyle,
 } from './style'
-import { LOCATION_API, TRAINS_API } from '../../constants/api'
+import { LOCATION_API } from '../../constants/api'
 import { CalendarListItem } from '../../models/calendar'
-import { TrainStation } from '../../models/trains'
+import {
+    TrainConnection,
+    TrainDisplaySettings,
+} from '../../models/user_settings'
+import { TrainSettingsSection } from './TrainSettingsSection'
 
 export interface SettingsParams {
     country: string
@@ -17,10 +21,8 @@ export interface SettingsParams {
     zipCode: string
     birthdayCalId: string
     eventsCalId: string
-    trainDepartureStationId?: string
-    trainDepartureStationName?: string
-    trainArrivalStationId?: string
-    trainArrivalStationName?: string
+    trainConnections?: TrainConnection[]
+    trainDisplaySettings?: TrainDisplaySettings
 }
 
 interface SettingsFormProps {
@@ -29,6 +31,11 @@ interface SettingsFormProps {
     showBackButton: boolean
     onSend: (data: SettingsParams) => void
     onBack: () => void
+}
+
+const DEFAULT_TRAIN_DISPLAY_SETTINGS: TrainDisplaySettings = {
+    mode: 'carousel',
+    carousel_interval: 15,
 }
 
 export const SettingsForm = ({
@@ -44,118 +51,71 @@ export const SettingsForm = ({
         zipCode: defaultZipCode,
         birthdayCalId,
         eventsCalId,
-        trainDepartureStationId,
-        trainDepartureStationName,
-        trainArrivalStationId,
-        trainArrivalStationName,
+        trainConnections: defaultTrainConnections,
+        trainDisplaySettings: defaultTrainDisplaySettings,
     } = defaults
+
     const city = useRef<HTMLInputElement>(null)
     const zip = useRef<HTMLInputElement>(null)
     const [country, setCountry] = useState(defaultCountry)
     const [birthdayCalendar, setBirthdayCalendar] =
         useState<string>(birthdayCalId)
-    const [eventsCalender, setEventsCalender] = useState<string>(eventsCalId)
-    const [departureStation, setDepartureStation] =
-        useState<TrainStation | null>(
-            trainDepartureStationId && trainDepartureStationName
-                ? {
-                      id: trainDepartureStationId,
-                      name: trainDepartureStationName,
-                  }
-                : null
+    const [eventsCalendar, setEventsCalendar] = useState<string>(eventsCalId)
+    const [trainConnections, setTrainConnections] = useState<TrainConnection[]>(
+        defaultTrainConnections || []
+    )
+    const [trainDisplaySettings, setTrainDisplaySettings] =
+        useState<TrainDisplaySettings>(
+            defaultTrainDisplaySettings || DEFAULT_TRAIN_DISPLAY_SETTINGS
         )
-    const [arrivalStation, setArrivalStation] = useState<TrainStation | null>(
-        trainArrivalStationId && trainArrivalStationName
-            ? { id: trainArrivalStationId, name: trainArrivalStationName }
-            : null
-    )
-    const [departureQuery, setDepartureQuery] = useState('')
-    const [arrivalQuery, setArrivalQuery] = useState('')
-    const [departureStations, setDepartureStations] = useState<TrainStation[]>(
-        []
-    )
-    const [arrivalStations, setArrivalStations] = useState<TrainStation[]>([])
+
     const currentBirthdayCalendar = useMemo(
         () => calendars.find((c) => c.id === birthdayCalendar),
         [birthdayCalendar, calendars]
     )
     const currentEventsCalendar = useMemo(
-        () => calendars.find((c) => c.id === eventsCalender),
-        [eventsCalender, calendars]
+        () => calendars.find((c) => c.id === eventsCalendar),
+        [eventsCalendar, calendars]
     )
 
-    const searchStations = useCallback(
-        async (
-            query: string,
-            setStations: React.Dispatch<React.SetStateAction<TrainStation[]>>
-        ) => {
-            if (query.length >= 2) {
-                try {
-                    const response = await fetch(
-                        `${TRAINS_API}/stations?query=${encodeURIComponent(query)}&results=10`
-                    )
-                    if (response.ok) {
-                        const stations = await response.json()
-                        setStations(stations)
-                    }
-                } catch (error) {
-                    console.error('Error searching stations:', error)
-                }
-            }
-        },
-        []
-    )
-
-    // Debounce departure station search
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            searchStations(departureQuery, setDepartureStations)
-        }, 300)
-        return () => clearTimeout(timeoutId)
-    }, [departureQuery, searchStations])
-
-    // Debounce arrival station search
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            searchStations(arrivalQuery, setArrivalStations)
-        }, 300)
-        return () => clearTimeout(timeoutId)
-    }, [arrivalQuery, searchStations])
-
-    const onSendButton = useCallback(() => {
+    const handleSend = useCallback(() => {
         if (country === '') {
             alert('Country must not be empty!')
-        } else if (birthdayCalendar === '' || birthdayCalendar === undefined) {
-            alert('Birthday Calendar must not be empty!')
-        } else if (eventsCalender === '' || eventsCalender === undefined) {
-            alert('Events Calendar must not be empty!')
-        } else if (onSend) {
-            validate(country, city.current?.value, zip.current?.value)
-                .then(() => {
-                    const data = {
-                        country,
-                        city: city.current!.value,
-                        zipCode: zip.current!.value,
-                        birthdayCalId: birthdayCalendar ?? birthdayCalId,
-                        eventsCalId: eventsCalender ?? eventsCalId,
-                        trainDepartureStationId: departureStation?.id,
-                        trainDepartureStationName: departureStation?.name,
-                        trainArrivalStationId: arrivalStation?.id,
-                        trainArrivalStationName: arrivalStation?.name,
-                    }
-                    onSend(data)
-                })
-                .catch(() => alert('Address could not be geolocated!'))
+            return
         }
+        if (!birthdayCalendar) {
+            alert('Birthday Calendar must not be empty!')
+            return
+        }
+        if (!eventsCalendar) {
+            alert('Events Calendar must not be empty!')
+            return
+        }
+
+        validate(country, city.current?.value, zip.current?.value)
+            .then(() => {
+                const validConnections = trainConnections.filter(
+                    (conn) =>
+                        conn.departure_station_id && conn.arrival_station_id
+                )
+                onSend({
+                    country,
+                    city: city.current!.value,
+                    zipCode: zip.current!.value,
+                    birthdayCalId: birthdayCalendar,
+                    eventsCalId: eventsCalendar,
+                    trainConnections: validConnections,
+                    trainDisplaySettings,
+                })
+            })
+            .catch(() => alert('Address could not be geolocated!'))
     }, [
         country,
         birthdayCalendar,
-        eventsCalender,
+        eventsCalendar,
         onSend,
-        birthdayCalId,
-        eventsCalId,
-        departureStation,
-        arrivalStation,
+        trainConnections,
+        trainDisplaySettings,
     ])
 
     return (
@@ -166,6 +126,7 @@ export const SettingsForm = ({
                     defaultCountryCode={defaultCountry}
                 />
             </Box>
+
             <Box
                 component="form"
                 sx={inputBoxStyle}
@@ -187,120 +148,32 @@ export const SettingsForm = ({
                     defaultValue={defaultZipCode}
                 />
             </Box>
-            <Box>
-                <Autocomplete
-                    id="events-cal"
-                    options={calendars}
-                    value={currentEventsCalendar ?? null}
-                    getOptionLabel={(option) => option.name}
-                    onChange={(_, value) =>
-                        value && setEventsCalender(value.id)
-                    }
-                    renderInput={(params) => (
-                        <TextField
-                            {...params}
-                            label="Events Calendar"
-                            slotProps={{
-                                input: {
-                                    ...params.InputProps,
-                                    autoComplete: 'new-password', // disable autocomplete and autofill
-                                },
-                                htmlInput: {
-                                    ...params.inputProps,
-                                    autoComplete: 'new-password',
-                                },
-                            }}
-                        />
-                    )}
-                />
-            </Box>
-            <Box>
-                <Autocomplete
-                    id="bday-cal"
-                    options={calendars}
-                    value={currentBirthdayCalendar ?? null}
-                    getOptionLabel={(option) => option.name}
-                    onChange={(_, value) =>
-                        value && setBirthdayCalendar(value.id)
-                    }
-                    renderInput={(params) => (
-                        <TextField
-                            {...params}
-                            label="Birthday Calendar"
-                            slotProps={{
-                                input: {
-                                    ...params.InputProps,
-                                    autoComplete: 'new-password', // disable autocomplete and autofill
-                                },
-                                htmlInput: {
-                                    ...params.inputProps,
-                                    autoComplete: 'new-password',
-                                },
-                            }}
-                        />
-                    )}
-                />
-            </Box>
-            <Box>
-                <Autocomplete
-                    id="departure-station"
-                    options={departureStations}
-                    value={departureStation}
-                    getOptionLabel={(option) => option.name}
-                    isOptionEqualToValue={(option, value) =>
-                        option.id === value.id
-                    }
-                    onChange={(_, value) => setDepartureStation(value)}
-                    onInputChange={(_, value) => setDepartureQuery(value)}
-                    renderInput={(params) => (
-                        <TextField
-                            {...params}
-                            label="Departure Station (optional)"
-                            slotProps={{
-                                input: {
-                                    ...params.InputProps,
-                                    autoComplete: 'new-password',
-                                },
-                                htmlInput: {
-                                    ...params.inputProps,
-                                    autoComplete: 'new-password',
-                                },
-                            }}
-                        />
-                    )}
-                />
-            </Box>
-            <Box>
-                <Autocomplete
-                    id="arrival-station"
-                    options={arrivalStations}
-                    value={arrivalStation}
-                    getOptionLabel={(option) => option.name}
-                    isOptionEqualToValue={(option, value) =>
-                        option.id === value.id
-                    }
-                    onChange={(_, value) => setArrivalStation(value)}
-                    onInputChange={(_, value) => setArrivalQuery(value)}
-                    renderInput={(params) => (
-                        <TextField
-                            {...params}
-                            label="Arrival Station (optional)"
-                            slotProps={{
-                                input: {
-                                    ...params.InputProps,
-                                    autoComplete: 'new-password',
-                                },
-                                htmlInput: {
-                                    ...params.inputProps,
-                                    autoComplete: 'new-password',
-                                },
-                            }}
-                        />
-                    )}
-                />
-            </Box>
+
+            <CalendarAutocomplete
+                id="events-cal"
+                label="Events Calendar"
+                calendars={calendars}
+                value={currentEventsCalendar ?? null}
+                onChange={setEventsCalendar}
+            />
+
+            <CalendarAutocomplete
+                id="bday-cal"
+                label="Birthday Calendar"
+                calendars={calendars}
+                value={currentBirthdayCalendar ?? null}
+                onChange={setBirthdayCalendar}
+            />
+
+            <TrainSettingsSection
+                connections={trainConnections}
+                displaySettings={trainDisplaySettings}
+                onConnectionsChange={setTrainConnections}
+                onDisplaySettingsChange={setTrainDisplaySettings}
+            />
+
             <Box sx={buttonBoxStyle}>
-                <Button variant="outlined" onClick={onSendButton}>
+                <Button variant="outlined" onClick={handleSend}>
                     Send
                 </Button>
                 {showBackButton && (
@@ -312,6 +185,48 @@ export const SettingsForm = ({
         </Box>
     )
 }
+
+interface CalendarAutocompleteProps {
+    id: string
+    label: string
+    calendars: CalendarListItem[]
+    value: CalendarListItem | null
+    onChange: (id: string) => void
+}
+
+const CalendarAutocomplete = ({
+    id,
+    label,
+    calendars,
+    value,
+    onChange,
+}: CalendarAutocompleteProps) => (
+    <Box>
+        <Autocomplete
+            id={id}
+            options={calendars}
+            value={value}
+            getOptionLabel={(option) => option.name}
+            onChange={(_, newValue) => newValue && onChange(newValue.id)}
+            renderInput={(params) => (
+                <TextField
+                    {...params}
+                    label={label}
+                    slotProps={{
+                        input: {
+                            ...params.InputProps,
+                            autoComplete: 'new-password',
+                        },
+                        htmlInput: {
+                            ...params.inputProps,
+                            autoComplete: 'new-password',
+                        },
+                    }}
+                />
+            )}
+        />
+    </Box>
+)
 
 const validate = async (
     country: string,
