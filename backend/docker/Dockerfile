@@ -15,14 +15,14 @@ FROM node:${NODE_IMG_VERSION} AS dependencies
 WORKDIR /app
 
 # Install yarn at specific version for reproducibility
-RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate
+RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate && yarn plugin import workspace-tools
 
 # Copy package files first for better layer caching
 # Only re-run yarn install if these files change
 COPY package.json yarn.lock ./
 
 # Install production dependencies only with frozen lockfile for reproducibility
-RUN yarn install --production --immutable --non-interactive \
+RUN yarn workspaces focus --production \
     && yarn cache clean
 
 # =============================================================================
