@@ -15,14 +15,14 @@ FROM node:${NODE_IMG_VERSION} AS dependencies
 WORKDIR /app
 
 # Install yarn at specific version for reproducibility
-RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate && yarn plugin import workspace-tools
+RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate
 
 # Copy package files first for better layer caching
 # Only re-run yarn install if these files change
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock .yarnrc.yml ./
 
-# Install production dependencies only with frozen lockfile for reproducibility
-RUN yarn workspaces focus --production \
+# Install dependencies with frozen lockfile for reproducibility
+RUN yarn install --immutable \
     && yarn cache clean
 
 # =============================================================================
@@ -57,6 +57,8 @@ RUN addgroup -g 1001 -S nodejs \
 # Set working directory
 WORKDIR /app
 
+RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate
+
 # Copy custom CA certificate and update certificates
 # This must be done before switching to non-root user
 COPY --chown=nodejs:nodejs rootCA.pem /usr/local/share/ca-certificates/rootCa.crt
@@ -67,10 +69,14 @@ COPY --chown=nodejs:nodejs ssl /etc/express
 
 # Copy production dependencies from dependencies stage
 COPY --from=dependencies --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=dependencies --chown=nodejs:nodejs /app/.yarn ./.yarn
 
 # Copy only necessary application files
-COPY --chown=nodejs:nodejs package.json yarn.lock tsconfig.json ./
+COPY --chown=nodejs:nodejs package.json yarn.lock .yarnrc.yml tsconfig.json ./
 COPY --chown=nodejs:nodejs src ./src
+
+# Ensure nodejs user owns the working directory so yarn can create .yarn cache
+RUN chown nodejs:nodejs /app
 
 # Switch to non-root user
 USER nodejs

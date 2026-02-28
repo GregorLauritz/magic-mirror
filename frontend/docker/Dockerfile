@@ -17,12 +17,10 @@ RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate
 WORKDIR /opt/app
 
 # Copy package files first for better layer caching
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock .yarnrc.yml ./
 
-# Install dependencies with frozen lockfile for reproducible builds
-# Use --production=false to include devDependencies needed for build
-RUN yarn install --immutable --production=false --network-timeout 100000 && \
-    yarn cache clean
+# Install all dependencies (devDependencies needed for tsc + vite build)
+RUN yarn install --immutable
 
 # Copy only necessary source files
 COPY tsconfig.json tsconfig.node.json vite.config.ts ./
