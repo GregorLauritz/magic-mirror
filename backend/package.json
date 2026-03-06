@@ -23,7 +23,7 @@
     "cors": "^2.8.5",
     "ejs": "^3.1.9",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.2.1",
+    "express-rate-limit": "^8.2.2",
     "express-session": "^1.18.0",
     "express-winston": "^4.2.0",
     "googleapis": "^170.0.0",
