@@ -5,8 +5,8 @@
   gather_facts: false
 
   tasks:
-    - name: Bootstrap Python3 (not pre-installed in ubuntu:24.04 image)
-      ansible.builtin.raw: apt-get update -qq && apt-get install -y python3
+    - name: Bootstrap Python3 and sudo (not pre-installed in ubuntu:24.04 image)
+      ansible.builtin.raw: apt-get update -qq && apt-get install -y python3 sudo
       changed_when: true
 
     - name: Refresh apt cache

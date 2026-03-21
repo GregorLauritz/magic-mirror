@@ -55,7 +55,7 @@
 # ------------------------------------------------------- root CA install
 - name: Install mkcert root CA into system trust store
   ansible.builtin.command: mkcert -install
-  changed_when: true
+  changed_when: false
 
 # ------------------------------------------------------- cert generation
 - name: Generate certificates
