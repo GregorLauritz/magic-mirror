@@ -1,0 +1,15 @@
+---
+# Destination base directory for generated files.
+# Callers must override this:
+#   - setup_env    sets env_base_dir to repo_root (local dev)
+#   - setup_backend sets env_base_dir to work_dir (remote server)
+env_base_dir: "{{ repo_root | default(work_dir) }}"
+
+# OAuth2 client ID. Defaults to the value from group_vars so that
+# server_setup.yml works without any extra input. Overridden by the
+# vars_prompt in setup_env.yml for local dev.
+oauth2_client_id: "{{ oauth2_proxy.client_id }}"
+
+# Optional file ownership. Leave empty to inherit from the running user.
+env_file_owner: ""
+env_file_group: ""

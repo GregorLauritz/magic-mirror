@@ -1,33 +1,13 @@
 ---
-# Creates all environment files required by Docker Compose.
-# Generates and persists secrets (MongoDB password, cookie secret) on first run.
+# Creates all Docker Compose environment files for local development.
 #
 # Usage:
-#   ansible-playbook ansible/setup_env.yml
-#
-# Versions, scopes, and infrastructure defaults are sourced from:
-#   ansible/inventory/group_vars/all/main.yml
-#
-# Required inputs (prompted interactively):
-#   oauth2_client_id - Google OAuth2 Client ID
-#   client_secret    - Google OAuth2 Client Secret
-#   geocode_api_key  - Geocode Maps API key (https://geocode.maps.co)
-#   user_domain      - Local domain suffix (overrides group_vars domain)
-#
-# Generated files (all git-ignored):
-#   docker-compose/.env         - Docker image versions & MongoDB root credentials
-#   docker-compose/backend.env  - Backend service configuration
-#   docker-compose/frontend.env - Frontend service configuration
-#   docker-compose/proxy.env    - OAuth2-Proxy credentials
-#   oauth2-proxy/oauth2-proxy.cfg
+#   ansible-playbook -i ansible/inventory/inventory ansible/setup_env.yml
 
 - name: Setup Docker Compose environment files
-  hosts: localhost
+  hosts: local
   connection: local
   gather_facts: true
-
-  vars_files:
-    - inventory/group_vars/all/main.yml
 
   vars_prompt:
     - name: oauth2_client_id
@@ -47,80 +27,5 @@
       default: "fritz.box"
       private: false
 
-  vars:
-    repo_root: "{{ playbook_dir | dirname }}"
-    server_fqdn: "{{ ansible_hostname | lower }}.{{ user_domain | lower }}"
-
-  tasks:
-    - name: Ensure pwstore directory exists (stores generated secrets)
-      ansible.builtin.file:
-        path: "{{ pw_store_dir }}"
-        state: directory
-        mode: "0700"
-
-    # ------------------------------------------------------------------ .env
-    - name: Create docker-compose/.env
-      ansible.builtin.copy:
-        dest: "{{ repo_root }}/docker-compose/.env"
-        mode: "0600"
-        content: |
-          NODE_IMG_VERSION={{ node.version }}
-          MONGO_ROOT_USER={{ mongo.user }}
-          MONGO_ROOT_PW={{ lookup('ansible.builtin.password', pw_store_dir + '/mongopw.txt', chars=['ascii_letters', 'digits'], length=32) }}
-          OAUTH2_PROXY_VERSION={{ oauth2_proxy.version }}
-      no_log: true
-
-    # ----------------------------------------------------------- backend.env
-    - name: Create docker-compose/backend.env
-      ansible.builtin.copy:
-        dest: "{{ repo_root }}/docker-compose/backend.env"
-        mode: "0600"
-        content: |
-          FRONTEND_URL=https://{{ server_fqdn }}
-          ENABLE_HTTPS=true
-          MONGO_PORT={{ mongo.port }}
-          MONGO_SSL={{ mongo.ssl | to_json }}
-          MONGO_HOSTNAME={{ mongo.host }}
-          GEOCODE_API_KEY={{ geocode_api_key }}
-      no_log: true
-
-    # ---------------------------------------------------------- frontend.env
-    - name: Create docker-compose/frontend.env
-      ansible.builtin.copy:
-        dest: "{{ repo_root }}/docker-compose/frontend.env"
-        mode: "0600"
-        content: |
-          API_BACKEND_CONTEXT={{ backend_context }}
-
-    # ------------------------------------------------------------- proxy.env
-    - name: Create docker-compose/proxy.env
-      ansible.builtin.copy:
-        dest: "{{ repo_root }}/docker-compose/proxy.env"
-        mode: "0600"
-        content: |
-          OAUTH2_PROXY_CLIENT_ID="{{ oauth2_client_id }}"
-          OAUTH2_PROXY_CLIENT_SECRET="{{ client_secret }}"
-          OAUTH2_PROXY_COOKIE_SECRET="{{ lookup('ansible.builtin.password', pw_store_dir + '/cookie.txt', chars=['ascii_letters', 'digits'], length=32) }}"
-          OAUTH2_PROXY_EMAIL_DOMAINS="*"
-      no_log: true
-
-    # ------------------------------------------------- oauth2-proxy/oauth2-proxy.cfg
-    - name: Create oauth2-proxy/oauth2-proxy.cfg
-      ansible.builtin.template:
-        src: templates/oauth2-proxy.cfg.j2
-        dest: "{{ repo_root }}/oauth2-proxy/oauth2-proxy.cfg"
-        mode: "0600"
-
-    # ---------------------------------------------------------------- summary
-    - name: Environment file summary
-      ansible.builtin.debug:
-        msg:
-          - "Environment files written to docker-compose/"
-          - "  .env, backend.env, frontend.env, proxy.env"
-          - "OAuth2-Proxy config written to oauth2-proxy/oauth2-proxy.cfg"
-          - ""
-          - "Server FQDN: {{ server_fqdn }}"
-          - "Make sure {{ server_fqdn }} resolves to this machine"
-          - "(add to /etc/hosts or configure your router/DNS)."
-          - ""
-          - "Generated secrets stored in ansible/pwstore/ (git-ignored)."
+  roles:
+    - setup_env

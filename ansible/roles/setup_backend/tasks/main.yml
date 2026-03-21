@@ -45,71 +45,23 @@
 
 - name: Install service
   ansible.builtin.template:
-    src: "{{ service_name }}.service.j2"
+    src: magic-mirror-server.service.j2
     dest: "/etc/systemd/system/{{ service_name }}.service"
     mode: "0644"
 
-- name: Install env files
-  ansible.builtin.template:
-    src: "{{ item.name }}.j2"
-    dest: "{{ work_dir }}/{{ item.dest }}/{{ item.name }}"
-    mode: "0600"
-    owner: "{{ user_name }}"
-    group: "{{ user_name }}"
-  become: true
-  no_log: true
-  loop:
-    - name: .env
-      dest: docker-compose
-    - name: backend.env
-      dest: docker-compose
-    - name: frontend.env
-      dest: docker-compose
-    - name: proxy.env
-      dest: docker-compose
-    - name: oauth2-proxy.cfg
-      dest: oauth2-proxy
+- name: Generate environment files
+  ansible.builtin.include_role:
+    name: generate_env_files
+  vars:
+    env_base_dir: "{{ work_dir }}"
+    env_file_owner: "{{ user_name }}"
+    env_file_group: "{{ user_name }}"
 
-- name: Get path to mkcert root CA
-  ansible.builtin.command: mkcert -CAROOT
-  changed_when: false
-  register: ca_cert_path
-
-- name: Copy CA cert
-  ansible.builtin.copy:
-    src: "{{ ca_cert_path.stdout }}/rootCA.pem"
-    dest: "{{ work_dir }}/{{ item }}/rootCA.pem"
-    mode: "0644"
-    owner: "{{ user_name }}"
-    group: "{{ user_name }}"
-    remote_src: true
-  loop:
-    - certs
-    - backend
-    - oauth2-proxy
-
-- name: Generate backend SSL certificate
-  ansible.builtin.command: >-
-    mkcert
-    -key-file {{ work_dir }}/backend/ssl/express.key
-    -cert-file {{ work_dir }}/backend/ssl/express.pem
-    {{ server_fqdn }} backend {{ additional_hostnames }}
-  changed_when: true
-
-- name: Generate oauth2-proxy SSL certificate
-  ansible.builtin.command: >-
-    mkcert
-    -key-file {{ work_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.key
-    -cert-file {{ work_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem
-    {{ server_fqdn }} {{ additional_hostnames }}
-  changed_when: true
-
-- name: Create oauth2-proxy certificate bundle (cert + CA)
-  ansible.builtin.shell: >-
-    cat {{ work_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem
-    {{ work_dir }}/oauth2-proxy/rootCA.pem
-    > {{ work_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.bundle.pem
-  changed_when: true
+- name: Generate SSL certificates
+  ansible.builtin.include_role:
+    name: generate_certs
+  vars:
+    certs_base_dir: "{{ work_dir }}"
 
 - name: Set ownership of {{ work_dir }}
   ansible.builtin.file:

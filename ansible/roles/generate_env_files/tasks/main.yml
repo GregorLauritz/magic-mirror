@@ -1,0 +1,43 @@
+---
+- name: Generate docker-compose/.env
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ env_base_dir }}/docker-compose/.env"
+    mode: "0600"
+    owner: "{{ env_file_owner | default(omit, true) }}"
+    group: "{{ env_file_group | default(omit, true) }}"
+  no_log: true
+
+- name: Generate docker-compose/backend.env
+  ansible.builtin.template:
+    src: backend.env.j2
+    dest: "{{ env_base_dir }}/docker-compose/backend.env"
+    mode: "0600"
+    owner: "{{ env_file_owner | default(omit, true) }}"
+    group: "{{ env_file_group | default(omit, true) }}"
+  no_log: true
+
+- name: Generate docker-compose/frontend.env
+  ansible.builtin.template:
+    src: frontend.env.j2
+    dest: "{{ env_base_dir }}/docker-compose/frontend.env"
+    mode: "0600"
+    owner: "{{ env_file_owner | default(omit, true) }}"
+    group: "{{ env_file_group | default(omit, true) }}"
+
+- name: Generate docker-compose/proxy.env
+  ansible.builtin.template:
+    src: proxy.env.j2
+    dest: "{{ env_base_dir }}/docker-compose/proxy.env"
+    mode: "0600"
+    owner: "{{ env_file_owner | default(omit, true) }}"
+    group: "{{ env_file_group | default(omit, true) }}"
+  no_log: true
+
+- name: Generate oauth2-proxy/oauth2-proxy.cfg
+  ansible.builtin.template:
+    src: oauth2-proxy.cfg.j2
+    dest: "{{ env_base_dir }}/oauth2-proxy/oauth2-proxy.cfg"
+    mode: "0600"
+    owner: "{{ env_file_owner | default(omit, true) }}"
+    group: "{{ env_file_group | default(omit, true) }}"
