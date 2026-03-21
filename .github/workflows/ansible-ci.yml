@@ -12,11 +12,15 @@ on:
       - "ansible/**"
       - ".github/workflows/ansible-ci.yml"
 
+permissions: {}
+
 jobs:
   # ---------------------------------------------------------------------------
   lint:
     name: Ansible Lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     defaults:
       run:
@@ -42,6 +46,8 @@ jobs:
   molecule-generate-env-files:
     name: Molecule › generate_env_files
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     defaults:
       run:
@@ -70,6 +76,8 @@ jobs:
   molecule-generate-certs:
     name: Molecule › generate_certs
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     defaults:
       run:
@@ -98,6 +106,8 @@ jobs:
   molecule-setup-env:
     name: Molecule › setup_env
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     defaults:
       run:
@@ -126,6 +136,8 @@ jobs:
   molecule-setup-certs:
     name: Molecule › setup_certs
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     defaults:
       run:
@@ -154,6 +166,7 @@ jobs:
   summary:
     name: Ansible CI Summary
     runs-on: ubuntu-latest
+    permissions: {}
     needs:
       - lint
       - molecule-generate-env-files
