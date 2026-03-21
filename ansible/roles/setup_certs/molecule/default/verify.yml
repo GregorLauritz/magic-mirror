@@ -5,15 +5,16 @@
 
   tasks:
     # -------------------------------------------------- mkcert was installed
-    - name: Check mkcert binary is present
-      ansible.builtin.stat:
-        path: /usr/local/bin/mkcert
-      register: mkcert_bin
+    - name: Check mkcert is in PATH
+      ansible.builtin.command: which mkcert
+      changed_when: false
+      register: mkcert_which
+      failed_when: false
 
     - name: Assert mkcert is installed
       ansible.builtin.assert:
-        that: mkcert_bin.stat.exists and mkcert_bin.stat.executable
-        fail_msg: "mkcert was not installed at /usr/local/bin/mkcert"
+        that: mkcert_which.rc == 0
+        fail_msg: "mkcert was not found in PATH (apt installs to /usr/bin, binary installs to /usr/local/bin)"
 
     # --------------------------------------------------- cert files exist
     - name: Stat all expected certificate files
