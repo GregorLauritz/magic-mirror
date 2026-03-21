@@ -20,6 +20,14 @@ export const mongoDbData: IDatabaseConnection = {
       name: 'ssl',
       value: process.env.MONGO_SSL ?? 'false',
     },
+    ...(process.env.MONGO_SSL?.toLowerCase() === 'true'
+      ? [
+          {
+            name: 'tlsCAFile',
+            value: process.env.MONGO_SSL_CA_FILE ?? '/etc/ferretdb/rootCA.pem',
+          },
+        ]
+      : []),
     {
       name: 'authMechanism',
       value: 'PLAIN',
