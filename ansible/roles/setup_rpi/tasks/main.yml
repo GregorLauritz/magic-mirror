@@ -14,17 +14,9 @@
   ansible.builtin.file:
     path: "{{ default_working_dir }}"
     state: directory
-    mode: 0755
+    mode: "0755"
     owner: "{{ ansible_user }}"
-    group: "{{ ansible_user | default(ansible_user_id) }}"
-
-- name: Set ownership of magic mirror directory
-  ansible.builtin.file:
-    path: "{{ default_working_dir }}"
-    state: directory
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user | default(ansible_user_id) }}"
-    recurse: true
+    group: "{{ ansible_user }}"
 
 - name: Set OS var
   ansible.builtin.set_fact:
@@ -38,18 +30,18 @@
   ansible.builtin.copy:
     src: "{{ os_type }}/"
     dest: "{{ default_working_dir }}/"
-    mode: 0755
+    mode: "0755"
 
 - name: Install Python libraries
   ansible.builtin.pip:
     requirements: "{{ default_working_dir }}/requirements.txt"
-  ignore_errors: true
+  failed_when: false
 
 - name: Copy run script
   ansible.builtin.template:
     src: "{{ os_type }}/run.sh.j2"
     dest: "{{ default_working_dir }}/run.sh"
-    mode: 0755
+    mode: "0755"
 
 - name: Run OS specific tasks
   ansible.builtin.include_tasks: "{{ os_type }}.yml"
@@ -57,14 +49,18 @@
 - name: Install led service
   ansible.builtin.copy:
     src: disable-led.service
-    dest: /etc/systemd/system
+    dest: /etc/systemd/system/
     mode: "0644"
 
-- name: Enable & start service disable-led.service
-  ansible.builtin.service:
-    state: started
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
     daemon_reload: true
+
+- name: Enable and start service disable-led.service
+  ansible.builtin.systemd:
     name: disable-led.service
+    state: started
+    enabled: true
 
 - name: Unconditionally reboot the machine
   ansible.builtin.reboot:

@@ -5,25 +5,29 @@
 # Usage:
 #   ansible-playbook ansible/setup_env.yml
 #
+# Versions, scopes, and infrastructure defaults are sourced from:
+#   ansible/inventory/group_vars/all/main.yml
+#
 # Required inputs (prompted interactively):
-#   oauth2_client_id   - Google OAuth2 Client ID
-#   client_secret      - Google OAuth2 Client Secret
-#   geocode_api_key    - Geocode Maps API key (https://geocode.maps.co)
-#   domain             - Local domain suffix (default: fritz.box)
+#   oauth2_client_id - Google OAuth2 Client ID
+#   client_secret    - Google OAuth2 Client Secret
+#   geocode_api_key  - Geocode Maps API key (https://geocode.maps.co)
+#   user_domain      - Local domain suffix (overrides group_vars domain)
 #
-# Generated files (in docker-compose/):
-#   .env         - Docker image versions & MongoDB root credentials
-#   backend.env  - Backend service configuration
-#   frontend.env - Frontend service configuration
-#   proxy.env    - OAuth2-Proxy credentials
-#
-# Generated files (in oauth2-proxy/):
-#   oauth2-proxy.cfg - OAuth2-Proxy runtime configuration
+# Generated files (all git-ignored):
+#   docker-compose/.env         - Docker image versions & MongoDB root credentials
+#   docker-compose/backend.env  - Backend service configuration
+#   docker-compose/frontend.env - Frontend service configuration
+#   docker-compose/proxy.env    - OAuth2-Proxy credentials
+#   oauth2-proxy/oauth2-proxy.cfg
 
 - name: Setup Docker Compose environment files
   hosts: localhost
   connection: local
   gather_facts: true
+
+  vars_files:
+    - inventory/group_vars/all/main.yml
 
   vars_prompt:
     - name: oauth2_client_id
@@ -45,11 +49,7 @@
 
   vars:
     repo_root: "{{ playbook_dir | dirname }}"
-    pw_store_dir: "{{ playbook_dir }}/pwstore"
     server_fqdn: "{{ ansible_hostname | lower }}.{{ user_domain | lower }}"
-    node_version: "24-alpine3.23"
-    oauth2_proxy_version: "v7.13.0-alpine"
-    oauth2_scopes: "email profile https://www.googleapis.com/auth/calendar.readonly"
 
   tasks:
     - name: Ensure pwstore directory exists (stores generated secrets)
@@ -64,10 +64,11 @@
         dest: "{{ repo_root }}/docker-compose/.env"
         mode: "0600"
         content: |
-          NODE_IMG_VERSION={{ node_version }}
-          MONGO_ROOT_USER=mongoadmin
+          NODE_IMG_VERSION={{ node.version }}
+          MONGO_ROOT_USER={{ mongo.user }}
           MONGO_ROOT_PW={{ lookup('ansible.builtin.password', pw_store_dir + '/mongopw.txt', chars=['ascii_letters', 'digits'], length=32) }}
-          OAUTH2_PROXY_VERSION={{ oauth2_proxy_version }}
+          OAUTH2_PROXY_VERSION={{ oauth2_proxy.version }}
+      no_log: true
 
     # ----------------------------------------------------------- backend.env
     - name: Create docker-compose/backend.env
@@ -77,10 +78,11 @@
         content: |
           FRONTEND_URL=https://{{ server_fqdn }}
           ENABLE_HTTPS=true
-          MONGO_PORT=27017
-          MONGO_SSL=false
-          MONGO_HOSTNAME=mongo
+          MONGO_PORT={{ mongo.port }}
+          MONGO_SSL={{ mongo.ssl | to_json }}
+          MONGO_HOSTNAME={{ mongo.host }}
           GEOCODE_API_KEY={{ geocode_api_key }}
+      no_log: true
 
     # ---------------------------------------------------------- frontend.env
     - name: Create docker-compose/frontend.env
@@ -88,7 +90,7 @@
         dest: "{{ repo_root }}/docker-compose/frontend.env"
         mode: "0600"
         content: |
-          API_BACKEND_CONTEXT=/api
+          API_BACKEND_CONTEXT={{ backend_context }}
 
     # ------------------------------------------------------------- proxy.env
     - name: Create docker-compose/proxy.env
@@ -100,35 +102,14 @@
           OAUTH2_PROXY_CLIENT_SECRET="{{ client_secret }}"
           OAUTH2_PROXY_COOKIE_SECRET="{{ lookup('ansible.builtin.password', pw_store_dir + '/cookie.txt', chars=['ascii_letters', 'digits'], length=32) }}"
           OAUTH2_PROXY_EMAIL_DOMAINS="*"
+      no_log: true
 
     # ------------------------------------------------- oauth2-proxy/oauth2-proxy.cfg
     - name: Create oauth2-proxy/oauth2-proxy.cfg
-      ansible.builtin.copy:
+      ansible.builtin.template:
+        src: templates/oauth2-proxy.cfg.j2
         dest: "{{ repo_root }}/oauth2-proxy/oauth2-proxy.cfg"
         mode: "0600"
-        content: |
-          provider = "google"
-          api_routes = [
-            "^/api"
-          ]
-          cookie_secure = true
-          cookie_httponly = true
-          ssl_upstream_insecure_skip_verify = true
-          upstreams = [
-              "https://backend:3001/api/",
-              "http://frontend:3000/"
-          ]
-          tls_cert_file="/opt/ssl/{{ server_fqdn }}.pem"
-          tls_key_file="/opt/ssl/{{ server_fqdn }}.key"
-          pass_access_token = true
-          pass_authorization_header = true
-          cookie_csrf_per_request = true
-          cookie_csrf_expire = "5m"
-          cookie_refresh = "15m"
-          set_xauthrequest = true
-          set_authorization_header = true
-          skip_auth_preflight = true
-          scope = "{{ oauth2_scopes }}"
 
     # ---------------------------------------------------------------- summary
     - name: Environment file summary

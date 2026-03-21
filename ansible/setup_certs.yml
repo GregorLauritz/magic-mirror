@@ -5,18 +5,18 @@
 # Usage:
 #   ansible-playbook ansible/setup_certs.yml
 #
-# Variables (override via -e or edit group_vars):
-#   domain             - Local domain suffix (default: fritz.box)
-#   additional_hostnames - Extra SANs for the cert (default: localhost 127.0.0.1 ::1)
+# Override domain or additional SANs at runtime:
+#   ansible-playbook ansible/setup_certs.yml -e domain=example.local
 
 - name: Setup SSL certificates for local development
   hosts: localhost
   connection: local
   gather_facts: true
 
+  vars_files:
+    - inventory/group_vars/all/main.yml
+
   vars:
-    domain: "{{ domain | default('fritz.box') }}"
-    additional_hostnames: "localhost 127.0.0.1 ::1"
     repo_root: "{{ playbook_dir | dirname }}"
     server_fqdn: "{{ ansible_hostname | lower }}.{{ domain | lower }}"
 
@@ -91,7 +91,7 @@
 
     # ------------------------------------------------ backend certificate
     - name: Generate backend SSL certificate
-      ansible.builtin.command: >
+      ansible.builtin.command: >-
         mkcert
         -key-file {{ repo_root }}/backend/ssl/express.key
         -cert-file {{ repo_root }}/backend/ssl/express.pem
@@ -116,7 +116,7 @@
 
     # ------------------------------------------- oauth2-proxy certificate
     - name: Generate oauth2-proxy SSL certificate
-      ansible.builtin.command: >
+      ansible.builtin.command: >-
         mkcert
         -key-file {{ repo_root }}/oauth2-proxy/ssl/{{ server_fqdn }}.key
         -cert-file {{ repo_root }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem
@@ -124,7 +124,7 @@
       changed_when: true
 
     - name: Create oauth2-proxy certificate bundle (cert + CA)
-      ansible.builtin.shell: >
+      ansible.builtin.shell: >-
         cat {{ repo_root }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem
         {{ ca_root_path.stdout }}/rootCA.pem
         > {{ repo_root }}/oauth2-proxy/ssl/{{ server_fqdn }}.bundle.pem

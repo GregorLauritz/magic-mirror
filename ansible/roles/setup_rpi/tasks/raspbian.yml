@@ -15,4 +15,4 @@
   ansible.builtin.template:
     src: "{{ os_type }}/autostart.j2"
     dest: "{{ autostart_dir }}/autostart"
-    mode: 0755
+    mode: "0755"

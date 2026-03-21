@@ -1,0 +1,22 @@
+provider = "google"
+api_routes = [
+  "^/api"
+]
+cookie_secure = true
+cookie_httponly = true
+ssl_upstream_insecure_skip_verify = true
+upstreams = [
+    "https://backend:3001/api/",
+    "http://frontend:3000/"
+]
+tls_cert_file="/opt/ssl/{{ server_fqdn }}.pem"
+tls_key_file="/opt/ssl/{{ server_fqdn }}.key"
+pass_access_token = true
+pass_authorization_header = true
+cookie_csrf_per_request = true
+cookie_csrf_expire = "5m"
+cookie_refresh = "15m"
+set_xauthrequest = true
+set_authorization_header = true
+skip_auth_preflight = true
+scope = "{{ oauth2_proxy.scopes }}"
