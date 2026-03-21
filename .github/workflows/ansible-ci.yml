@@ -71,6 +71,7 @@ jobs:
         env:
           PY_COLORS: "1"
           ANSIBLE_FORCE_COLOR: "1"
+          ANSIBLE_ROLES_PATH: "${{ github.workspace }}/ansible/roles"
 
   # ---------------------------------------------------------------------------
   molecule-generate-certs:
@@ -101,6 +102,7 @@ jobs:
         env:
           PY_COLORS: "1"
           ANSIBLE_FORCE_COLOR: "1"
+          ANSIBLE_ROLES_PATH: "${{ github.workspace }}/ansible/roles"
 
   # ---------------------------------------------------------------------------
   molecule-setup-env:
@@ -131,6 +133,7 @@ jobs:
         env:
           PY_COLORS: "1"
           ANSIBLE_FORCE_COLOR: "1"
+          ANSIBLE_ROLES_PATH: "${{ github.workspace }}/ansible/roles"
 
   # ---------------------------------------------------------------------------
   molecule-setup-certs:
@@ -161,6 +164,7 @@ jobs:
         env:
           PY_COLORS: "1"
           ANSIBLE_FORCE_COLOR: "1"
+          ANSIBLE_ROLES_PATH: "${{ github.workspace }}/ansible/roles"
 
   # ---------------------------------------------------------------------------
   summary:
