@@ -1,0 +1,82 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    # ---------------------------------------------------------- file existence
+    - name: Stat all generated env files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: stat_results
+      loop:
+        - /tmp/test-env/docker-compose/.env
+        - /tmp/test-env/docker-compose/backend.env
+        - /tmp/test-env/docker-compose/frontend.env
+        - /tmp/test-env/docker-compose/proxy.env
+        - /tmp/test-env/oauth2-proxy/oauth2-proxy.cfg
+
+    - name: Assert all env files were created
+      ansible.builtin.assert:
+        that: item.stat.exists
+        fail_msg: "Expected file {{ item.item }} was not created"
+      loop: "{{ stat_results.results }}"
+
+    - name: Assert all env files have restricted permissions (0600)
+      ansible.builtin.assert:
+        that: item.stat.mode == '0600'
+        fail_msg: "{{ item.item }} has wrong permissions {{ item.stat.mode }}, expected 0600"
+      loop: "{{ stat_results.results }}"
+
+    # ----------------------------------------------------------- .env content
+    - name: Read .env
+      ansible.builtin.slurp:
+        src: /tmp/test-env/docker-compose/.env
+      register: dot_env
+
+    - name: Assert .env contains expected values
+      ansible.builtin.assert:
+        that:
+          - "'NODE_IMG_VERSION=24-alpine3.23' in (dot_env.content | b64decode)"
+          - "'MONGO_ROOT_USER=mongoadmin' in (dot_env.content | b64decode)"
+          - "'OAUTH2_PROXY_VERSION=v7.13.0-alpine' in (dot_env.content | b64decode)"
+          - "'MONGO_ROOT_PW' in (dot_env.content | b64decode)"
+
+    # ------------------------------------------------------ backend.env content
+    - name: Read backend.env
+      ansible.builtin.slurp:
+        src: /tmp/test-env/docker-compose/backend.env
+      register: backend_env
+
+    - name: Assert backend.env contains expected values
+      ansible.builtin.assert:
+        that:
+          - "'FRONTEND_URL=https://testhost.fritz.box' in (backend_env.content | b64decode)"
+          - "'ENABLE_HTTPS=true' in (backend_env.content | b64decode)"
+          - "'MONGO_HOSTNAME=mongo' in (backend_env.content | b64decode)"
+          - "'GEOCODE_API_KEY=test-api-key' in (backend_env.content | b64decode)"
+
+    # ----------------------------------------------------- frontend.env content
+    - name: Read frontend.env
+      ansible.builtin.slurp:
+        src: /tmp/test-env/docker-compose/frontend.env
+      register: frontend_env
+
+    - name: Assert frontend.env contains expected values
+      ansible.builtin.assert:
+        that:
+          - "'API_BACKEND_CONTEXT=/api' in (frontend_env.content | b64decode)"
+
+    # ----------------------------------------------- oauth2-proxy.cfg content
+    - name: Read oauth2-proxy.cfg
+      ansible.builtin.slurp:
+        src: /tmp/test-env/oauth2-proxy/oauth2-proxy.cfg
+      register: proxy_cfg
+
+    - name: Assert oauth2-proxy.cfg contains expected values
+      ansible.builtin.assert:
+        that:
+          - "'provider = \"google\"' in (proxy_cfg.content | b64decode)"
+          - "'testhost.fritz.box' in (proxy_cfg.content | b64decode)"
+          - "'email profile' in (proxy_cfg.content | b64decode)"
+          - "'pass_access_token = true' in (proxy_cfg.content | b64decode)"

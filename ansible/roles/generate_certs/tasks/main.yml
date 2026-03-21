@@ -1,11 +1,12 @@
 ---
-- name: Ensure ssl directories exist
+- name: Ensure required directories exist
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: "0755"
   loop:
     - "{{ certs_base_dir }}/backend/ssl"
+    - "{{ certs_base_dir }}/certs"
     - "{{ certs_base_dir }}/oauth2-proxy/ssl"
 
 - name: Get mkcert CA root path

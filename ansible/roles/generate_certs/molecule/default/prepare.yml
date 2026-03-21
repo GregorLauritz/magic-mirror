@@ -1,0 +1,28 @@
+---
+# Install mkcert before the role runs (generate_certs assumes mkcert is present).
+# Uses a pinned binary download for reproducibility in CI.
+- name: Prepare
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Install libnss3-tools (CA trust store support)
+      ansible.builtin.apt:
+        name: libnss3-tools
+        state: present
+        update_cache: true
+
+    - name: Download mkcert binary
+      ansible.builtin.get_url:
+        url: >-
+          https://github.com/FiloSottile/mkcert/releases/download/v1.4.4/mkcert-v1.4.4-linux-{{
+          'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}
+        dest: /usr/local/bin/mkcert
+        mode: "0755"
+
+    - name: Install mkcert root CA into system trust store
+      ansible.builtin.command: mkcert -install
+      changed_when: true
+      environment:
+        HOME: /root
+        JAVA_HOME: ""

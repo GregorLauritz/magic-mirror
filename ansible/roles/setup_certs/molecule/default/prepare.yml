@@ -1,0 +1,12 @@
+---
+# Refresh apt metadata so the role's apt install tasks can succeed.
+# mkcert installation itself is handled by the setup_certs role.
+- name: Prepare
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Refresh apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600

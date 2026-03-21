@@ -1,0 +1,13 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+
+  vars:
+    server_fqdn: testhost.fritz.box
+    certs_base_dir: /tmp/test-certs
+
+  roles:
+    - role: generate_certs
+      vars:
+        certs_base_dir: /tmp/test-certs

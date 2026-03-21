@@ -1,0 +1,22 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+
+  vars:
+    # Override repo_root so certs land in /tmp rather than relative to playbook_dir
+    repo_root: /tmp/test-certs
+
+  pre_tasks:
+    - name: Create required base directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - /tmp/test-certs/backend
+        - /tmp/test-certs/certs
+        - /tmp/test-certs/oauth2-proxy
+
+  roles:
+    - setup_certs

@@ -1,0 +1,79 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+
+  vars:
+    server_fqdn: testhost.fritz.box
+
+  tasks:
+    # ---------------------------------------------------------- file existence
+    - name: Stat all expected certificate files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: cert_files
+      loop:
+        - /tmp/test-certs/backend/ssl/express.pem
+        - /tmp/test-certs/backend/ssl/express.key
+        - /tmp/test-certs/oauth2-proxy/ssl/{{ server_fqdn }}.pem
+        - /tmp/test-certs/oauth2-proxy/ssl/{{ server_fqdn }}.key
+        - /tmp/test-certs/oauth2-proxy/ssl/{{ server_fqdn }}.bundle.pem
+        - /tmp/test-certs/backend/rootCA.pem
+        - /tmp/test-certs/certs/rootCA.pem
+        - /tmp/test-certs/oauth2-proxy/rootCA.pem
+
+    - name: Assert all certificate files were created
+      ansible.builtin.assert:
+        that: item.stat.exists
+        fail_msg: "Expected certificate file {{ item.item }} was not created"
+      loop: "{{ cert_files.results }}"
+
+    # --------------------------------------------------- certificate validity
+    - name: Verify backend certificate is a valid X.509 PEM
+      ansible.builtin.command: >-
+        openssl x509 -in /tmp/test-certs/backend/ssl/express.pem -noout -subject
+      changed_when: false
+      register: backend_cert_check
+
+    - name: Assert backend certificate is valid
+      ansible.builtin.assert:
+        that: backend_cert_check.rc == 0
+        fail_msg: "Backend certificate is not a valid X.509 PEM"
+
+    - name: Verify oauth2-proxy certificate is a valid X.509 PEM
+      ansible.builtin.command: >-
+        openssl x509 -in /tmp/test-certs/oauth2-proxy/ssl/{{ server_fqdn }}.pem -noout -subject
+      changed_when: false
+      register: proxy_cert_check
+
+    - name: Assert oauth2-proxy certificate is valid
+      ansible.builtin.assert:
+        that: proxy_cert_check.rc == 0
+        fail_msg: "OAuth2-Proxy certificate is not a valid X.509 PEM"
+
+    # ---------------------------------------------------- bundle verification
+    - name: Verify bundle contains two certificates
+      ansible.builtin.shell: >-
+        grep -c 'BEGIN CERTIFICATE' /tmp/test-certs/oauth2-proxy/ssl/{{ server_fqdn }}.bundle.pem
+      changed_when: false
+      register: bundle_cert_count
+
+    - name: Assert bundle contains exactly two certificates (cert + CA)
+      ansible.builtin.assert:
+        that: bundle_cert_count.stdout | int == 2
+        fail_msg: >-
+          Bundle should contain 2 certificates (cert + CA),
+          found {{ bundle_cert_count.stdout }}
+
+    # --------------------------------------------------- SAN verification
+    - name: Verify backend cert covers expected SANs
+      ansible.builtin.shell: >-
+        openssl x509 -in /tmp/test-certs/backend/ssl/express.pem -noout -text
+        | grep -A1 'Subject Alternative Name'
+      changed_when: false
+      register: backend_san
+
+    - name: Assert backend cert covers testhost.fritz.box
+      ansible.builtin.assert:
+        that: "'testhost.fritz.box' in backend_san.stdout"
+        fail_msg: "Backend cert does not include testhost.fritz.box in SANs"

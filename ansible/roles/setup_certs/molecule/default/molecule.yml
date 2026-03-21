@@ -1,0 +1,24 @@
+---
+driver:
+  name: docker
+
+platforms:
+  - name: instance
+    image: docker.io/ubuntu:24.04
+    pre_build_image: true
+
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      # Ensures generate_certs and other sibling roles are discoverable
+      roles_path: ../../..
+  inventory:
+    group_vars:
+      all:
+        domain: fritz.box
+        additional_hostnames: "localhost 127.0.0.1 ::1"
+        pw_store_dir: /tmp/pwstore
+
+verifier:
+  name: ansible
