@@ -1,14 +1,6 @@
 ---
 profile: basic
 
-# Paths to lint
-lint_paths:
-  - .
-
-# Roles path so lint can resolve include_role references
-roles_path:
-  - roles
-
 skip_list:
   # mkcert and openssl commands have no Ansible module equivalent
   - command-instead-of-module
