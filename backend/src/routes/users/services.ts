@@ -1,6 +1,6 @@
 import { ApiDtoUserSettings } from 'models/api/user_settings';
-import { DtoUserSettings, IDtoUserSettings } from 'models/mongo/user_settings';
-import { DtoUser } from 'models/mongo/users';
+import { DtoUserSettings, IDtoUserSettings } from 'models/db/user_settings';
+import { DtoUser } from 'models/db/users';
 import { LOGGER } from 'services/loggers';
 
 /**

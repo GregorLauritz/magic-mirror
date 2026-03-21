@@ -54,10 +54,10 @@ jobs:
         run: yarn test:coverage
         env:
           CI: true
-          MONGO_HOSTNAME: localhost
-          MONGO_PORT: 27017
-          MONGO_USERNAME: root
-          MONGO_PASSWORD: example
+          FERRETDB_HOSTNAME: localhost
+          FERRETDB_PORT: 27017
+          FERRETDB_USERNAME: root
+          FERRETDB_PASSWORD: example
 
       - name: Verify coverage threshold
         run: |

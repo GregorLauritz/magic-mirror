@@ -5,7 +5,7 @@ This document explains how the test mocking system works for the Magic Mirror ba
 ## Overview
 
 The backend tests now use **Vitest** with comprehensive mocking to prevent:
-1. **MongoDB connection attempts** during tests
+1. **FerretDB connection attempts** during tests
 2. **Real external API calls** to weather services, geocoding, etc.
 3. **Server actually starting** on a port
 
@@ -17,17 +17,17 @@ This file is automatically loaded before all tests via the `setupFiles` configur
 
 ## What's Mocked
 
-### 1. MongoDB Connection
+### 1. FerretDB Connection
 ```typescript
-vi.mock('../services/database/mongodb', () => {
-  class MockMongoDb {
+vi.mock('../services/database/ferretdb', () => {
+  class MockFerretDb {
     // Mock implementation that doesn't actually connect
   }
-  return { MongoDb: MockMongoDb };
+  return { FerretDb: MockFerretDb };
 });
 ```
 
-**Result**: Tests run without requiring a MongoDB instance.
+**Result**: Tests run without requiring a FerretDB instance.
 
 ### 2. Mongoose Connection and Models
 ```typescript
@@ -264,7 +264,7 @@ yarn test:ui
 - Ensure `beforeEach` is resetting the fetch mock
 
 ### MongoDB Connection Errors
-- Verify the mongodb mock is before the mongoose mock in setup.ts
+- Verify the ferretdb mock is before the mongoose mock in setup.ts
 - Check that vi.mock paths are correct relative to setup.ts location
 
 ## Further Reading

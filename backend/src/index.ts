@@ -1,4 +1,4 @@
-import { mongoDbData, SERVER_PORT } from 'config';
+import { ferretDbData, SERVER_PORT } from 'config';
 import { HttpServer } from 'services/server/http_server';
 import { default as WeatherRoute } from 'routes/weather';
 import { default as EventsRoute } from 'routes/events';
@@ -10,10 +10,10 @@ import { default as TrainsRoute } from 'routes/trains';
 import { NextFunction, Request, Response } from 'express';
 import { ApiError } from 'models/api/api_error';
 import { EXPRESS_ERROR_LOGGER, LOGGER } from 'services/loggers';
-import { MongoDb } from 'services/database/mongodb';
+import { FerretDb } from 'services/database/ferretdb';
 
-const mongoDb: MongoDb = new MongoDb(mongoDbData);
-const server = new HttpServer(mongoDb, SERVER_PORT);
+const ferretDb: FerretDb = new FerretDb(ferretDbData);
+const server = new HttpServer(ferretDb, SERVER_PORT);
 
 server.app.get('/api/health', (_req, res) => res.status(200).send('OK'));
 

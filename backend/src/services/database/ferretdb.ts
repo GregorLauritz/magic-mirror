@@ -2,11 +2,11 @@ import { Database, IDatabaseConnection } from 'services/database/database';
 import { connect, Mongoose } from 'mongoose';
 import { LOGGER } from 'services/loggers';
 
-export class MongoDb extends Database {
+export class FerretDb extends Database {
   private _connection: Mongoose | null = null;
 
   constructor(dbConnection: IDatabaseConnection) {
-    super(dbConnection, 'mongodb');
+    super(dbConnection, 'ferretdb');
   }
 
   protected buildConnectionString(dbConnection: IDatabaseConnection): string {
@@ -15,17 +15,17 @@ export class MongoDb extends Database {
     const options = dbConnection.options
       ? '?' + dbConnection.options.map((op) => `${op.name}=${op.value}`).join('&')
       : '';
-    return `${this._databaseType}://${credentials}@${dbConnection.hostname}:${dbConnection.port}/${dbConnection.database}${options}`;
+    return `mongodb://${credentials}@${dbConnection.hostname}:${dbConnection.port}/${dbConnection.database}${options}`;
   }
 
   protected initDatabaseConnection(): void {
     connect(this._connectionString)
       .then((con) => {
         this._connection = con;
-        LOGGER.info('MongoDB connection established successfully');
+        LOGGER.info('FerretDB connection established successfully');
       })
       .catch((error) => {
-        LOGGER.error('Failed to connect to MongoDB', { error });
+        LOGGER.error('Failed to connect to FerretDB', { error });
         throw error;
       });
   }

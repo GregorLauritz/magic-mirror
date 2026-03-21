@@ -98,7 +98,7 @@ backend/src/
 │   └── loggers.ts        # Winston logging
 ├── models/
 │   ├── api/              # API response DTOs
-│   └── mongo/            # Mongoose schemas (User, UserSettings)
+│   └── db/               # Mongoose schemas (User, UserSettings)
 └── tests/                # Mocha tests
 ```
 
@@ -222,13 +222,13 @@ FerretDB is a MongoDB-compatible database that translates MongoDB wire protocol 
    - Index: email (unique)
 
 **Connection:** Configured via env vars in `backend/src/config/index.ts`:
-- `MONGO_HOSTNAME` - Default: `ferretdb`
-- `MONGO_PORT` - Default: `27017` (FerretDB listens on MongoDB's default port)
-- `MONGO_USERNAME`, `MONGO_PASSWORD`
-- `DATABASE_TYPE` - Set to `ferretdb` (adds `authMechanism=PLAIN` for FerretDB)
-- `MONGO_SSL` - Set to `true` to enable TLS (default: `false`)
-- `MONGO_SSL_CA_FILE` - Path to CA cert for TLS verification (default: `/etc/ferretdb/rootCA.pem`)
-- Auth uses `authSource=admin`
+- `FERRETDB_HOSTNAME` - Default: `ferretdb`
+- `FERRETDB_PORT` - Default: `27017`
+- `FERRETDB_USERNAME`, `FERRETDB_PASSWORD`
+- `FERRETDB_DATABASE` - Database name
+- `FERRETDB_SSL` - Set to `true` to enable TLS (default: `false`)
+- `FERRETDB_SSL_CA_FILE` - Path to CA cert for TLS verification (default: `/etc/ferretdb/rootCA.pem`)
+- Auth uses `authSource=admin` with `authMechanism=PLAIN`
 
 **Data Storage:**
 - FerretDB data is stored in `/ferretdb/data/data.sqlite`
@@ -278,7 +278,7 @@ These limitations don't affect this application as it uses basic CRUD operations
 
 4. **Define models** in `backend/src/models/`
    - API DTOs in `models/api/`
-   - Mongoose schemas in `models/mongo/`
+   - Mongoose schemas in `models/db/`
 
 5. **Register route** in `backend/src/index.ts`:
    ```typescript

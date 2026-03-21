@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { ApiError } from 'models/api/api_error';
 import { ApiDtoUserSettings } from 'models/api/user_settings';
-import { IDtoUserSettings } from 'models/mongo/user_settings';
+import { IDtoUserSettings } from 'models/db/user_settings';
 import { getUserId } from 'services/headers';
 import { UserSettingsRepository } from './services';
 
