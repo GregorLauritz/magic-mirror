@@ -31,7 +31,8 @@
     -key-file {{ certs_base_dir }}/backend/ssl/express.key
     -cert-file {{ certs_base_dir }}/backend/ssl/express.pem
     {{ server_fqdn }} backend {{ additional_hostnames }}
-  changed_when: true
+  args:
+    creates: "{{ certs_base_dir }}/backend/ssl/express.pem"
 
 - name: Generate oauth2-proxy SSL certificate
   ansible.builtin.command: >-
@@ -39,11 +40,13 @@
     -key-file {{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.key
     -cert-file {{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem
     {{ server_fqdn }} {{ additional_hostnames }}
-  changed_when: true
+  args:
+    creates: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem"
 
 - name: Create oauth2-proxy certificate bundle (cert + CA)
   ansible.builtin.shell: >-
     cat {{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem
     {{ certs_base_dir }}/oauth2-proxy/rootCA.pem
     > {{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.bundle.pem
-  changed_when: true
+  args:
+    creates: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.bundle.pem"
