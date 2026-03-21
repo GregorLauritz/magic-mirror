@@ -9,10 +9,6 @@ platforms:
 
 provisioner:
   name: ansible
-  config_options:
-    defaults:
-      # Ensures generate_env_files and other sibling roles are discoverable
-      roles_path: ../../..
   inventory:
     group_vars:
       all:

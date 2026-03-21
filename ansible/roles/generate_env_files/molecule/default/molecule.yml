@@ -9,10 +9,6 @@ platforms:
 
 provisioner:
   name: ansible
-  config_options:
-    defaults:
-      # Ensure sibling roles (none needed here, but consistent across scenarios)
-      roles_path: ../../..
   inventory:
     group_vars:
       all:

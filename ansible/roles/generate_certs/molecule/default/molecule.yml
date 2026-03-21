@@ -9,9 +9,6 @@ platforms:
 
 provisioner:
   name: ansible
-  config_options:
-    defaults:
-      roles_path: ../../..
   inventory:
     group_vars:
       all:
