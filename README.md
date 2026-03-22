@@ -161,4 +161,4 @@ Configure your inventory hosts and variables in `ansible/inventory/`.
 
 ---
 
-[Impressum / Privacy Policy](impressum.md)
+[Impressum](impressum.md) | [Privacy Policy](privacy.md)
