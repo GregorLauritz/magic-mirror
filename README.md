@@ -158,3 +158,7 @@ ansible-playbook ansible/rpi_setup.yml -i ansible/inventory/
 ```
 
 Configure your inventory hosts and variables in `ansible/inventory/`.
+
+---
+
+[Impressum](impressum.md)
