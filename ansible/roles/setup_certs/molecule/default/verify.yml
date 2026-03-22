@@ -1,0 +1,65 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    # -------------------------------------------------- mkcert was installed
+    - name: Check mkcert is in PATH
+      ansible.builtin.command: which mkcert
+      changed_when: false
+      register: mkcert_which
+      failed_when: false
+
+    - name: Assert mkcert is installed
+      ansible.builtin.assert:
+        that: mkcert_which.rc == 0
+        fail_msg: "mkcert was not found in PATH (apt installs to /usr/bin, binary installs to /usr/local/bin)"
+
+    # --------------------------------------------------- cert files exist
+    - name: Stat all expected certificate files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: cert_files
+      loop:
+        - /tmp/test-certs/backend/ssl/express.pem
+        - /tmp/test-certs/backend/ssl/express.key
+        - /tmp/test-certs/backend/rootCA.pem
+        - /tmp/test-certs/certs/rootCA.pem
+        - /tmp/test-certs/oauth2-proxy/rootCA.pem
+
+    - name: Assert all certificate files were created
+      ansible.builtin.assert:
+        that: item.stat.exists
+        fail_msg: "Expected file {{ item.item }} was not created"
+      loop: "{{ cert_files.results }}"
+
+    # --------------------------------------------------- cert is valid PEM
+    - name: Verify backend cert is a valid X.509 PEM
+      ansible.builtin.command: >-
+        openssl x509 -in /tmp/test-certs/backend/ssl/express.pem -noout -subject
+      changed_when: false
+      register: cert_check
+
+    - name: Assert backend cert is valid
+      ansible.builtin.assert:
+        that: cert_check.rc == 0
+        fail_msg: "Backend certificate is not a valid X.509 PEM"
+
+    # ------------------------------------------ rootCA consistency check
+    - name: Read backend rootCA fingerprint
+      ansible.builtin.command: >-
+        openssl x509 -in /tmp/test-certs/backend/rootCA.pem -noout -fingerprint
+      changed_when: false
+      register: backend_ca_fp
+
+    - name: Read oauth2-proxy rootCA fingerprint
+      ansible.builtin.command: >-
+        openssl x509 -in /tmp/test-certs/oauth2-proxy/rootCA.pem -noout -fingerprint
+      changed_when: false
+      register: proxy_ca_fp
+
+    - name: Assert all rootCA copies are identical
+      ansible.builtin.assert:
+        that: backend_ca_fp.stdout == proxy_ca_fp.stdout
+        fail_msg: "rootCA.pem copies differ between backend/ and oauth2-proxy/"

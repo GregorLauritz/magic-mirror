@@ -1,0 +1,15 @@
+---
+# Bootstrap Python3 then refresh apt metadata so the role's tasks can succeed.
+- name: Prepare
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Bootstrap Python3 and sudo (not pre-installed in ubuntu:24.04 image)
+      ansible.builtin.raw: apt-get update -qq && apt-get install -y python3 sudo
+      changed_when: true
+
+    - name: Refresh apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600

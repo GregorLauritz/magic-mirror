@@ -1,0 +1,27 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+
+  vars:
+    # Normally supplied via vars_prompt in setup_env.yml
+    oauth2_client_id: test-client-id
+    client_secret: test-secret
+    geocode_api_key: test-api-key
+    server_fqdn: testhost.fritz.box
+
+  pre_tasks:
+    - name: Create required output directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - /tmp/test-env/docker-compose
+        - /tmp/test-env/oauth2-proxy
+        - /tmp/pwstore
+
+  roles:
+    - role: generate_env_files
+      vars:
+        env_base_dir: /tmp/test-env

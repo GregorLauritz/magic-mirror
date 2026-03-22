@@ -1,0 +1,8 @@
+---
+profile: basic
+
+skip_list:
+  # mkcert and openssl commands have no Ansible module equivalent
+  - command-instead-of-module
+  # Long mkcert command lines exceed the default line limit
+  - yaml[line-length]

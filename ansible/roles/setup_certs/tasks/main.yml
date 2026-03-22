@@ -1,0 +1,74 @@
+---
+# ------------------------------------------------------------------ mkcert
+- name: Check if mkcert is already installed
+  ansible.builtin.command: which mkcert
+  register: mkcert_check
+  changed_when: false
+  failed_when: false
+
+- name: Install mkcert on macOS via Homebrew
+  ansible.builtin.command: brew install mkcert
+  changed_when: true
+  when:
+    - mkcert_check.rc != 0
+    - ansible_os_family == "Darwin"
+
+- name: Install mkcert on Debian/Ubuntu via apt
+  ansible.builtin.apt:
+    name:
+      - mkcert
+      - libnss3-tools  # needed for Firefox trust store
+    state: present
+    update_cache: true
+  become: true
+  register: apt_mkcert
+  failed_when: false
+  when:
+    - mkcert_check.rc != 0
+    - ansible_os_family == "Debian"
+
+- name: Download mkcert binary (Debian/Ubuntu fallback if not in apt)
+  when:
+    - mkcert_check.rc != 0
+    - ansible_os_family == "Debian"
+    - apt_mkcert is failed or apt_mkcert.rc is defined
+  block:
+    - name: Fetch latest mkcert release info
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/FiloSottile/mkcert/releases/latest
+        return_content: true
+      register: mkcert_release
+
+    - name: Set mkcert binary filename
+      ansible.builtin.set_fact:
+        mkcert_bin: >-
+          mkcert-{{ mkcert_release.json.tag_name }}-linux-{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}
+
+    - name: Download and install mkcert binary
+      ansible.builtin.get_url:
+        url: "https://github.com/FiloSottile/mkcert/releases/download/\
+              {{ mkcert_release.json.tag_name }}/{{ mkcert_bin }}"
+        dest: /usr/local/bin/mkcert
+        mode: "0755"
+      become: true
+
+# ------------------------------------------------------- root CA install
+- name: Install mkcert root CA into system trust store
+  ansible.builtin.command: mkcert -install
+  changed_when: false
+
+# ------------------------------------------------------- cert generation
+- name: Generate certificates
+  ansible.builtin.include_role:
+    name: generate_certs
+  vars:
+    certs_base_dir: "{{ repo_root }}"
+
+# ---------------------------------------------------------------- summary
+- name: Certificate summary
+  ansible.builtin.debug:
+    msg:
+      - "Certificates generated for: {{ server_fqdn }}"
+      - "Backend cert:       backend/ssl/express.pem"
+      - "OAuth2-Proxy cert:  oauth2-proxy/ssl/{{ server_fqdn }}.pem"
+      - "Root CA copied to:  backend/, certs/, oauth2-proxy/"

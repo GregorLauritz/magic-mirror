@@ -14,6 +14,7 @@
   ansible.builtin.service:
     name: "{{ service_name }}"
     state: stopped
+  failed_when: false  # service may not exist on first run
 
 - name: Add the user
   ansible.builtin.user:
@@ -26,7 +27,7 @@
   ansible.builtin.file:
     state: absent
     path: "{{ work_dir }}/{{ item }}"
-  with_items: "{{ relevant_code_dirs }}"
+  loop: "{{ relevant_code_dirs }}"
 
 - name: Copy code to remote
   ansible.builtin.synchronize:
@@ -34,7 +35,7 @@
     dest: "{{ work_dir }}"
     rsync_opts:
       - "--exclude=node_modules --exclude=dist --exclude='*.pem' --exclude='*.crt' --exclude='*.key'"
-  with_items: "{{ relevant_code_dirs }}"
+  loop: "{{ relevant_code_dirs }}"
 
 - name: Create directory for mongo
   ansible.builtin.file:
@@ -44,73 +45,38 @@
 
 - name: Install service
   ansible.builtin.template:
-    src: "{{ service_name }}.service.j2"
+    src: magic-mirror-server.service.j2
     dest: "/etc/systemd/system/{{ service_name }}.service"
     mode: "0644"
 
-- name: Install env files
-  ansible.builtin.template:
-    src: "{{ item.name }}.j2"
-    dest: "{{ work_dir }}/{{ item.dest }}/{{ item.name }}"
-    mode: "0755"
-    owner: "{{ user_name }}"
-    group: "{{ user_name }}"
-  become: true
-  with_items:
-    - name: .env
-      dest: docker-compose
-    - name: backend.env
-      dest: docker-compose
-    - name: frontend.env
-      dest: docker-compose
-    - name: proxy.env
-      dest: docker-compose
-    - name: oauth2-proxy.cfg
-      dest: oauth2-proxy
+- name: Generate environment files
+  ansible.builtin.include_role:
+    name: generate_env_files
+  vars:
+    env_base_dir: "{{ work_dir }}"
+    env_file_owner: "{{ user_name }}"
+    env_file_group: "{{ user_name }}"
 
-- name: Get path to mkcert root CA
-  ansible.builtin.command: mkcert -CAROOT
-  changed_when: false
-  register: ca_cert_path
+- name: Generate SSL certificates
+  ansible.builtin.include_role:
+    name: generate_certs
+  vars:
+    certs_base_dir: "{{ work_dir }}"
 
-- name: Copy CA cert
-  ansible.builtin.copy:
-    src: "{{ ca_cert_path.stdout }}/rootCA.pem"
-    dest: "{{ work_dir }}/{{ item }}"
-    mode: "0755"
-    owner: "{{ user_name }}"
-    group: "{{ user_name }}"
-    remote_src: true
-  with_items:
-    - certs
-    - backend
-    - oauth2-proxy
-
-- name: Install certificate
-  environment:
-    PARENT_DIRECTORY: "{{ work_dir }}"
-    HOSTNAME: "{{ server_fqdn }}"
-  ansible.builtin.command: "{{ item }}"
-  changed_when: true
-  with_items:
-    - mkcert -key-file $PARENT_DIRECTORY/backend/ssl/express.key -cert-file $PARENT_DIRECTORY/backend/ssl/express.pem $HOSTNAME backend {{ addtional_hostnames }}
-    - mkcert -key-file $PARENT_DIRECTORY/oauth2-proxy/ssl/$HOSTNAME.key -cert-file $PARENT_DIRECTORY/oauth2-proxy/ssl/$HOSTNAME.pem $HOSTNAME {{ addtional_hostnames }}
-    - cp $PARENT_DIRECTORY/oauth2-proxy/ssl/$HOSTNAME.pem $PARENT_DIRECTORY/oauth2-proxy/ssl/$HOSTNAME.bundle.pem
-    - echo "$(cat $PARENT_DIRECTORY/oauth2-proxy/rootCA.pem)" >> $PARENT_DIRECTORY/oauth2-proxy/ssl/$HOSTNAME.bundle.pem
-
-- name: Chown dir {{ work_dir }}
-  file:
+- name: Set ownership of {{ work_dir }}
+  ansible.builtin.file:
     path: "{{ work_dir }}"
     owner: "{{ user_name }}"
     group: "{{ user_name }}"
     mode: "0755"
     recurse: true
 
-- name: Enable & start service {{ service_name }}
-  ansible.builtin.service:
-    state: "{{ item }}"
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
     daemon_reload: true
+
+- name: Enable and start service {{ service_name }}
+  ansible.builtin.systemd:
     name: "{{ service_name }}"
-  with_items:
-    - reloaded
-    - started
+    state: started
+    enabled: true

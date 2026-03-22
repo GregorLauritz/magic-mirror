@@ -1,0 +1,7 @@
+---
+# Base directory for cert outputs. Callers must override:
+#   - setup_certs   sets certs_base_dir to repo_root (local dev)
+#   - setup_backend sets certs_base_dir to work_dir (remote server)
+certs_base_dir: "{{ repo_root | default(work_dir) }}"
+
+server_fqdn: "{{ ansible_hostname | lower }}.{{ domain | lower }}"

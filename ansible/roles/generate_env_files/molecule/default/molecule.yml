@@ -1,0 +1,33 @@
+---
+driver:
+  name: docker
+
+platforms:
+  - name: instance
+    image: docker.io/ubuntu:24.04
+    pre_build_image: true
+
+provisioner:
+  name: ansible
+  inventory:
+    group_vars:
+      all:
+        # Simulate ansible/inventory/group_vars/all/main.yml
+        domain: fritz.box
+        additional_hostnames: "localhost 127.0.0.1 ::1"
+        mongo:
+          user: mongoadmin
+          host: mongo
+          ssl: false
+          port: 27017
+        oauth2_proxy:
+          client_id: test-client-id
+          scopes: "email profile https://www.googleapis.com/auth/calendar.readonly"
+          version: v7.13.0-alpine
+        backend_context: "/api"
+        node:
+          version: 24-alpine3.23
+        pw_store_dir: /tmp/pwstore
+
+verifier:
+  name: ansible

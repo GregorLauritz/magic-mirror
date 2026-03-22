@@ -1,0 +1,17 @@
+---
+# Generates locally-trusted SSL certificates for local development.
+# Installs mkcert automatically if not present (supports Ubuntu, Debian, macOS).
+#
+# Usage:
+#   ansible-playbook -i ansible/inventory/inventory ansible/setup_certs.yml
+#
+# Override domain at runtime:
+#   ansible-playbook -i ansible/inventory/inventory ansible/setup_certs.yml -e domain=example.local
+
+- name: Setup SSL certificates for local development
+  hosts: local
+  connection: local
+  gather_facts: true
+
+  roles:
+    - setup_certs

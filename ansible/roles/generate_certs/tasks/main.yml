@@ -1,0 +1,52 @@
+---
+- name: Ensure required directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ certs_base_dir }}/backend/ssl"
+    - "{{ certs_base_dir }}/certs"
+    - "{{ certs_base_dir }}/oauth2-proxy/ssl"
+
+- name: Get mkcert CA root path
+  ansible.builtin.command: mkcert -CAROOT
+  changed_when: false
+  register: ca_root_path
+
+- name: Copy rootCA.pem to required locations
+  ansible.builtin.copy:
+    src: "{{ ca_root_path.stdout }}/rootCA.pem"
+    dest: "{{ certs_base_dir }}/{{ item }}/rootCA.pem"
+    mode: "0644"
+    remote_src: "{{ (ansible_connection != 'local') | bool }}"
+  loop:
+    - backend
+    - certs
+    - oauth2-proxy
+
+- name: Generate backend SSL certificate
+  ansible.builtin.command: >-
+    mkcert
+    -key-file {{ certs_base_dir }}/backend/ssl/express.key
+    -cert-file {{ certs_base_dir }}/backend/ssl/express.pem
+    {{ server_fqdn }} backend {{ additional_hostnames }}
+  args:
+    creates: "{{ certs_base_dir }}/backend/ssl/express.pem"
+
+- name: Generate oauth2-proxy SSL certificate
+  ansible.builtin.command: >-
+    mkcert
+    -key-file {{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.key
+    -cert-file {{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem
+    {{ server_fqdn }} {{ additional_hostnames }}
+  args:
+    creates: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem"
+
+- name: Create oauth2-proxy certificate bundle (cert + CA)
+  ansible.builtin.shell: >-
+    cat {{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem
+    {{ certs_base_dir }}/oauth2-proxy/rootCA.pem
+    > {{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.bundle.pem
+  args:
+    creates: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.bundle.pem"
