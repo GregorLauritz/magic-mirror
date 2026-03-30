@@ -34,7 +34,7 @@ RUN yarn build
 # =============================================================================
 # Stage 2: Production - Serve with Nginx
 # =============================================================================
-FROM nginx:1.29.6-alpine3.23
+FROM nginx:1.29.7-alpine3.23
 
 # Metadata labels for security scanning and documentation
 LABEL maintainer="magic-mirror" \
