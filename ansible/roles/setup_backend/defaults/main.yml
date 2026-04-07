@@ -5,7 +5,7 @@ relevant_code_dirs:
   - frontend
   - oauth2-proxy
   - certs
-  - docker-compose
+  - k8s
 
 server_fqdn: "{{ ansible_hostname | lower }}.{{ domain | lower }}"
 user_name: magicmirror

@@ -1,0 +1,116 @@
+---
+- name: Generate MongoDB root password
+  ansible.builtin.set_fact:
+    mongo_root_pw: "{{ lookup('ansible.builtin.password', pw_store_dir + '/mongopw.txt', chars=['ascii_letters', 'digits'], length=32) }}"
+  no_log: true
+
+- name: Generate OAuth2 cookie secret
+  ansible.builtin.set_fact:
+    oauth2_cookie_secret: "{{ lookup('ansible.builtin.password', pw_store_dir + '/cookie.txt', chars=['ascii_letters', 'digits'], length=32) }}"
+  no_log: true
+
+- name: Read backend TLS certificate
+  ansible.builtin.slurp:
+    src: "{{ certs_base_dir }}/backend/ssl/express.pem"
+  register: backend_cert_pem_raw
+
+- name: Read backend TLS key
+  ansible.builtin.slurp:
+    src: "{{ certs_base_dir }}/backend/ssl/express.key"
+  register: backend_cert_key_raw
+
+- name: Read root CA certificate
+  ansible.builtin.slurp:
+    src: "{{ certs_base_dir }}/certs/rootCA.pem"
+  register: root_ca_pem_raw
+
+- name: Read OAuth2-Proxy TLS certificate
+  ansible.builtin.slurp:
+    src: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem"
+  register: oauth2_cert_pem_raw
+
+- name: Read OAuth2-Proxy TLS key
+  ansible.builtin.slurp:
+    src: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.key"
+  register: oauth2_cert_key_raw
+
+- name: Set certificate facts (base64-encoded for k8s secrets)
+  ansible.builtin.set_fact:
+    backend_cert_pem: "{{ backend_cert_pem_raw.content }}"
+    backend_cert_key: "{{ backend_cert_key_raw.content }}"
+    root_ca_pem: "{{ root_ca_pem_raw.content }}"
+    oauth2_cert_pem: "{{ oauth2_cert_pem_raw.content }}"
+    oauth2_cert_key: "{{ oauth2_cert_key_raw.content }}"
+  no_log: true
+
+- name: Create rendered manifests directory
+  ansible.builtin.file:
+    path: "{{ k8s_manifest_dir }}"
+    state: directory
+    mode: "0700"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+
+- name: Render templated manifests (Jinja2)
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "{{ k8s_manifest_dir }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    mode: "0600"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+  with_fileglob:
+    - "{{ playbook_dir | dirname }}/k8s/templates/*.j2"
+  no_log: true
+
+- name: Copy static manifests
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ k8s_manifest_dir }}/{{ item | basename }}"
+    mode: "0600"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+  with_fileglob:
+    - "{{ playbook_dir | dirname }}/k8s/templates/*.yml"
+
+- name: Apply namespace
+  ansible.builtin.command: "{{ kubectl_bin }} apply -f {{ k8s_manifest_dir }}/namespace.yml"
+  changed_when: true
+
+- name: Apply secrets and configmaps
+  ansible.builtin.command: "{{ kubectl_bin }} apply -f {{ k8s_manifest_dir }}/{{ item }}"
+  loop:
+    - secrets.yml
+    - configmaps.yml
+  changed_when: true
+  no_log: true
+
+- name: Apply persistent volume claims
+  ansible.builtin.command: "{{ kubectl_bin }} apply -f {{ k8s_manifest_dir }}/mongo-pvc.yml"
+  changed_when: true
+
+- name: Apply workloads and services
+  ansible.builtin.command: "{{ kubectl_bin }} apply -f {{ k8s_manifest_dir }}/{{ item }}"
+  loop:
+    - mongo.yml
+    - backend.yml
+    - frontend.yml
+    - oauth2-proxy.yml
+  changed_when: true
+
+- name: Wait for deployments to be ready
+  ansible.builtin.command: >-
+    {{ kubectl_bin }} rollout status deployment/{{ item }}
+    -n magic-mirror --timeout=120s
+  loop:
+    - mongo
+    - backend
+    - frontend
+    - oauth2-proxy
+  changed_when: false
+  retries: 3
+  delay: 10
+
+- name: Clean up rendered manifests
+  ansible.builtin.file:
+    path: "{{ k8s_manifest_dir }}"
+    state: absent

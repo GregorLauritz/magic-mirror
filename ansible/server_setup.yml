@@ -1,5 +1,5 @@
 ---
-- name: Deploy Magic Mirror to backend server
+- name: Deploy Magic Mirror to backend server via k3s
   hosts: backend_server
   gather_facts: true
   become: true
@@ -12,6 +12,11 @@
     - name: geocode_api_key
       prompt: "Geocode Maps API Key"
       private: true
+
+    - name: registry_url
+      prompt: "Container registry URL (e.g. registry.example.com)"
+      private: false
+      default: "{{ registry_url }}"
 
   roles:
     - setup_backend

@@ -1,7 +1,6 @@
 ---
 required_backend_packages:
-  - docker.io
-  - docker-compose-plugin
+  - curl
   - mkcert
   - rsync
 
@@ -38,3 +37,7 @@ node:
   version: 24-alpine3.23
 
 backend_url: "https://nuc.{{ domain }}"
+
+# Container registry for k3s image pulls
+registry_url: "registry.example.com"
+registry_insecure: false
