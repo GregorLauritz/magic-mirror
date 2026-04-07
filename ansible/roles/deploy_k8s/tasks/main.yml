@@ -28,19 +28,21 @@
   ansible.builtin.slurp:
     src: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem"
   register: oauth2_cert_pem_raw
+  when: not letsencrypt_enabled | default(false)
 
 - name: Read OAuth2-Proxy TLS key
   ansible.builtin.slurp:
     src: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.key"
   register: oauth2_cert_key_raw
+  when: not letsencrypt_enabled | default(false)
 
 - name: Set certificate facts (base64-encoded for k8s secrets)
   ansible.builtin.set_fact:
     backend_cert_pem: "{{ backend_cert_pem_raw.content }}"
     backend_cert_key: "{{ backend_cert_key_raw.content }}"
     root_ca_pem: "{{ root_ca_pem_raw.content }}"
-    oauth2_cert_pem: "{{ oauth2_cert_pem_raw.content }}"
-    oauth2_cert_key: "{{ oauth2_cert_key_raw.content }}"
+    oauth2_cert_pem: "{{ oauth2_cert_pem_raw.content | default('') }}"
+    oauth2_cert_key: "{{ oauth2_cert_key_raw.content | default('') }}"
   no_log: true
 
 - name: Create rendered manifests directory
@@ -83,6 +85,18 @@
     - configmaps.yml
   changed_when: true
   no_log: true
+
+- name: Apply cert-manager resources (Let's Encrypt)
+  ansible.builtin.command: "{{ kubectl_bin }} apply -f {{ k8s_manifest_dir }}/cert-manager.yml"
+  changed_when: true
+  when: letsencrypt_enabled | default(false)
+
+- name: Wait for Let's Encrypt certificate to be ready
+  ansible.builtin.command: >-
+    {{ kubectl_bin }} wait certificate/magic-mirror-tls
+    -n magic-mirror --for=condition=Ready --timeout=300s
+  changed_when: false
+  when: letsencrypt_enabled | default(false)
 
 - name: Apply persistent volume claims
   ansible.builtin.command: "{{ kubectl_bin }} apply -f {{ k8s_manifest_dir }}/mongo-pvc.yml"

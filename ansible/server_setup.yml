@@ -18,5 +18,20 @@
       private: false
       default: "{{ registry_url }}"
 
+    - name: letsencrypt_enabled
+      prompt: "Enable Let's Encrypt TLS? (true/false)"
+      private: false
+      default: "false"
+
+    - name: letsencrypt_email
+      prompt: "Let's Encrypt email (required if enabled, press Enter to skip)"
+      private: false
+      default: ""
+
+    - name: letsencrypt_domain
+      prompt: "Public domain for Let's Encrypt (required if enabled, press Enter to skip)"
+      private: false
+      default: ""
+
   roles:
     - setup_backend

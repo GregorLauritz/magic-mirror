@@ -24,7 +24,7 @@
       ansible.builtin.command: /tmp/k3s-install.sh
       environment:
         INSTALL_K3S_VERSION: "{{ k3s_version }}"
-        INSTALL_K3S_EXEC: "server --disable traefik"
+        INSTALL_K3S_EXEC: "server --disable traefik --flannel-backend=none --disable-network-policy"
       changed_when: true
 
     - name: Remove install script
@@ -75,3 +75,13 @@
     path: "/home/{{ user_name }}/.bashrc"
     line: 'export KUBECONFIG="$HOME/.kube/config"'
     state: present
+
+# --- Cilium CNI with WireGuard encryption ---
+
+- name: Install Cilium CLI
+  ansible.builtin.include_tasks: cilium.yml
+
+# --- cert-manager for Let's Encrypt ---
+
+- name: Install cert-manager
+  ansible.builtin.include_tasks: cert_manager.yml

@@ -41,3 +41,12 @@ backend_url: "https://nuc.{{ domain }}"
 # Container registry for k3s image pulls
 registry_url: "registry.example.com"
 registry_insecure: false
+
+# Let's Encrypt configuration
+# Enable when you have a publicly-resolvable domain for the cluster.
+# The HTTP-01 solver requires port 80 to be reachable from the internet.
+# For local domains (e.g. *.fritz.box), leave disabled and use mkcert certs.
+letsencrypt_enabled: false
+letsencrypt_email: ""
+letsencrypt_domain: ""
+letsencrypt_issuer: letsencrypt-staging

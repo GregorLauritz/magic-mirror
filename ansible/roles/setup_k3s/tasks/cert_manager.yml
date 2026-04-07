@@ -1,0 +1,23 @@
+---
+- name: Check if cert-manager namespace exists
+  ansible.builtin.command: k3s kubectl get namespace cert-manager
+  changed_when: false
+  failed_when: false
+  register: cert_manager_ns
+
+- name: Install cert-manager
+  when: cert_manager_ns.rc != 0
+  block:
+    - name: Apply cert-manager CRDs and resources
+      ansible.builtin.command: >-
+        k3s kubectl apply -f
+        https://github.com/cert-manager/cert-manager/releases/download/{{ cert_manager_version }}/cert-manager.yaml
+      changed_when: true
+
+    - name: Wait for cert-manager webhook to be ready
+      ansible.builtin.command: >-
+        k3s kubectl rollout status deployment/cert-manager-webhook
+        -n cert-manager --timeout=120s
+      changed_when: false
+      retries: 3
+      delay: 10

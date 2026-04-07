@@ -36,8 +36,13 @@ data:
         "https://backend:3001/api/",
         "http://frontend:3000/"
     ]
+{% if letsencrypt_enabled | default(false) %}
+    tls_cert_file="/opt/ssl/tls.crt"
+    tls_key_file="/opt/ssl/tls.key"
+{% else %}
     tls_cert_file="/opt/ssl/{{ server_fqdn }}.pem"
     tls_key_file="/opt/ssl/{{ server_fqdn }}.key"
+{% endif %}
     pass_access_token = true
     pass_authorization_header = true
     cookie_csrf_per_request = true
