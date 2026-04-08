@@ -21,7 +21,3 @@ updates:
     directory: "/backend/docker"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "docker"
-    directory: "/docker-compose"
-    schedule:
-      interval: "weekly"
