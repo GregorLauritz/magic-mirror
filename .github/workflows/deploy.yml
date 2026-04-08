@@ -1,0 +1,250 @@
+name: Build & Push Container Images
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "oauth2-proxy/**"
+      - ".github/workflows/deploy.yml"
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/magic-mirror
+
+jobs:
+  # ---------------------------------------------------------------------------
+  changes:
+    name: Detect changed components
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      oauth2-proxy: ${{ steps.filter.outputs.oauth2-proxy }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Detect path changes
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+            oauth2-proxy:
+              - 'oauth2-proxy/**'
+
+  # ---------------------------------------------------------------------------
+  build-backend:
+    name: Build backend
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Verify no secrets in build context
+        run: |
+          cd backend
+          if ls ssl/*.pem ssl/*.key ssl/*.crt 2>/dev/null; then
+            echo "::error::SSL certificates found in backend build context"
+            exit 1
+          fi
+          if ls .env* 2>/dev/null; then
+            echo "::error::Environment files found in backend build context"
+            exit 1
+          fi
+          echo "Build context is clean"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198e362a7d2c83 # v6.18.0
+        with:
+          context: ./backend
+          file: ./backend/docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------------
+  build-frontend:
+    name: Build frontend
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Verify no secrets in build context
+        run: |
+          cd frontend
+          if ls *.pem *.key *.crt 2>/dev/null; then
+            echo "::error::Certificates found in frontend build context"
+            exit 1
+          fi
+          if ls .env* 2>/dev/null; then
+            echo "::error::Environment files found in frontend build context"
+            exit 1
+          fi
+          echo "Build context is clean"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198e362a7d2c83 # v6.18.0
+        with:
+          context: ./frontend
+          file: ./frontend/docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------------
+  build-oauth2-proxy:
+    name: Build oauth2-proxy
+    needs: changes
+    if: needs.changes.outputs.oauth2-proxy == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Verify no secrets in build context
+        run: |
+          cd oauth2-proxy
+          if ls ssl/*.pem ssl/*.key ssl/*.crt 2>/dev/null; then
+            echo "::error::SSL certificates found in oauth2-proxy build context"
+            exit 1
+          fi
+          if [ -f oauth2-proxy.cfg ]; then
+            echo "::error::Config file found in oauth2-proxy build context"
+            exit 1
+          fi
+          echo "Build context is clean"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-oauth2-proxy
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198e362a7d2c83 # v6.18.0
+        with:
+          context: ./oauth2-proxy
+          file: ./oauth2-proxy/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------------
+  summary:
+    name: Deploy Summary
+    runs-on: ubuntu-latest
+    permissions: {}
+    needs:
+      - changes
+      - build-backend
+      - build-frontend
+      - build-oauth2-proxy
+    if: always()
+
+    steps:
+      - name: Check job status
+        run: |
+          echo "=== Build Results ==="
+          echo "Backend:      ${{ needs.build-backend.result || 'skipped (no changes)' }}"
+          echo "Frontend:     ${{ needs.build-frontend.result || 'skipped (no changes)' }}"
+          echo "OAuth2-Proxy: ${{ needs.build-oauth2-proxy.result || 'skipped (no changes)' }}"
+
+          FAILED=false
+          for RESULT in "${{ needs.build-backend.result }}" "${{ needs.build-frontend.result }}" "${{ needs.build-oauth2-proxy.result }}"; do
+            if [ "$RESULT" = "failure" ]; then
+              FAILED=true
+            fi
+          done
+
+          if [ "$FAILED" = "true" ]; then
+            echo "::error::One or more image builds failed"
+            exit 1
+          fi
+          echo "All builds passed or were skipped"

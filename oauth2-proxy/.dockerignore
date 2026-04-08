@@ -1,0 +1,7 @@
+ssl/
+*.pem
+*.key
+*.crt
+*.csr
+oauth2-proxy.cfg
+rootCA*

@@ -38,8 +38,8 @@ node:
 
 backend_url: "https://nuc.{{ domain }}"
 
-# Container registry for k3s image pulls
-registry_url: "registry.example.com"
+# Container registry for k3s image pulls (GitHub Container Registry)
+registry_url: "ghcr.io/gregorlauritz"
 registry_insecure: false
 
 # Let's Encrypt configuration

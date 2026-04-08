@@ -14,9 +14,17 @@
       private: true
 
     - name: registry_url
-      prompt: "Container registry URL (e.g. registry.example.com)"
+      prompt: "Container registry URL (e.g. ghcr.io/your-username)"
       private: false
       default: "{{ registry_url }}"
+
+    - name: registry_username
+      prompt: "Registry username (GitHub username for GHCR)"
+      private: false
+
+    - name: registry_password
+      prompt: "Registry password (GitHub PAT with read:packages scope)"
+      private: true
 
     - name: letsencrypt_enabled
       prompt: "Enable Let's Encrypt TLS? (true/false)"

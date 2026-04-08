@@ -1,7 +1,13 @@
-node_modules/
+node_modules
 docker/
 README.md
-
+dist
+*.pem
+*.key
+*.crt
+*.csr
+*.env
+.env*
 
 .yarn/*
 !.yarn/releases
