@@ -5,8 +5,6 @@ FROM quay.io/oauth2-proxy/oauth2-proxy:v7.13.0-alpine
 # Create non-root user if not already in base image
 RUN addgroup -g 1000 oauth2 && adduser -u 1000 -G oauth2 -s /sbin/nologin -D oauth2 || true
 
-COPY --chown=oauth2:oauth2 --chmod=644 rootCA.pem /etc/
-
 COPY --chown=oauth2:oauth2 --chmod=755 ssl/ /opt/ssl/
 
 # Create config directory with proper permissions

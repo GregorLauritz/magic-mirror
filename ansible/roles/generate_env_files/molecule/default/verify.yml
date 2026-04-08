@@ -52,7 +52,6 @@
       ansible.builtin.assert:
         that:
           - "'FRONTEND_URL=https://testhost.fritz.box' in (backend_env.content | b64decode)"
-          - "'ENABLE_HTTPS=true' in (backend_env.content | b64decode)"
           - "'MONGO_HOSTNAME=mongo' in (backend_env.content | b64decode)"
           - "'GEOCODE_API_KEY=test-api-key' in (backend_env.content | b64decode)"
 

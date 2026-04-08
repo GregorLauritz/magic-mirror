@@ -63,21 +63,6 @@ vi.mock('../services/server/http_server', async () => {
   };
 });
 
-vi.mock('../services/server/https_server', async () => {
-  const actual = await vi.importActual<typeof import('../services/server/https_server')>(
-    '../services/server/https_server',
-  );
-  return {
-    ...actual,
-    HttpsServer: class extends actual.HttpsServer {
-      start() {
-        // Don't actually start the server in tests
-        vi.fn()();
-      }
-    },
-  };
-});
-
 // Mock Google Calendar API (googleapis)
 vi.mock('googleapis', () => {
   // Create persistent mock calendar that will be reused

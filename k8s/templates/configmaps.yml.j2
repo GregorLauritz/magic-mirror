@@ -5,7 +5,6 @@ metadata:
   namespace: magic-mirror
 data:
   FRONTEND_URL: "https://{{ server_fqdn }}"
-  ENABLE_HTTPS: "true"
   MONGO_PORT: "{{ mongo.port | string }}"
   MONGO_SSL: "{{ mongo.ssl | to_json }}"
   MONGO_HOSTNAME: "mongo"
@@ -31,9 +30,8 @@ data:
     ]
     cookie_secure = true
     cookie_httponly = true
-    ssl_upstream_insecure_skip_verify = true
     upstreams = [
-        "https://backend:3001/api/",
+        "http://backend:3001/api/",
         "http://frontend:3000/"
     ]
 {% if letsencrypt_enabled | default(false) %}

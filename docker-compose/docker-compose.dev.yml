@@ -32,7 +32,6 @@ services:
       - mongo
     volumes:
       - ../backend/src:/opt/src
-      - ../backend/ssl:/etc/express
     env_file:
       - backend.env
     networks:

@@ -5,7 +5,6 @@
     state: directory
     mode: "0755"
   loop:
-    - "{{ certs_base_dir }}/backend/ssl"
     - "{{ certs_base_dir }}/certs"
     - "{{ certs_base_dir }}/oauth2-proxy/ssl"
 
@@ -21,18 +20,8 @@
     mode: "0644"
     remote_src: "{{ (ansible_connection != 'local') | bool }}"
   loop:
-    - backend
     - certs
     - oauth2-proxy
-
-- name: Generate backend SSL certificate
-  ansible.builtin.command: >-
-    mkcert
-    -key-file {{ certs_base_dir }}/backend/ssl/express.key
-    -cert-file {{ certs_base_dir }}/backend/ssl/express.pem
-    {{ server_fqdn }} backend {{ additional_hostnames }}
-  args:
-    creates: "{{ certs_base_dir }}/backend/ssl/express.pem"
 
 - name: Generate oauth2-proxy SSL certificate
   ansible.builtin.command: >-

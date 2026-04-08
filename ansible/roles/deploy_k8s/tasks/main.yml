@@ -9,21 +9,6 @@
     oauth2_cookie_secret: "{{ lookup('ansible.builtin.password', pw_store_dir + '/cookie.txt', chars=['ascii_letters', 'digits'], length=32) }}"
   no_log: true
 
-- name: Read backend TLS certificate
-  ansible.builtin.slurp:
-    src: "{{ certs_base_dir }}/backend/ssl/express.pem"
-  register: backend_cert_pem_raw
-
-- name: Read backend TLS key
-  ansible.builtin.slurp:
-    src: "{{ certs_base_dir }}/backend/ssl/express.key"
-  register: backend_cert_key_raw
-
-- name: Read root CA certificate
-  ansible.builtin.slurp:
-    src: "{{ certs_base_dir }}/certs/rootCA.pem"
-  register: root_ca_pem_raw
-
 - name: Read OAuth2-Proxy TLS certificate
   ansible.builtin.slurp:
     src: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem"
@@ -38,9 +23,6 @@
 
 - name: Set certificate facts (base64-encoded for k8s secrets)
   ansible.builtin.set_fact:
-    backend_cert_pem: "{{ backend_cert_pem_raw.content }}"
-    backend_cert_key: "{{ backend_cert_key_raw.content }}"
-    root_ca_pem: "{{ root_ca_pem_raw.content }}"
     oauth2_cert_pem: "{{ oauth2_cert_pem_raw.content | default('') }}"
     oauth2_cert_key: "{{ oauth2_cert_key_raw.content | default('') }}"
   no_log: true

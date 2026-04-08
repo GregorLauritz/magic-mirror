@@ -26,26 +26,16 @@ spec:
                 name: backend-config
             - secretRef:
                 name: backend-secrets
-          volumeMounts:
-            - name: tls-certs
-              mountPath: /etc/express
-              readOnly: true
-            - name: root-ca
-              mountPath: /usr/local/share/ca-certificates/rootCA.pem
-              subPath: rootCA.pem
-              readOnly: true
           livenessProbe:
             httpGet:
               path: /api/health
               port: 3001
-              scheme: HTTPS
             initialDelaySeconds: 15
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: /api/health
               port: 3001
-              scheme: HTTPS
             initialDelaySeconds: 5
             periodSeconds: 10
           resources:
@@ -55,21 +45,6 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "500m"
-      volumes:
-        - name: tls-certs
-          secret:
-            secretName: backend-tls
-            items:
-              - key: express.pem
-                path: express.pem
-              - key: express.key
-                path: express.key
-        - name: root-ca
-          secret:
-            secretName: backend-tls
-            items:
-              - key: rootCA.pem
-                path: rootCA.pem
 ---
 apiVersion: v1
 kind: Service

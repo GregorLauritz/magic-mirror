@@ -33,12 +33,6 @@ spec:
             - name: tls-certs
               mountPath: /opt/ssl
               readOnly: true
-{% if not letsencrypt_enabled | default(false) %}
-            - name: root-ca
-              mountPath: /etc/rootCA.pem
-              subPath: rootCA.pem
-              readOnly: true
-{% endif %}
           livenessProbe:
             httpGet:
               path: /ping
@@ -82,12 +76,6 @@ spec:
                 path: {{ server_fqdn }}.pem
               - key: {{ server_fqdn }}.key
                 path: {{ server_fqdn }}.key
-        - name: root-ca
-          secret:
-            secretName: oauth2-proxy-tls
-            items:
-              - key: rootCA.pem
-                path: rootCA.pem
 {% endif %}
 ---
 apiVersion: v1
