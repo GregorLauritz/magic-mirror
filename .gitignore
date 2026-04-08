@@ -139,3 +139,6 @@ oauth2-proxy/oauth2-proxy.cfg
 
 # Ignore local claude settings
 .claude/settings.local.json
+
+# Local dev environment data
+.dev/
