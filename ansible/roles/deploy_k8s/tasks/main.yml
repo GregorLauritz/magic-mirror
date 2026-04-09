@@ -56,21 +56,32 @@
   with_fileglob:
     - "{{ playbook_dir | dirname }}/k8s/templates/*.yml"
 
+- name: Install Python kubernetes library
+  ansible.builtin.pip:
+    name: kubernetes
+    state: present
+
 - name: Apply namespace
-  ansible.builtin.command: "{{ kubectl_bin }} apply -f {{ k8s_manifest_dir }}/namespace.yml"
-  changed_when: true
+  kubernetes.core.k8s:
+    src: "{{ k8s_manifest_dir }}/namespace.yml"
+    state: present
+    kubeconfig: "{{ k8s_kubeconfig }}"
 
 - name: Apply secrets and configmaps
-  ansible.builtin.command: "{{ kubectl_bin }} apply -f {{ k8s_manifest_dir }}/{{ item }}"
+  kubernetes.core.k8s:
+    src: "{{ k8s_manifest_dir }}/{{ item }}"
+    state: present
+    kubeconfig: "{{ k8s_kubeconfig }}"
   loop:
     - secrets.yml
     - configmaps.yml
-  changed_when: true
   no_log: true
 
 - name: Apply cert-manager resources (Let's Encrypt)
-  ansible.builtin.command: "{{ kubectl_bin }} apply -f {{ k8s_manifest_dir }}/cert-manager.yml"
-  changed_when: true
+  kubernetes.core.k8s:
+    src: "{{ k8s_manifest_dir }}/cert-manager.yml"
+    state: present
+    kubeconfig: "{{ k8s_kubeconfig }}"
   when: letsencrypt_enabled | default(false)
 
 - name: Wait for Let's Encrypt certificate to be ready
@@ -81,17 +92,21 @@
   when: letsencrypt_enabled | default(false)
 
 - name: Apply persistent volume claims
-  ansible.builtin.command: "{{ kubectl_bin }} apply -f {{ k8s_manifest_dir }}/mongo-pvc.yml"
-  changed_when: true
+  kubernetes.core.k8s:
+    src: "{{ k8s_manifest_dir }}/mongo-pvc.yml"
+    state: present
+    kubeconfig: "{{ k8s_kubeconfig }}"
 
 - name: Apply workloads and services
-  ansible.builtin.command: "{{ kubectl_bin }} apply -f {{ k8s_manifest_dir }}/{{ item }}"
+  kubernetes.core.k8s:
+    src: "{{ k8s_manifest_dir }}/{{ item }}"
+    state: present
+    kubeconfig: "{{ k8s_kubeconfig }}"
   loop:
     - mongo.yml
     - backend.yml
     - frontend.yml
     - oauth2-proxy.yml
-  changed_when: true
 
 - name: Wait for deployments to be ready
   ansible.builtin.command: >-

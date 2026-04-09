@@ -42,6 +42,12 @@ backend_url: "https://nuc.{{ domain }}"
 registry_url: "ghcr.io/gregorlauritz"
 registry_insecure: false
 
+# Image tags — pin to a specific SHA or version for deterministic deployments.
+# The CI pipeline tags images with the Git short SHA (e.g. "a1b2c3d") and "latest".
+backend_image_tag: "latest"
+frontend_image_tag: "latest"
+oauth2_proxy_image_tag: "latest"
+
 # Let's Encrypt configuration
 # Enable when you have a publicly-resolvable domain for the cluster.
 # The HTTP-01 solver requires port 80 to be reachable from the internet.

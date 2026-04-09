@@ -16,6 +16,7 @@
         url: "https://github.com/cilium/cilium-cli/releases/download/v{{ cilium_version }}/cilium-linux-{{ cilium_arch }}.tar.gz"
         dest: /tmp/cilium-cli.tar.gz
         mode: "0644"
+        checksum: "sha256:https://github.com/cilium/cilium-cli/releases/download/v{{ cilium_version }}/cilium-linux-{{ cilium_arch }}.tar.gz.sha256sum"
 
     - name: Extract Cilium CLI
       ansible.builtin.unarchive:

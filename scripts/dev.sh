@@ -142,6 +142,7 @@ generate_certs() {
 cmd_up() {
   check_prereqs
   mkdir -p "${DEV_DIR}"
+  trap 'rm -rf "${RENDERED_DIR}"' EXIT
 
   render_manifests
 
@@ -166,9 +167,6 @@ cmd_up() {
   else
     info "Skipping oauth2-proxy (set OAUTH2_CLIENT_ID and OAUTH2_CLIENT_SECRET to enable)"
   fi
-
-  # Clean up rendered files (contain secrets)
-  rm -rf "${RENDERED_DIR}"
 
   info "Waiting for pods to start..."
   $KUBECTL wait --for=condition=Ready pod -l app=mongo -n "${NAMESPACE}" --timeout=60s 2>/dev/null || true

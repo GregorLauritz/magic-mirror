@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: {{ registry_url }}/magic-mirror-backend:latest
+          image: {{ registry_url }}/magic-mirror-backend:{{ backend_image_tag | default('latest') }}
           imagePullPolicy: Always
           ports:
             - containerPort: 3001

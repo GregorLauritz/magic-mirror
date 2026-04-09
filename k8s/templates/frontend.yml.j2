@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: {{ registry_url }}/magic-mirror-frontend:latest
+          image: {{ registry_url }}/magic-mirror-frontend:{{ frontend_image_tag | default('latest') }}
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
