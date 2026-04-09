@@ -1,8 +1,15 @@
 # Local Development
 
-Run the full Magic Mirror stack locally on k3s with hot reload.
+Run the full Magic Mirror stack locally with hot reload.
+The dev script auto-detects the environment and uses the appropriate runtime:
+
+- **Native Linux** — k3s (direct)
+- **WSL2 (Ubuntu/AMD64)** — k3d (k3s-in-Docker), which avoids known k3s
+  incompatibilities with the WSL2 kernel
 
 ## Prerequisites
+
+### Native Linux
 
 | Tool   | Install |
 |--------|---------|
@@ -13,6 +20,22 @@ Verify k3s is running:
 
 ```bash
 sudo k3s kubectl get nodes
+```
+
+### WSL2
+
+| Tool    | Install |
+|---------|---------|
+| Docker  | [Docker Engine](https://docs.docker.com/engine/install/) or Docker Desktop |
+| k3d     | `curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh \| bash` |
+| kubectl | [kubernetes.io/docs/tasks/tools](https://kubernetes.io/docs/tasks/tools/) |
+| mkcert  | `apt install mkcert` or [github.com/FiloSottile/mkcert](https://github.com/FiloSottile/mkcert#installation) |
+
+Verify Docker is running, then:
+
+```bash
+k3d cluster list
+kubectl version --client
 ```
 
 ## Quick Start
@@ -52,8 +75,9 @@ GEOCODE_API_KEY="your-key" \
 
 ## How It Works
 
-The dev environment runs on k3s in a `magic-mirror-dev` namespace, separate
-from any production deployment. Each service runs in a pod:
+The dev environment runs in a `magic-mirror-dev` namespace (on k3s natively,
+or inside a k3d cluster on WSL2), separate from any production deployment.
+Each service runs in a pod:
 
 - **Frontend** - `node:24-alpine` running `yarn dev` (Vite dev server).
   Mounts `frontend/src/` and `frontend/public/` for hot reload.
@@ -96,8 +120,9 @@ launch configuration:
 ## Troubleshooting
 
 **Pods stuck in ContainerCreating:**
-Check that the repo path is accessible by k3s. On systems with strict
-permissions, you may need to allow the k3s user to read the repo directory.
+Check that the repo path is accessible by the runtime. On native k3s, you may
+need to allow the k3s user to read the repo directory. On k3d, the repo root
+is automatically volume-mounted into the cluster node.
 
 **Frontend/backend crash-looping:**
 Check logs with `./scripts/dev.sh logs frontend` or `./scripts/dev.sh logs backend`.
