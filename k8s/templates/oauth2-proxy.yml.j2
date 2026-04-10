@@ -21,6 +21,7 @@ spec:
           imagePullPolicy: Always
           args:
             - --config=/opt/conf/oauth2-proxy.cfg
+            - --https-address=:443
           ports:
             - containerPort: 443
           envFrom:
