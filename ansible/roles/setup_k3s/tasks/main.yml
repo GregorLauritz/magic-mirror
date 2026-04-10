@@ -70,11 +70,11 @@
     group: "{{ user_name }}"
     mode: "0600"
 
-- name: Set KUBECONFIG in user profile
-  ansible.builtin.lineinfile:
-    path: "/home/{{ user_name }}/.bashrc"
-    line: 'export KUBECONFIG="$HOME/.kube/config"'
-    state: present
+- name: Set KUBECONFIG in system profile
+  ansible.builtin.copy:
+    dest: /etc/profile.d/k3s_kubeconfig.sh
+    content: 'export KUBECONFIG="/home/{{ user_name }}/.kube/config"'
+    mode: "0644"
 
 # --- Cilium CNI with WireGuard encryption ---
 

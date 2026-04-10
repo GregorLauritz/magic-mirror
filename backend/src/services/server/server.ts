@@ -54,7 +54,7 @@ export abstract class Server<T extends http.Server> {
         saveUninitialized: false,
         rolling: true,
         cookie: {
-          secure: false,
+          secure: process.env.NODE_ENV === 'production',
           httpOnly: true,
           sameSite: true,
           maxAge: 2.592e9, //30d

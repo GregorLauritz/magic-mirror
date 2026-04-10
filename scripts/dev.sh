@@ -114,8 +114,8 @@ render_manifests() {
 
   for f in "${MANIFEST_DIR}"/*.yml; do
     sed \
-      -e "s|__REPO_ROOT__|${REPO_ROOT}|g" \
-      -e "s|__HOSTNAME__|${HOSTNAME}|g" \
+      -e "s|__REPO_ROOT__|${REPO_ROOT//|/\\|}|g" \
+      -e "s|__HOSTNAME__|${HOSTNAME//|/\\|}|g" \
       "$f" > "${RENDERED_DIR}/$(basename "$f")"
   done
 }
