@@ -70,11 +70,23 @@ spec:
               mountPath: /app/node_modules
             - name: frontend-yarn-cache
               mountPath: /app/.yarn
-          livenessProbe:
+          startupProbe:
             httpGet:
               path: /
               port: 3000
             initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
             periodSeconds: 30
           resources:
             requests:

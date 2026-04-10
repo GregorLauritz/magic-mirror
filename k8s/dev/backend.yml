@@ -59,18 +59,27 @@ spec:
               mountPath: /app/node_modules
             - name: backend-yarn-cache
               mountPath: /app/.yarn
-          livenessProbe:
-            httpGet:
-              path: /api/health
+          startupProbe:
+            tcpSocket:
               port: 3001
             initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: 3001
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 3001
             periodSeconds: 30
           resources:
             requests:
-              memory: "256Mi"
+              memory: "512Mi"
               cpu: "200m"
             limits:
-              memory: "512Mi"
+              memory: "1536Mi"
               cpu: "1000m"
       volumes:
         - name: backend-src

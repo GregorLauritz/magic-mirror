@@ -234,10 +234,10 @@ cmd_up() {
     info "Skipping oauth2-proxy (set OAUTH2_CLIENT_ID and OAUTH2_CLIENT_SECRET to enable)"
   fi
 
-  info "Waiting for pods to start..."
-  $KUBECTL wait --for=condition=Ready pod -l app=mongo -n "${NAMESPACE}" --timeout=60s 2>/dev/null || true
-  $KUBECTL wait --for=condition=Ready pod -l app=backend -n "${NAMESPACE}" --timeout=120s 2>/dev/null || true
-  $KUBECTL wait --for=condition=Ready pod -l app=frontend -n "${NAMESPACE}" --timeout=120s 2>/dev/null || true
+  info "Waiting for pods to start (this may take a few minutes for yarn install)..."
+  $KUBECTL wait --for=condition=Ready pod -l app=mongo -n "${NAMESPACE}" --timeout=120s
+  $KUBECTL wait --for=condition=Ready pod -l app=backend -n "${NAMESPACE}" --timeout=210s
+  $KUBECTL wait --for=condition=Ready pod -l app=frontend -n "${NAMESPACE}" --timeout=210s
 
   echo ""
   ok "Dev environment is running!"
