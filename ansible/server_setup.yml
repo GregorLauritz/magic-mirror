@@ -16,7 +16,6 @@
     - name: registry_url
       prompt: "Container registry URL (e.g. ghcr.io/your-username)"
       private: false
-      default: "{{ registry_url }}"
 
     - name: registry_username
       prompt: "Registry username (GitHub username for GHCR)"
