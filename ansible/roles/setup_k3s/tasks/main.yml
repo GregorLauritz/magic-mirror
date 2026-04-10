@@ -81,7 +81,8 @@
 - name: Install Cilium CLI
   ansible.builtin.include_tasks: cilium.yml
 
-# --- cert-manager for Let's Encrypt ---
+# --- cert-manager for Let's Encrypt (only when enabled) ---
 
 - name: Install cert-manager
   ansible.builtin.include_tasks: cert_manager.yml
+  when: letsencrypt_enabled | default(false)

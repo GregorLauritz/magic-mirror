@@ -14,10 +14,29 @@
         https://github.com/cert-manager/cert-manager/releases/download/{{ cert_manager_version }}/cert-manager.yaml
       changed_when: true
 
-    - name: Wait for cert-manager webhook to be ready
+    - name: Wait for cert-manager CRDs to be established
       ansible.builtin.command: >-
-        k3s kubectl rollout status deployment/cert-manager-webhook
-        -n cert-manager --timeout=120s
+        k3s kubectl wait --for=condition=Established
+        crd/{{ item }}.cert-manager.io --timeout=120s
+      loop:
+        - certificates
+        - certificaterequests
+        - issuers
+        - clusterissuers
+        - challenges
+        - orders
+      changed_when: false
+
+    - name: Wait for cert-manager deployments to be Available
+      ansible.builtin.command: >-
+        k3s kubectl wait --for=condition=Available
+        deployment/{{ item }} -n cert-manager --timeout=300s
+      loop:
+        - cert-manager
+        - cert-manager-cainjector
+        - cert-manager-webhook
       changed_when: false
       retries: 3
-      delay: 10
+      delay: 15
+      register: cert_manager_wait
+      until: cert_manager_wait.rc == 0
