@@ -10,9 +10,7 @@ function Loading({ Card }: Readonly<Props>) {
         <Card>
             <Stack
                 direction="row"
-                justifyContent="center"
-                alignItems="center"
-                sx={{ width: 1, height: '100%' }}
+                sx={{ width: 1, height: '100%', justifyContent: 'center', alignItems: 'center' }}
             >
                 <CircularProgress />
             </Stack>

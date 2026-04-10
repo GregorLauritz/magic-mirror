@@ -48,7 +48,7 @@ const BirthdaysComponent = () => {
 
     return (
         <SmallCard>
-            <Stack direction="row" justifyContent="space-between">
+            <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
                 <Typography color="text.primary" variant="body1" gutterBottom>
                     Birthdays
                 </Typography>

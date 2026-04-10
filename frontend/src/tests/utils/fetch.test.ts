@@ -18,17 +18,17 @@ describe('fetch utilities', () => {
                     status: 200,
                 }
             )
-            global.fetch = vi.fn().mockResolvedValue(mockResponse)
+            globalThis.fetch = vi.fn().mockResolvedValue(mockResponse)
 
             const result = await fetchRetry('https://api.example.com/test')
 
-            expect(global.fetch).toHaveBeenCalledTimes(1)
+            expect(globalThis.fetch).toHaveBeenCalledTimes(1)
             expect(result.status).toBe(200)
         })
 
         it('should accept custom allowed status codes', async () => {
             const mockResponse = new Response(null, { status: 404 })
-            global.fetch = vi.fn().mockResolvedValue(mockResponse)
+            globalThis.fetch = vi.fn().mockResolvedValue(mockResponse)
 
             const result = await fetchRetry(
                 'https://api.example.com/test',
@@ -41,7 +41,7 @@ describe('fetch utilities', () => {
 
         it('should throw error for non-allowed status codes', async () => {
             const mockResponse = new Response(null, { status: 500 })
-            global.fetch = vi.fn().mockResolvedValue(mockResponse)
+            globalThis.fetch = vi.fn().mockResolvedValue(mockResponse)
 
             await expect(
                 fetchRetry('https://api.example.com/test', {}, [200])
@@ -59,7 +59,7 @@ describe('fetch utilities', () => {
                 }
             )
 
-            global.fetch = vi
+            globalThis.fetch = vi
                 .fn()
                 .mockRejectedValueOnce(mockError)
                 .mockResolvedValueOnce(mockResponse)
@@ -71,30 +71,30 @@ describe('fetch utilities', () => {
                 2
             )
 
-            expect(global.fetch).toHaveBeenCalledTimes(2)
+            expect(globalThis.fetch).toHaveBeenCalledTimes(2)
             expect(result.status).toBe(200)
         })
 
         it('should fail after retries exhausted', async () => {
             const mockError = new Error('Network error')
-            global.fetch = vi.fn().mockRejectedValue(mockError)
+            globalThis.fetch = vi.fn().mockRejectedValue(mockError)
 
             await expect(
                 fetchRetry('https://api.example.com/test', {}, [200], 2)
             ).rejects.toThrow('Network error')
 
-            expect(global.fetch).toHaveBeenCalledTimes(2)
+            expect(globalThis.fetch).toHaveBeenCalledTimes(2)
         })
 
         it('should not retry if retries is 1', async () => {
             const mockError = new Error('Network error')
-            global.fetch = vi.fn().mockRejectedValue(mockError)
+            globalThis.fetch = vi.fn().mockRejectedValue(mockError)
 
             await expect(
                 fetchRetry('https://api.example.com/test', {}, [200], 1)
             ).rejects.toThrow('Network error')
 
-            expect(global.fetch).toHaveBeenCalledTimes(1)
+            expect(globalThis.fetch).toHaveBeenCalledTimes(1)
         })
 
         it('should pass options to fetch', async () => {
@@ -104,7 +104,7 @@ describe('fetch utilities', () => {
                     status: 200,
                 }
             )
-            global.fetch = vi.fn().mockResolvedValue(mockResponse)
+            globalThis.fetch = vi.fn().mockResolvedValue(mockResponse)
 
             const options: RequestInit = {
                 method: 'POST',
@@ -113,7 +113,7 @@ describe('fetch utilities', () => {
 
             await fetchRetry('https://api.example.com/test', options)
 
-            expect(global.fetch).toHaveBeenCalledWith(
+            expect(globalThis.fetch).toHaveBeenCalledWith(
                 'https://api.example.com/test',
                 {
                     ...options,
@@ -130,7 +130,7 @@ describe('fetch utilities', () => {
                 status: 200,
                 headers: { 'Content-Type': 'application/json' },
             })
-            global.fetch = vi.fn().mockResolvedValue(mockResponse)
+            globalThis.fetch = vi.fn().mockResolvedValue(mockResponse)
 
             const result = await fetchJson('https://api.example.com/test')
 
@@ -143,7 +143,7 @@ describe('fetch utilities', () => {
                 status: 404,
                 headers: { 'Content-Type': 'application/json' },
             })
-            global.fetch = vi.fn().mockResolvedValue(mockResponse)
+            globalThis.fetch = vi.fn().mockResolvedValue(mockResponse)
 
             const result = await fetchJson(
                 'https://api.example.com/test',
@@ -161,7 +161,7 @@ describe('fetch utilities', () => {
                 status: 200,
             })
 
-            global.fetch = vi
+            globalThis.fetch = vi
                 .fn()
                 .mockRejectedValueOnce(mockError)
                 .mockResolvedValueOnce(mockResponse)
@@ -174,7 +174,7 @@ describe('fetch utilities', () => {
             )
 
             expect(result).toEqual(mockData)
-            expect(global.fetch).toHaveBeenCalledTimes(2)
+            expect(globalThis.fetch).toHaveBeenCalledTimes(2)
         })
 
         it('should throw error for non-allowed status codes', async () => {
@@ -184,7 +184,7 @@ describe('fetch utilities', () => {
                     status: 500,
                 }
             )
-            global.fetch = vi.fn().mockResolvedValue(mockResponse)
+            globalThis.fetch = vi.fn().mockResolvedValue(mockResponse)
 
             await expect(
                 fetchJson('https://api.example.com/test', {}, [200])
@@ -208,7 +208,7 @@ describe('fetch utilities', () => {
                 body: mockStream,
             } as Response
 
-            global.fetch = vi.fn().mockResolvedValue(mockResponse)
+            globalThis.fetch = vi.fn().mockResolvedValue(mockResponse)
 
             const result = await fetchBlob('https://api.example.com/image.png')
 
@@ -229,7 +229,7 @@ describe('fetch utilities', () => {
                 body: mockStream,
             } as Response
 
-            global.fetch = vi.fn().mockResolvedValue(mockResponse)
+            globalThis.fetch = vi.fn().mockResolvedValue(mockResponse)
 
             const result = await fetchBlob(
                 'https://api.example.com/image.png',
@@ -255,7 +255,7 @@ describe('fetch utilities', () => {
                 body: mockStream,
             } as Response
 
-            global.fetch = vi
+            globalThis.fetch = vi
                 .fn()
                 .mockRejectedValueOnce(mockError)
                 .mockResolvedValueOnce(mockResponse)
@@ -269,7 +269,7 @@ describe('fetch utilities', () => {
 
             expect(result.size).toBeGreaterThanOrEqual(0)
             expect(typeof result.type).toBe('string')
-            expect(global.fetch).toHaveBeenCalledTimes(2)
+            expect(globalThis.fetch).toHaveBeenCalledTimes(2)
         })
 
         it('should handle empty body stream', async () => {
@@ -284,7 +284,7 @@ describe('fetch utilities', () => {
                 body: mockStream,
             } as Response
 
-            global.fetch = vi.fn().mockResolvedValue(mockResponse)
+            globalThis.fetch = vi.fn().mockResolvedValue(mockResponse)
 
             const result = await fetchBlob('https://api.example.com/image.png')
 

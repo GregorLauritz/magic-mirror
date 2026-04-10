@@ -37,7 +37,7 @@ const EventComponent = ({ item, date }: EventProps) => {
             square={false}
             sx={{ background: PAPER_CARD_COLOR }}
         >
-            <Stack p={0.5}>
+            <Stack sx={{ p: 0.5 }}>
                 <Typography
                     variant="subtitle2"
                     color="text.primary"

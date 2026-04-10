@@ -38,7 +38,7 @@ const ForecastItem = ({ item, isLoading }: IForecastItem) => {
     }
 
     return (
-        <Stack direction={'column'} spacing={0.5} alignItems={'center'}>
+        <Stack direction={'column'} spacing={0.5} sx={{ alignItems: 'center' }}>
             <Typography variant="subtitle2" color="text.primary" align="center">
                 {dayName}
             </Typography>
@@ -54,12 +54,11 @@ const ForecastItem = ({ item, isLoading }: IForecastItem) => {
                     objectFit: 'contain',
                 }}
             />
-            <Stack direction={'row'} justifyContent={'center'}>
+            <Stack direction={'row'} sx={{ justifyContent: 'center' }}>
                 <Typography
                     variant="subtitle2"
                     color="text.primary"
-                    fontWeight={'bold'}
-                    fontSize={smallFontSize}
+                    sx={{ fontWeight: 'bold', ...smallFontSize }}
                 >
                     {Math.round(item.temperature.max).toString() ?? '-'}
                     {item.temperature.unit}

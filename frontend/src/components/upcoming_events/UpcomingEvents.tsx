@@ -26,7 +26,7 @@ const UpcomingEventsComponent = () => {
 
     return (
         <MediumCard>
-            <Grid container spacing={1} height={'100%'}>
+            <Grid container spacing={1} sx={{ height: '100%' }}>
                 <Grid size={6}>
                     <Box>
                         <Typography variant="body1">TODAY</Typography>
@@ -41,11 +41,10 @@ const UpcomingEventsComponent = () => {
                     </Box>
                 </Grid>
                 <Grid size={6}>
-                    <Grid direction="column" spacing={1} height={'100%'}>
-                        <Grid size={12} height={'50%'}>
+                    <Stack spacing={1} sx={{ height: '100%' }}>
+                        <Box sx={{ height: '50%' }}>
                             <Typography
-                                fontWeight={'bold'}
-                                fontSize={xSmallFontSize}
+                                sx={{ fontWeight: 'bold', ...xSmallFontSize }}
                             >
                                 TOMORROW
                             </Typography>
@@ -57,11 +56,10 @@ const UpcomingEventsComponent = () => {
                                     isCurrentDay={false}
                                 />
                             </Stack>
-                        </Grid>
-                        <Grid size={12} height={'50%'}>
+                        </Box>
+                        <Box sx={{ height: '50%' }}>
                             <Typography
-                                fontWeight={'bold'}
-                                fontSize={xSmallFontSize}
+                                sx={{ fontWeight: 'bold', ...xSmallFontSize }}
                             >
                                 OVERMORROW
                             </Typography>
@@ -73,8 +71,8 @@ const UpcomingEventsComponent = () => {
                                     isCurrentDay={false}
                                 />
                             </Stack>
-                        </Grid>
-                    </Grid>
+                        </Box>
+                    </Stack>
                 </Grid>
             </Grid>
         </MediumCard>

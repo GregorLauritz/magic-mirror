@@ -103,12 +103,13 @@ export const StationAutocomplete = ({
                     {...params}
                     label={label}
                     slotProps={{
+                        ...params.slotProps,
                         input: {
-                            ...params.InputProps,
+                            ...params.slotProps?.input,
                             autoComplete: 'new-password',
                         },
                         htmlInput: {
-                            ...params.inputProps,
+                            ...params.slotProps?.htmlInput,
                             autoComplete: 'new-password',
                         },
                     }}
