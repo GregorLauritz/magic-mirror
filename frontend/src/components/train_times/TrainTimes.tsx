@@ -151,11 +151,22 @@ const TrainTimesCardComponent = ({
         <MediumCard>
             <Box sx={{ height: '100%' }}>
                 <Box
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 1 }}
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 1,
+                    }}
                 >
                     <Typography variant="body1">Train Times</Typography>
                     {showCarouselControls && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                            }}
+                        >
                             <IconButton
                                 size="small"
                                 onClick={onPrevious}
@@ -283,7 +294,11 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
             }}
         >
             <Box
-                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}
             >
                 <Box>
                     <Typography
@@ -291,7 +306,10 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
                         sx={{
                             fontWeight: 'bold',
                             ...(isCancelled
-                                ? { textDecoration: 'line-through', color: 'text.disabled' }
+                                ? {
+                                      textDecoration: 'line-through',
+                                      color: 'text.disabled',
+                                  }
                                 : undefined),
                         }}
                     >

@@ -49,7 +49,11 @@ const BirthdayItem = memo<BirthdayItemProps>(({ item }) => {
             <Stack
                 direction="row"
                 spacing={1}
-                sx={{ whiteSpace: 'nowrap', overflow: 'hidden', justifyContent: 'space-between' }}
+                sx={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    justifyContent: 'space-between',
+                }}
             >
                 <Typography
                     color={color}
