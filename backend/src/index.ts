@@ -17,6 +17,8 @@ const server = new HttpServer(mongoDb, SERVER_PORT);
 
 server.app.get('/api/health', (_req, res) => res.status(200).send('OK'));
 
+server.app.get('/api/health', (req, res) => res.status(200).send('OK'));
+
 server.app.use('/api/weather', WeatherRoute);
 server.app.use('/api/events', EventsRoute);
 server.app.use('/api/calendars', CalendarsRoute);
