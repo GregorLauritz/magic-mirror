@@ -29,6 +29,7 @@ RUN yarn install --immutable \
 # Stage 2: Production image
 # =============================================================================
 FROM node:${NODE_IMG_VERSION} AS production
+ARG YARN_VERSION
 
 # Metadata labels following OCI image spec
 LABEL org.opencontainers.image.title="Magic Mirror Backend" \

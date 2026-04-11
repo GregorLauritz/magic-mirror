@@ -4,41 +4,8 @@
   gather_facts: true
   become: true
 
-  vars_prompt:
-    - name: client_secret
-      prompt: "Google OAuth2 Client Secret"
-      private: true
-
-    - name: geocode_api_key
-      prompt: "Geocode Maps API Key"
-      private: true
-
-    - name: registry_url
-      prompt: "Container registry URL (e.g. ghcr.io/your-username)"
-      private: false
-
-    - name: registry_username
-      prompt: "Registry username (GitHub username for GHCR)"
-      private: false
-
-    - name: registry_password
-      prompt: "Registry password (GitHub PAT with read:packages scope)"
-      private: true
-
-    - name: letsencrypt_enabled
-      prompt: "Enable Let's Encrypt TLS? (true/false)"
-      private: false
-      default: "false"
-
-    - name: letsencrypt_email
-      prompt: "Let's Encrypt email (required if enabled, press Enter to skip)"
-      private: false
-      default: ""
-
-    - name: letsencrypt_domain
-      prompt: "Public domain for Let's Encrypt (required if enabled, press Enter to skip)"
-      private: false
-      default: ""
+  vars_files:
+    - vault.yml
 
   roles:
     - setup_backend

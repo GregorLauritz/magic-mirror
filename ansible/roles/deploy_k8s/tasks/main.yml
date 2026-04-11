@@ -13,13 +13,13 @@
   ansible.builtin.slurp:
     src: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem"
   register: oauth2_cert_pem_raw
-  when: not letsencrypt_enabled | default(false)
+  when: not (letsencrypt_enabled | default(false) | bool)
 
 - name: Read OAuth2-Proxy TLS key
   ansible.builtin.slurp:
     src: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.key"
   register: oauth2_cert_key_raw
-  when: not letsencrypt_enabled | default(false)
+  when: not (letsencrypt_enabled | default(false) | bool)
 
 - name: Set certificate facts (base64-encoded for k8s secrets)
   ansible.builtin.set_fact:
@@ -84,14 +84,14 @@
         src: "{{ k8s_manifest_dir }}/cert-manager.yml"
         state: present
         kubeconfig: "{{ k8s_kubeconfig }}"
-      when: letsencrypt_enabled | default(false)
+      when: letsencrypt_enabled | default(false) | bool
 
     - name: Wait for Let's Encrypt certificate to be ready
       ansible.builtin.command: >-
         {{ kubectl_bin }} wait certificate/magic-mirror-tls
         -n magic-mirror --for=condition=Ready --timeout=300s
       changed_when: false
-      when: letsencrypt_enabled | default(false)
+      when: letsencrypt_enabled | default(false) | bool
 
     - name: Apply persistent volume claims
       kubernetes.core.k8s:

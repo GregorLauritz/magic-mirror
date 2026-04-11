@@ -24,7 +24,7 @@
       ansible.builtin.command: /tmp/k3s-install.sh
       environment:
         INSTALL_K3S_VERSION: "{{ k3s_version }}"
-        INSTALL_K3S_EXEC: "server --disable traefik --flannel-backend=none --disable-network-policy"
+        INSTALL_K3S_EXEC: "server --disable traefik --flannel-backend=none --disable-network-policy --disable-kube-proxy"
       changed_when: true
 
     - name: Remove install script
@@ -85,4 +85,4 @@
 
 - name: Install cert-manager
   ansible.builtin.include_tasks: cert_manager.yml
-  when: letsencrypt_enabled | default(false)
+  when: letsencrypt_enabled | default(false) | bool

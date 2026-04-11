@@ -17,19 +17,26 @@
     groups: sudo
     append: true
 
-- name: Delete code dirs in working dir
+- name: Delete manifest dirs in working dir
   ansible.builtin.file:
     state: absent
     path: "{{ work_dir }}/{{ item }}"
   loop: "{{ relevant_code_dirs }}"
 
-- name: Copy code to remote
+- name: Copy manifests to remote
   ansible.builtin.synchronize:
     src: "{{ playbook_dir | dirname }}/{{ item }}"
     dest: "{{ work_dir }}"
-    rsync_opts:
-      - "--exclude=node_modules --exclude=dist --exclude='*.pem' --exclude='*.crt' --exclude='*.key'"
   loop: "{{ relevant_code_dirs }}"
+
+- name: Allow pod CIDR through UFW
+  community.general.ufw:
+    rule: allow
+    src: "{{ item.cidr }}"
+    comment: "{{ item.comment }}"
+  loop:
+    - { cidr: "{{ cilium_pod_cidr }}", comment: "Cilium pod CIDR" }
+    - { cidr: "{{ k3s_service_cidr }}", comment: "k3s service CIDR" }
 
 - name: Install and configure k3s
   ansible.builtin.include_role:
