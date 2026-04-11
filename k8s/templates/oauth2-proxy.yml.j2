@@ -5,6 +5,10 @@ metadata:
   namespace: magic-mirror
   labels:
     app: oauth2-proxy
+  annotations:
+    keel.sh/policy: force
+    keel.sh/trigger: poll
+    keel.sh/pollSchedule: "@every 5m"
 spec:
   replicas: 1
   selector:
@@ -15,10 +19,12 @@ spec:
       labels:
         app: oauth2-proxy
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - name: oauth2-proxy
           image: {{ registry_url }}/magic-mirror-oauth2-proxy:{{ oauth2_proxy_image_tag | default('latest') }}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           args:
             - --config=/opt/conf/oauth2-proxy.cfg
             - --https-address=:443

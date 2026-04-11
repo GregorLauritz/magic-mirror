@@ -86,3 +86,8 @@
 - name: Install cert-manager
   ansible.builtin.include_tasks: cert_manager.yml
   when: letsencrypt_enabled | default(false) | bool
+
+# --- Keel for automatic image updates ---
+
+- name: Install Keel
+  ansible.builtin.include_tasks: keel.yml

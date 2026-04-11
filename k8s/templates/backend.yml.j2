@@ -5,6 +5,10 @@ metadata:
   namespace: magic-mirror
   labels:
     app: backend
+  annotations:
+    keel.sh/policy: force
+    keel.sh/trigger: poll
+    keel.sh/pollSchedule: "@every 5m"
 spec:
   replicas: 1
   selector:
@@ -15,10 +19,12 @@ spec:
       labels:
         app: backend
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - name: backend
           image: {{ registry_url }}/magic-mirror-backend:{{ backend_image_tag | default('latest') }}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 3001
           envFrom:

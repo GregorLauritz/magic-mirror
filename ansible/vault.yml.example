@@ -12,5 +12,5 @@
 
 client_secret: ""
 geocode_api_key: ""
-registry_username: ""
-registry_password: ""
+registry_username: ""   # GitHub username (for GHCR pull secret)
+registry_password: ""   # GitHub PAT with read:packages scope (for GHCR pull secret)
