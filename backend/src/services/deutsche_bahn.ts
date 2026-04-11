@@ -28,6 +28,10 @@ export class DeutscheBahnService {
 
       LOGGER.info('Deutsche Bahn API response received', { status: response.status });
 
+      if (!response.statusOk) {
+        throw new ApiError(`Deutsche Bahn API returned ${response.status}`, undefined, 502);
+      }
+
       if (!Array.isArray(response.body)) {
         throw new ApiError('Invalid response from Deutsche Bahn API', undefined, 500);
       }
@@ -74,6 +78,10 @@ export class DeutscheBahnService {
       LOGGER.info('Getting train departures', { stationId, duration, results, url });
 
       const response = await fetchJson(url);
+
+      if (!response.statusOk) {
+        throw new ApiError(`Deutsche Bahn API returned ${response.status}`, undefined, 502);
+      }
 
       if (!response.body || !Array.isArray(response.body.journeys)) {
         throw new ApiError('Invalid response from Deutsche Bahn API', undefined, 500);
@@ -151,6 +159,10 @@ export class DeutscheBahnService {
       LOGGER.info('Getting train connections', { fromStationId, toStationId, results, url });
 
       const response = await fetchJson(url);
+
+      if (!response.statusOk) {
+        throw new ApiError(`Deutsche Bahn API returned ${response.status}`, undefined, 502);
+      }
 
       if (!response.body || !Array.isArray(response.body.journeys)) {
         throw new ApiError('Invalid response from Deutsche Bahn API', undefined, 500);
