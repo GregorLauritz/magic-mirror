@@ -98,23 +98,23 @@ spec:
       volumes:
         - name: frontend-src
           hostPath:
-            path: __REPO_ROOT__/frontend/src
+            path: ${REPO_ROOT}/frontend/src
             type: Directory
         - name: frontend-public
           hostPath:
-            path: __REPO_ROOT__/frontend/public
+            path: ${REPO_ROOT}/frontend/public
             type: Directory
         - name: frontend-root
           hostPath:
-            path: __REPO_ROOT__/frontend
+            path: ${REPO_ROOT}/frontend
             type: Directory
         - name: frontend-node-modules
           hostPath:
-            path: __REPO_ROOT__/.dev/frontend-node_modules
+            path: ${REPO_ROOT}/.dev/frontend-node_modules
             type: DirectoryOrCreate
         - name: frontend-yarn-cache
           hostPath:
-            path: __REPO_ROOT__/.dev/frontend-yarn
+            path: ${REPO_ROOT}/.dev/frontend-yarn
             type: DirectoryOrCreate
 ---
 apiVersion: v1

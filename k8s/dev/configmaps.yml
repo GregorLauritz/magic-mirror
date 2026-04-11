@@ -4,7 +4,7 @@ metadata:
   name: backend-config
   namespace: magic-mirror-dev
 data:
-  FRONTEND_URL: "https://__HOSTNAME__"
+  FRONTEND_URL: "https://${HOSTNAME}"
   MONGO_PORT: "27017"
   MONGO_SSL: "false"
   MONGO_HOSTNAME: "mongo"
@@ -36,8 +36,8 @@ data:
         "http://backend:3001/api/",
         "http://frontend:3000/"
     ]
-    tls_cert_file="/opt/ssl/__HOSTNAME__.pem"
-    tls_key_file="/opt/ssl/__HOSTNAME__.key"
+    tls_cert_file="/opt/ssl/${HOSTNAME}.pem"
+    tls_key_file="/opt/ssl/${HOSTNAME}.key"
     pass_access_token = true
     pass_authorization_header = true
     cookie_csrf_per_request = true

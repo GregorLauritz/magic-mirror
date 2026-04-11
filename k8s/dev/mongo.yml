@@ -31,7 +31,7 @@ spec:
       volumes:
         - name: mongo-data
           hostPath:
-            path: __REPO_ROOT__/.dev/mongo-data
+            path: ${REPO_ROOT}/.dev/mongo-data
             type: DirectoryOrCreate
 ---
 apiVersion: v1

@@ -61,18 +61,20 @@ check_prereqs() {
   else
     command -v k3s >/dev/null 2>&1 || missing+=(k3s)
   fi
-  command -v mkcert >/dev/null 2>&1 || missing+=(mkcert)
+  command -v mkcert   >/dev/null 2>&1 || missing+=(mkcert)
+  command -v envsubst >/dev/null 2>&1 || missing+=(envsubst)
 
   if [[ ${#missing[@]} -gt 0 ]]; then
     err "Missing prerequisites: ${missing[*]}"
     if $IS_WSL2; then
-      echo "Install Docker:  https://docs.docker.com/engine/install/"
-      echo "Install k3d:     curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash"
-      echo "Install kubectl: https://kubernetes.io/docs/tasks/tools/"
+      echo "Install Docker:   https://docs.docker.com/engine/install/"
+      echo "Install k3d:      curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash"
+      echo "Install kubectl:  https://kubernetes.io/docs/tasks/tools/"
     else
-      echo "Install k3s:     curl -sfL https://get.k3s.io | sh -"
+      echo "Install k3s:      curl -sfL https://get.k3s.io | sh -"
     fi
-    echo "Install mkcert:  https://github.com/FiloSottile/mkcert#installation"
+    echo "Install mkcert:   https://github.com/FiloSottile/mkcert#installation"
+    echo "Install envsubst: apt install gettext-base"
     exit 1
   fi
 
@@ -112,11 +114,14 @@ render_manifests() {
   info "Rendering manifests (REPO_ROOT=${REPO_ROOT}, HOSTNAME=${HOSTNAME})"
   mkdir -p "${RENDERED_DIR}"
 
+  # envsubst with an explicit variable list only substitutes the named
+  # placeholders, leaving any other ${...} content untouched. This is robust
+  # against arbitrary characters (including '|' or '/') appearing in the
+  # values, unlike sed-based replacement.
+  export REPO_ROOT HOSTNAME
   for f in "${MANIFEST_DIR}"/*.yml; do
-    sed \
-      -e "s|__REPO_ROOT__|${REPO_ROOT//|/\\|}|g" \
-      -e "s|__HOSTNAME__|${HOSTNAME//|/\\|}|g" \
-      "$f" > "${RENDERED_DIR}/$(basename "$f")"
+    envsubst '${REPO_ROOT} ${HOSTNAME}' \
+      < "$f" > "${RENDERED_DIR}/$(basename "$f")"
   done
 }
 

@@ -84,19 +84,19 @@ spec:
       volumes:
         - name: backend-src
           hostPath:
-            path: __REPO_ROOT__/backend/src
+            path: ${REPO_ROOT}/backend/src
             type: Directory
         - name: backend-root
           hostPath:
-            path: __REPO_ROOT__/backend
+            path: ${REPO_ROOT}/backend
             type: Directory
         - name: backend-node-modules
           hostPath:
-            path: __REPO_ROOT__/.dev/backend-node_modules
+            path: ${REPO_ROOT}/.dev/backend-node_modules
             type: DirectoryOrCreate
         - name: backend-yarn-cache
           hostPath:
-            path: __REPO_ROOT__/.dev/backend-yarn
+            path: ${REPO_ROOT}/.dev/backend-yarn
             type: DirectoryOrCreate
 ---
 apiVersion: v1

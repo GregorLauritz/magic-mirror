@@ -29,6 +29,10 @@ oauth2_proxy:
   client_id: 428211582851-66891ucq97qkrbmsik41ftkfcke0u26f.apps.googleusercontent.com
   scopes: "email profile https://www.googleapis.com/auth/calendar.readonly"
   version: v7.13.0-alpine
+  # Restrict OAuth logins to specific email domains. Use "*" to allow any
+  # Google account (NOT recommended for production). Multiple domains may be
+  # provided as a comma-separated string, e.g. "example.com,other.org".
+  email_domains: "*"
 
 backend_context: "/api"
 pw_store_dir: "{{ playbook_dir }}/pwstore"

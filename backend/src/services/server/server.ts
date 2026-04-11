@@ -31,6 +31,12 @@ export abstract class Server<T extends http.Server> {
     this._database = database;
     this._app = express();
     this._app.set('port', port);
+    if (process.env.NODE_ENV === 'production') {
+      // Behind oauth2-proxy (TLS terminator). Trust the immediate hop so that
+      // req.secure / X-Forwarded-Proto are honored and the secure session
+      // cookie is correctly set.
+      this._app.set('trust proxy', 1);
+    }
     this.configureExpress();
   }
 
