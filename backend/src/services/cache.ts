@@ -12,14 +12,17 @@ class ApiCacheService {
 
   constructor() {
     // Periodically prune expired entries to prevent memory leaks
-    setInterval(() => {
-      const now = Date.now();
-      for (const [key, entry] of this.store.entries()) {
-        if (now > entry.expiresAt) {
-          this.store.delete(key);
+    setInterval(
+      () => {
+        const now = Date.now();
+        for (const [key, entry] of this.store.entries()) {
+          if (now > entry.expiresAt) {
+            this.store.delete(key);
+          }
         }
-      }
-    }, 30 * 60 * 1000).unref();
+      },
+      30 * 60 * 1000,
+    ).unref();
   }
 
   get<T>(key: string): T | undefined {
