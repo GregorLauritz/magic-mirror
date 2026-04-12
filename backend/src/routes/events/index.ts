@@ -4,7 +4,9 @@ import { calendar_v3 } from 'googleapis';
 import { ApiError } from 'models/api/api_error';
 import { CalendarEvent, CalendarEventList } from 'models/api/calendar'; // Import CalendarEvent type
 import { getTimeDiff, isDate, isIso8601DatetimeString, TimeUnit } from 'services/dateParser';
+import { apiCache } from 'services/cache';
 import { getGoogleCalendar } from 'services/google';
+import { getUserId } from 'services/headers';
 import { getRouter } from 'services/router_factory';
 import { CustomParameterValidator } from 'services/validators/custom_parameter_validator';
 import { EParamType } from 'services/validators/parameter_validator';
@@ -35,6 +37,15 @@ class CalendarEventService {
     maxResults: number,
     calendarId: string,
   ): Promise<calendar_v3.Schema$Events> {
+    const userId = getUserId(req.headers);
+    const cacheTime = timeMin.includes('T') ? timeMin.substring(0, 16) : timeMin;
+    const cacheKey = `${userId}:events:${calendarId}:${cacheTime}:${timeMax ?? ''}:${maxResults}`;
+
+    const cached = apiCache.get<calendar_v3.Schema$Events>(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+
     const calendar = getGoogleCalendar(req);
     const events = await calendar.events.list({
       calendarId,
@@ -44,7 +55,11 @@ class CalendarEventService {
       singleEvents: true,
       orderBy: 'startTime',
     });
-    return events.data;
+    const result = events.data;
+
+    apiCache.set(cacheKey, result);
+
+    return result;
   }
 
   static parseEvents(events: calendar_v3.Schema$Events): CalendarEventList {
@@ -72,10 +87,11 @@ class CalendarEventService {
 // Route Handlers
 async function allCalendarEvents(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const maxResults = parseInt((req.query.count as string) || String(CALENDAR_CONFIG.DEFAULT_EVENT_COUNT));
-    const timeMin = (req.query.minTime as string) || new Date().toISOString();
-    const timeMax = req.query.maxTime as string | undefined;
-    const calId = (req.query.cal_id as string) || 'primary';
+    const countParam = typeof req.query.count === 'string' ? req.query.count : undefined;
+    const maxResults = parseInt(countParam || String(CALENDAR_CONFIG.DEFAULT_EVENT_COUNT));
+    const timeMin = typeof req.query.minTime === 'string' ? req.query.minTime : new Date().toISOString();
+    const timeMax = typeof req.query.maxTime === 'string' ? req.query.maxTime : undefined;
+    const calId = typeof req.query.cal_id === 'string' ? req.query.cal_id : 'primary';
 
     const events = await CalendarEventService.getEvents(req, timeMin, timeMax, maxResults, calId);
     const parsedEvents = CalendarEventService.parseEvents(events);
@@ -92,7 +108,7 @@ async function eventsAtDate(req: Request, res: Response, next: NextFunction): Pr
     const timeMin = new Date(date).toISOString();
     const timeMax = new Date(date);
     timeMax.setDate(timeMax.getDate() + 1);
-    const calId = (req.query.cal_id as string) || 'primary';
+    const calId = typeof req.query.cal_id === 'string' ? req.query.cal_id : 'primary';
 
     const events = await CalendarEventService.getEvents(req, timeMin, timeMax.toISOString(), 100, calId);
     const parsedEvents = CalendarEventService.parseEvents(events);

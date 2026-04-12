@@ -1,10 +1,11 @@
 import { ALLOWED_URLS } from 'config';
 import { ApiError } from 'models/api/api_error';
 import { ApiResponse, Json } from 'models/api/fetch';
+import { apiCache } from 'services/cache';
 import { LOGGER } from 'services/loggers';
 
 /**
- * Fetches JSON data from an external API with URL validation and logging
+ * Fetches JSON data from an external API with URL validation, caching, and logging
  * @param url - URL to fetch from (must be in ALLOWED_URLS)
  * @param options - Fetch options (headers, method, etc.)
  * @param logUrl - Optional URL to display in logs (for security)
@@ -17,6 +18,14 @@ export const fetchJson = async (
   logUrl?: string,
 ): Promise<ApiResponse<Json>> => {
   const displayUrl = logUrl ?? url;
+
+  const cacheKey = `${options.method ?? 'GET'}:${url}`;
+  const cached = apiCache.get<ApiResponse<Json>>(cacheKey);
+  if (cached) {
+    LOGGER.info(`Cache hit for ${displayUrl}`);
+    return cached;
+  }
+
   LOGGER.info(`Calling API ${displayUrl} to get JSON`);
 
   checkInputURL(url);
@@ -35,11 +44,17 @@ export const fetchJson = async (
       throw parseError;
     }
 
-    return {
+    const result: ApiResponse<Json> = {
       body,
       status: response.status,
       statusOk: response.ok,
     };
+
+    if (result.statusOk) {
+      apiCache.set(cacheKey, result);
+    }
+
+    return result;
   } catch (err) {
     LOGGER.error(`Call to API ${displayUrl} returned error`, { error: err });
     throw err;
@@ -47,7 +62,7 @@ export const fetchJson = async (
 };
 
 /**
- * Fetches binary data (ArrayBuffer) from an external API
+ * Fetches binary data (ArrayBuffer) from an external API with caching
  * @param url - URL to fetch from (must be in ALLOWED_URLS)
  * @param options - Fetch options (headers, method, etc.)
  * @param logUrl - Optional URL to display in logs (for security)
@@ -60,6 +75,14 @@ export const fetchBuffer = async (
   logUrl?: string,
 ): Promise<ApiResponse<ArrayBuffer>> => {
   const displayUrl = logUrl ?? url;
+
+  const cacheKey = `${options.method ?? 'GET'}:${url}`;
+  const cached = apiCache.get<ApiResponse<ArrayBuffer>>(cacheKey);
+  if (cached) {
+    LOGGER.info(`Cache hit for ${displayUrl}`);
+    return cached;
+  }
+
   LOGGER.info(`Calling API ${displayUrl} to get binary data`);
 
   checkInputURL(url);
@@ -69,11 +92,17 @@ export const fetchBuffer = async (
     LOGGER.info(`Call to API ${displayUrl} returned status code ${response.status}`);
 
     const body = await response.arrayBuffer();
-    return {
+    const result: ApiResponse<ArrayBuffer> = {
       body,
       status: response.status,
       statusOk: response.ok,
     };
+
+    if (result.statusOk) {
+      apiCache.set(cacheKey, result);
+    }
+
+    return result;
   } catch (err) {
     LOGGER.error(`Call to API ${displayUrl} returned error`, { error: err });
     throw err;
