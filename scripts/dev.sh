@@ -213,11 +213,15 @@ generate_certs() {
     --from-file="${HOSTNAME}.key=${cert_dir}/${HOSTNAME}.key" \
     --dry-run=client -o yaml > "${RENDERED_DIR}/tls-secret.yml"
 
-  # Create k8s TLS secret for FerretDB
+  # Create k8s TLS secret for FerretDB.
+  # Includes the mkcert root CA so the backend can verify FerretDB's certificate.
+  local mkcert_caroot
+  mkcert_caroot="$(mkcert -CAROOT)"
   $KUBECTL create secret generic ferretdb-tls \
     --namespace="${NAMESPACE}" \
     --from-file="ferretdb.pem=${ferretdb_cert_dir}/ferretdb.pem" \
     --from-file="ferretdb.key=${ferretdb_cert_dir}/ferretdb.key" \
+    --from-file="rootCA.pem=${mkcert_caroot}/rootCA.pem" \
     --dry-run=client -o yaml > "${RENDERED_DIR}/ferretdb-tls-secret.yml"
 }
 
@@ -226,6 +230,9 @@ generate_certs() {
 cmd_up() {
   check_prereqs
   mkdir -p "${DEV_DIR}"
+  # Pre-create hostPath directories so kubelet doesn't create them as root.
+  # FerretDB runs as UID 1000 and needs write access to its data directory.
+  mkdir -p "${DEV_DIR}/ferretdb-data"
   trap 'rm -rf "${RENDERED_DIR}"' EXIT
 
   if $IS_WSL2; then
