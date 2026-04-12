@@ -71,7 +71,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.5",
-    "json-schema-library": "^11.2.0",
+    "json-schema-library": "^11.4.0",
     "nodemon": "^3.1.14",
     "prettier": "^3.8.2",
     "sonarqube-scanner": "^4.3.5",
