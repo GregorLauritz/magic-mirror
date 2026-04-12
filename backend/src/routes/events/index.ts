@@ -4,7 +4,9 @@ import { calendar_v3 } from 'googleapis';
 import { ApiError } from 'models/api/api_error';
 import { CalendarEvent, CalendarEventList } from 'models/api/calendar'; // Import CalendarEvent type
 import { getTimeDiff, isDate, isIso8601DatetimeString, TimeUnit } from 'services/dateParser';
+import { apiCache } from 'services/cache';
 import { getGoogleCalendar } from 'services/google';
+import { getUserId } from 'services/headers';
 import { getRouter } from 'services/router_factory';
 import { CustomParameterValidator } from 'services/validators/custom_parameter_validator';
 import { EParamType } from 'services/validators/parameter_validator';
@@ -35,6 +37,14 @@ class CalendarEventService {
     maxResults: number,
     calendarId: string,
   ): Promise<calendar_v3.Schema$Events> {
+    const userId = getUserId(req.headers);
+    const cacheKey = `${userId}:events:${calendarId}:${timeMin}:${timeMax ?? ''}:${maxResults}`;
+
+    const cached = apiCache.get<calendar_v3.Schema$Events>(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+
     const calendar = getGoogleCalendar(req);
     const events = await calendar.events.list({
       calendarId,
@@ -44,7 +54,11 @@ class CalendarEventService {
       singleEvents: true,
       orderBy: 'startTime',
     });
-    return events.data;
+    const result = events.data;
+
+    apiCache.set(cacheKey, result);
+
+    return result;
   }
 
   static parseEvents(events: calendar_v3.Schema$Events): CalendarEventList {

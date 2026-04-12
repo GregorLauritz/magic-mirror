@@ -3,7 +3,9 @@ import { NextFunction, Request, Response } from 'express';
 import { calendar_v3 } from 'googleapis';
 import { ApiError } from 'models/api/api_error';
 import { Birthday, BirthdayList } from 'models/api/birthdays';
+import { apiCache } from 'services/cache';
 import { getGoogleCalendar } from 'services/google';
+import { getUserId } from 'services/headers';
 import { getRouter } from 'services/router_factory';
 import { EParamType } from 'services/validators/parameter_validator';
 import { RangeParameterValidator } from 'services/validators/range_parameter_validator';
@@ -34,6 +36,14 @@ class BirthdayParser {
 // Calendar Event Retrieval Service
 class CalendarEventRetriever {
   static async getBirthdays(req: Request, calendarId: string, maxResults: number): Promise<calendar_v3.Schema$Events> {
+    const userId = getUserId(req.headers);
+    const cacheKey = `${userId}:birthdays:${calendarId}:${maxResults}`;
+
+    const cached = apiCache.get<calendar_v3.Schema$Events>(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+
     const calendar = getGoogleCalendar(req);
     const timeMin = new Date().toISOString();
 
@@ -44,7 +54,11 @@ class CalendarEventRetriever {
       singleEvents: true,
       orderBy: 'startTime',
     });
-    return events.data;
+    const result = events.data;
+
+    apiCache.set(cacheKey, result);
+
+    return result;
   }
 }
 

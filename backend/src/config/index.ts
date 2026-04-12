@@ -52,6 +52,8 @@ export const DB_API_BASE_URL = 'https://v6.db.transport.rest';
 
 export const ALLOWED_URLS = [WEATHER_API_URL, OPENWEATHER_URL, GEOCODE_URL, DB_API_BASE_URL];
 
+export const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 export const RATE_LIMIT = {
   windowMs: 1 * 60 * 1000, // 1 minute
   max: 500,
