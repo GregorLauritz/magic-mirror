@@ -17,6 +17,7 @@ required_rpi_packages:
     - unclutter
 
 domain: fritz.box
+backend_port: 30443
 additional_hostnames: "localhost 127.0.0.1 ::1"
 
 mongo:
@@ -40,7 +41,7 @@ pw_store_dir: "{{ playbook_dir }}/pwstore"
 node:
   version: 24-alpine3.23
 
-backend_url: "https://nuc.{{ domain }}"
+backend_url: "https://nuc.{{ domain }}:{{ backend_port | default(443) }}"
 
 # Container registry for k3s image pulls (GitHub Container Registry)
 registry_url: "ghcr.io/gregorlauritz"
