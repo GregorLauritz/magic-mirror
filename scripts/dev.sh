@@ -129,7 +129,7 @@ render_manifests() {
 
 generate_secrets() {
   local secrets_file="${RENDERED_DIR}/secrets.yml"
-  local pw_file="${DEV_DIR}/mongopw.txt"
+  local pw_file="${DEV_DIR}/ferretdbpw.txt"
   local cookie_file="${DEV_DIR}/cookie.txt"
 
   # Generate stable passwords (reused across restarts)
@@ -140,21 +140,21 @@ generate_secrets() {
     LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 > "$cookie_file"
   fi
 
-  local mongo_pw
+  local ferretdb_pw
   local cookie_secret
-  mongo_pw="$(cat "$pw_file")"
+  ferretdb_pw="$(cat "$pw_file")"
   cookie_secret="$(cat "$cookie_file")"
 
   cat > "$secrets_file" <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
-  name: mongo-credentials
+  name: ferretdb-credentials
   namespace: ${NAMESPACE}
 type: Opaque
 stringData:
-  MONGO_INITDB_ROOT_USERNAME: mongoadmin
-  MONGO_INITDB_ROOT_PASSWORD: "${mongo_pw}"
+  FERRETDB_USERNAME: ferretadmin
+  FERRETDB_PASSWORD: "${ferretdb_pw}"
 ---
 apiVersion: v1
 kind: Secret
@@ -163,8 +163,8 @@ metadata:
   namespace: ${NAMESPACE}
 type: Opaque
 stringData:
-  MONGO_USERNAME: mongoadmin
-  MONGO_PASSWORD: "${mongo_pw}"
+  FERRETDB_USERNAME: ferretadmin
+  FERRETDB_PASSWORD: "${ferretdb_pw}"
   GEOCODE_API_KEY: "${GEOCODE_API_KEY:-}"
 ---
 apiVersion: v1
@@ -185,23 +185,40 @@ EOF
 
 generate_certs() {
   local cert_dir="${DEV_DIR}/certs"
-  mkdir -p "$cert_dir"
+  local ferretdb_cert_dir="${DEV_DIR}/ferretdb/ssl"
+  mkdir -p "$cert_dir" "$ferretdb_cert_dir"
+
+  mkcert -install 2>/dev/null || true
 
   if [[ ! -f "${cert_dir}/${HOSTNAME}.pem" ]]; then
     info "Generating TLS certificates for ${HOSTNAME}"
-    mkcert -install 2>/dev/null || true
     mkcert \
       -key-file "${cert_dir}/${HOSTNAME}.key" \
       -cert-file "${cert_dir}/${HOSTNAME}.pem" \
       "${HOSTNAME}" localhost 127.0.0.1 ::1
   fi
 
-  # Create k8s TLS secret from cert files
+  if [[ ! -f "${ferretdb_cert_dir}/ferretdb.pem" ]]; then
+    info "Generating FerretDB TLS certificates"
+    mkcert \
+      -key-file "${ferretdb_cert_dir}/ferretdb.key" \
+      -cert-file "${ferretdb_cert_dir}/ferretdb.pem" \
+      ferretdb localhost 127.0.0.1 ::1
+  fi
+
+  # Create k8s TLS secret for oauth2-proxy
   $KUBECTL create secret generic oauth2-proxy-tls \
     --namespace="${NAMESPACE}" \
     --from-file="${HOSTNAME}.pem=${cert_dir}/${HOSTNAME}.pem" \
     --from-file="${HOSTNAME}.key=${cert_dir}/${HOSTNAME}.key" \
     --dry-run=client -o yaml > "${RENDERED_DIR}/tls-secret.yml"
+
+  # Create k8s TLS secret for FerretDB
+  $KUBECTL create secret generic ferretdb-tls \
+    --namespace="${NAMESPACE}" \
+    --from-file="ferretdb.pem=${ferretdb_cert_dir}/ferretdb.pem" \
+    --from-file="ferretdb.key=${ferretdb_cert_dir}/ferretdb.key" \
+    --dry-run=client -o yaml > "${RENDERED_DIR}/ferretdb-tls-secret.yml"
 }
 
 # ── Commands ──────────────────────────────────────────────────────────────────
@@ -226,10 +243,11 @@ cmd_up() {
   info "Applying secrets and configmaps"
   $KUBECTL apply -f "${RENDERED_DIR}/secrets.yml"
   $KUBECTL apply -f "${RENDERED_DIR}/tls-secret.yml"
+  $KUBECTL apply -f "${RENDERED_DIR}/ferretdb-tls-secret.yml"
   $KUBECTL apply -f "${RENDERED_DIR}/configmaps.yml"
 
   info "Starting services"
-  $KUBECTL apply -f "${RENDERED_DIR}/mongo.yml"
+  $KUBECTL apply -f "${RENDERED_DIR}/ferretdb.yml"
   $KUBECTL apply -f "${RENDERED_DIR}/backend.yml"
   $KUBECTL apply -f "${RENDERED_DIR}/frontend.yml"
 
@@ -240,7 +258,7 @@ cmd_up() {
   fi
 
   info "Waiting for pods to start (this may take a few minutes for yarn install)..."
-  $KUBECTL wait --for=condition=Ready pod -l app=mongo -n "${NAMESPACE}" --timeout=120s
+  $KUBECTL wait --for=condition=Ready pod -l app=ferretdb -n "${NAMESPACE}" --timeout=120s
   $KUBECTL wait --for=condition=Ready pod -l app=backend -n "${NAMESPACE}" --timeout=210s
   $KUBECTL wait --for=condition=Ready pod -l app=frontend -n "${NAMESPACE}" --timeout=210s
 
@@ -252,7 +270,7 @@ cmd_up() {
   echo ""
   echo "  Frontend:       http://localhost:30000"
   echo "  Backend API:    http://localhost:30001/api"
-  echo "  MongoDB:        localhost:30017"
+  echo "  FerretDB:       localhost:30017"
   echo "  Debugger:       localhost:30229 (Node.js inspector)"
   if [[ -n "${OAUTH2_CLIENT_ID:-}" ]]; then
     echo "  OAuth2-Proxy:   https://localhost:30443"

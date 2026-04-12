@@ -7,6 +7,7 @@
   loop:
     - "{{ certs_base_dir }}/certs"
     - "{{ certs_base_dir }}/oauth2-proxy/ssl"
+    - "{{ certs_base_dir }}/ferretdb/ssl"
 
 - name: Get mkcert CA root path
   ansible.builtin.command: mkcert -CAROOT
@@ -22,6 +23,7 @@
   loop:
     - certs
     - oauth2-proxy
+    - ferretdb/ssl
 
 - name: Generate oauth2-proxy SSL certificate
   ansible.builtin.command: >-
@@ -39,3 +41,12 @@
     > {{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.bundle.pem
   args:
     creates: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.bundle.pem"
+
+- name: Generate FerretDB TLS certificate
+  ansible.builtin.command: >-
+    mkcert
+    -key-file {{ certs_base_dir }}/ferretdb/ssl/ferretdb.key
+    -cert-file {{ certs_base_dir }}/ferretdb/ssl/ferretdb.pem
+    ferretdb localhost 127.0.0.1 ::1
+  args:
+    creates: "{{ certs_base_dir }}/ferretdb/ssl/ferretdb.pem"

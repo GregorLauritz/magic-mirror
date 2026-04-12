@@ -5,9 +5,10 @@ metadata:
   namespace: magic-mirror
 data:
   FRONTEND_URL: "https://{{ server_fqdn }}"
-  MONGO_PORT: "{{ mongo.port | string }}"
-  MONGO_SSL: "{{ mongo.ssl | to_json }}"
-  MONGO_HOSTNAME: "mongo"
+  FERRETDB_PORT: "{{ ferretdb.port | string }}"
+  FERRETDB_SSL: "{{ ferretdb.ssl | to_json }}"
+  FERRETDB_SSL_CA_FILE: "/etc/ferretdb/rootCA.pem"
+  FERRETDB_HOSTNAME: "ferretdb"
 ---
 apiVersion: v1
 kind: ConfigMap
