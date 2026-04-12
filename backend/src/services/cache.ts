@@ -9,6 +9,18 @@ interface CacheEntry<T> {
 class ApiCacheService {
   private readonly store = new Map<string, CacheEntry<unknown>>();
 
+  constructor() {
+    // Periodically prune expired entries to prevent memory leaks
+    setInterval(() => {
+      const now = Date.now();
+      for (const [key, entry] of this.store.entries()) {
+        if (now > entry.expiresAt) {
+          this.store.delete(key);
+        }
+      }
+    }, 30 * 60 * 1000).unref();
+  }
+
   get<T>(key: string): T | undefined {
     const entry = this.store.get(key) as CacheEntry<T> | undefined;
     if (!entry) return undefined;
