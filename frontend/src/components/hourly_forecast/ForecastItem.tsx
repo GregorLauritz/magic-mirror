@@ -35,7 +35,7 @@ const ForecastItem = ({ item, isLoading }: IForecastItem) => {
     }
 
     return (
-        <Stack direction={'column'} spacing={0.5} alignItems={'center'}>
+        <Stack direction={'column'} spacing={0.5} sx={{ alignItems: 'center' }}>
             <Typography variant="subtitle2" color="text.primary" align="center">
                 {parseTime(new Date(item.time).getHours())}:
                 {parseTime(new Date(item.time).getMinutes())}

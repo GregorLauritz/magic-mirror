@@ -1,0 +1,16 @@
+---
+# Copy this file to vault.yml, fill in your values, then encrypt:
+#   ansible-vault encrypt vault.yml
+#
+# To edit later:
+#   ansible-vault edit vault.yml
+#
+# To run the playbook:
+#   ansible-playbook server_setup.yml --ask-vault-pass
+#   or with a password file:
+#   ansible-playbook server_setup.yml --vault-password-file ~/.vault_pass
+
+client_secret: ""
+geocode_api_key: ""
+registry_username: ""   # GitHub username (for GHCR pull secret)
+registry_password: ""   # GitHub PAT with read:packages scope (for GHCR pull secret)

@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: magic-mirror-dev
+data:
+  FRONTEND_URL: "https://${HOSTNAME}"
+  MONGO_PORT: "27017"
+  MONGO_SSL: "false"
+  MONGO_HOSTNAME: "mongo"
+  NODE_PATH: "./src"
+  NODE_ENV: "development"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: magic-mirror-dev
+data:
+  API_BACKEND_CONTEXT: "/api"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth2-proxy-config
+  namespace: magic-mirror-dev
+data:
+  oauth2-proxy.cfg: |
+    provider = "google"
+    api_routes = [
+      "^/api"
+    ]
+    cookie_secure = true
+    cookie_httponly = true
+    upstreams = [
+        "http://backend:3001/api/",
+        "http://frontend:3000/"
+    ]
+    tls_cert_file="/opt/ssl/${HOSTNAME}.pem"
+    tls_key_file="/opt/ssl/${HOSTNAME}.key"
+    pass_access_token = true
+    pass_authorization_header = true
+    cookie_csrf_per_request = true
+    cookie_csrf_expire = "5m"
+    cookie_refresh = "15m"
+    set_xauthrequest = true
+    set_authorization_header = true
+    skip_auth_preflight = true
+    scope = "email profile https://www.googleapis.com/auth/calendar.readonly"

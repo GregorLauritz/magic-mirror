@@ -1,0 +1,17 @@
+mirrors:
+  "{{ registry_url }}":
+    endpoint:
+      - "https://{{ registry_url }}"
+{% if registry_insecure | default(false) or (registry_username is defined and registry_password is defined) %}
+configs:
+  "{{ registry_url }}":
+{% if registry_username is defined and registry_password is defined %}
+    auth:
+      username: "{{ registry_username }}"
+      password: "{{ registry_password }}"
+{% endif %}
+{% if registry_insecure | default(false) %}
+    tls:
+      insecure_skip_verify: true
+{% endif %}
+{% endif %}

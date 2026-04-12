@@ -1,0 +1,93 @@
+---
+- name: Check if k3s is already installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/k3s
+  register: k3s_binary
+
+- name: Get installed k3s version
+  ansible.builtin.command: k3s --version
+  changed_when: false
+  failed_when: false
+  register: k3s_installed_version
+  when: k3s_binary.stat.exists
+
+- name: Install k3s
+  when: not k3s_binary.stat.exists or k3s_version not in (k3s_installed_version.stdout | default(''))
+  block:
+    - name: Download k3s install script
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: /tmp/k3s-install.sh
+        mode: "0755"
+
+    - name: Run k3s installer
+      ansible.builtin.command: /tmp/k3s-install.sh
+      environment:
+        INSTALL_K3S_VERSION: "{{ k3s_version }}"
+        INSTALL_K3S_EXEC: "server --disable traefik --flannel-backend=none --disable-network-policy --disable-kube-proxy"
+      changed_when: true
+
+    - name: Remove install script
+      ansible.builtin.file:
+        path: /tmp/k3s-install.sh
+        state: absent
+
+- name: Wait for k3s to be ready
+  ansible.builtin.command: k3s kubectl get nodes
+  changed_when: false
+  retries: 12
+  delay: 10
+  register: k3s_nodes
+  until: k3s_nodes.rc == 0
+
+- name: Ensure k3s config directory exists
+  ansible.builtin.file:
+    path: "{{ k3s_config_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Configure container registry
+  ansible.builtin.template:
+    src: registries.yaml.j2
+    dest: "{{ k3s_config_dir }}/registries.yaml"
+    mode: "0600"
+  notify: restart k3s
+
+- name: Create .kube directory for user
+  ansible.builtin.file:
+    path: "/home/{{ user_name }}/.kube"
+    state: directory
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: "0755"
+
+- name: Copy kubeconfig for user
+  ansible.builtin.copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: "/home/{{ user_name }}/.kube/config"
+    remote_src: true
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: "0600"
+
+- name: Set KUBECONFIG in system profile
+  ansible.builtin.copy:
+    dest: /etc/profile.d/k3s_kubeconfig.sh
+    content: 'export KUBECONFIG="/home/{{ user_name }}/.kube/config"'
+    mode: "0644"
+
+# --- Cilium CNI with WireGuard encryption ---
+
+- name: Install Cilium CLI
+  ansible.builtin.include_tasks: cilium.yml
+
+# --- cert-manager for Let's Encrypt (only when enabled) ---
+
+- name: Install cert-manager
+  ansible.builtin.include_tasks: cert_manager.yml
+  when: letsencrypt_enabled | default(false) | bool
+
+# --- Keel for automatic image updates ---
+
+- name: Install Keel
+  ansible.builtin.include_tasks: keel.yml

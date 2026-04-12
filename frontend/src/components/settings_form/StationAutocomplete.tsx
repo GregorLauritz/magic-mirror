@@ -17,6 +17,7 @@ export const StationAutocomplete = ({
     const [options, setOptions] = useState<TrainStation[]>([])
     const [inputValue, setInputValue] = useState(value?.name ?? '')
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(false)
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     // Sync input value when the external value changes (e.g., on initial load)
@@ -27,10 +28,12 @@ export const StationAutocomplete = ({
     const searchStations = useCallback(async (query: string) => {
         if (query.length < 2) {
             setOptions([])
+            setError(false)
             return
         }
 
         setLoading(true)
+        setError(false)
         try {
             const response = await fetch(
                 `${TRAINS_API}/stations?query=${encodeURIComponent(query)}&results=10`
@@ -38,9 +41,13 @@ export const StationAutocomplete = ({
             if (response.ok) {
                 const stations: TrainStation[] = await response.json()
                 setOptions(stations)
+            } else {
+                setOptions([])
+                setError(true)
             }
-        } catch (error) {
-            console.error('Error searching stations:', error)
+        } catch {
+            setOptions([])
+            setError(true)
         } finally {
             setLoading(false)
         }
@@ -102,13 +109,16 @@ export const StationAutocomplete = ({
                 <TextField
                     {...params}
                     label={label}
+                    error={error}
+                    helperText={error ? 'Error loading stations' : undefined}
                     slotProps={{
+                        ...params.slotProps,
                         input: {
-                            ...params.InputProps,
+                            ...params.slotProps?.input,
                             autoComplete: 'new-password',
                         },
                         htmlInput: {
-                            ...params.inputProps,
+                            ...params.slotProps?.htmlInput,
                             autoComplete: 'new-password',
                         },
                     }}

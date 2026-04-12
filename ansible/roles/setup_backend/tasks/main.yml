@@ -10,52 +10,37 @@
   ansible.builtin.apt:
     pkg: "{{ required_backend_packages }}"
 
-- name: Stop service {{ service_name }}
-  ansible.builtin.service:
-    name: "{{ service_name }}"
-    state: stopped
-  failed_when: false  # service may not exist on first run
-
 - name: Add the user
   ansible.builtin.user:
     name: "{{ user_name }}"
     shell: /bin/bash
-    groups: sudo,docker
+    groups: sudo
     append: true
 
-- name: Delete code dirs in working dir
+- name: Delete manifest dirs in working dir
   ansible.builtin.file:
     state: absent
     path: "{{ work_dir }}/{{ item }}"
   loop: "{{ relevant_code_dirs }}"
 
-- name: Copy code to remote
+- name: Copy manifests to remote
   ansible.builtin.synchronize:
     src: "{{ playbook_dir | dirname }}/{{ item }}"
     dest: "{{ work_dir }}"
-    rsync_opts:
-      - "--exclude=node_modules --exclude=dist --exclude='*.pem' --exclude='*.crt' --exclude='*.key'"
   loop: "{{ relevant_code_dirs }}"
 
-- name: Create directory for mongo
-  ansible.builtin.file:
-    path: "{{ work_dir }}/mongo"
-    state: directory
-    mode: "0755"
+- name: Allow pod CIDR through UFW
+  community.general.ufw:
+    rule: allow
+    src: "{{ item.cidr }}"
+    comment: "{{ item.comment }}"
+  loop:
+    - { cidr: "{{ cilium_pod_cidr }}", comment: "Cilium pod CIDR" }
+    - { cidr: "{{ k3s_service_cidr }}", comment: "k3s service CIDR" }
 
-- name: Install service
-  ansible.builtin.template:
-    src: magic-mirror-server.service.j2
-    dest: "/etc/systemd/system/{{ service_name }}.service"
-    mode: "0644"
-
-- name: Generate environment files
+- name: Install and configure k3s
   ansible.builtin.include_role:
-    name: generate_env_files
-  vars:
-    env_base_dir: "{{ work_dir }}"
-    env_file_owner: "{{ user_name }}"
-    env_file_group: "{{ user_name }}"
+    name: setup_k3s
 
 - name: Generate SSL certificates
   ansible.builtin.include_role:
@@ -71,12 +56,8 @@
     mode: "0755"
     recurse: true
 
-- name: Reload systemd daemon
-  ansible.builtin.systemd:
-    daemon_reload: true
-
-- name: Enable and start service {{ service_name }}
-  ansible.builtin.systemd:
-    name: "{{ service_name }}"
-    state: started
-    enabled: true
+- name: Deploy Kubernetes manifests
+  ansible.builtin.include_role:
+    name: deploy_k8s
+  vars:
+    certs_base_dir: "{{ work_dir }}"

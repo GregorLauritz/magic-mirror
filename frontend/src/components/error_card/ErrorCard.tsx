@@ -18,7 +18,7 @@ function ErrorCard({ Card, showSettingsBtn, error }: Readonly<Props>) {
                     {error.toString()}
                 </Typography>
                 {showSettingsBtn && (
-                    <Stack alignItems={'center'}>
+                    <Stack sx={{ alignItems: 'center' }}>
                         <Button
                             onClick={() => navigate('/settings')}
                             variant="outlined"

@@ -49,22 +49,21 @@ const BirthdayItem = memo<BirthdayItemProps>(({ item }) => {
             <Stack
                 direction="row"
                 spacing={1}
-                whiteSpace="nowrap"
-                overflow="hidden"
-                justifyContent="space-between"
+                sx={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    justifyContent: 'space-between',
+                }}
             >
                 <Typography
                     color={color}
-                    fontWeight={fontWeight}
-                    fontSize={xSmallFontSize}
-                    sx={hideTextOverflow}
+                    sx={{ fontWeight, ...xSmallFontSize, ...hideTextOverflow }}
                 >
                     {item.name}
                 </Typography>
                 <Typography
                     color={color}
-                    fontWeight={fontWeight}
-                    fontSize={xSmallFontSize}
+                    sx={{ fontWeight, ...xSmallFontSize }}
                 >
                     {timeText}
                 </Typography>

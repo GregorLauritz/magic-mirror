@@ -1,4 +1,5 @@
 import { ALLOWED_URLS } from 'config';
+import { ApiError } from 'models/api/api_error';
 import { ApiResponse, Json } from 'models/api/fetch';
 import { LOGGER } from 'services/loggers';
 
@@ -24,7 +25,16 @@ export const fetchJson = async (
     const response = await fetch(url, options);
     LOGGER.info(`Call to API ${displayUrl} returned status code ${response.status}`);
 
-    const body = await response.json();
+    let body: Json;
+    try {
+      body = await response.json();
+    } catch (parseError) {
+      if (!response.ok) {
+        throw new ApiError(`Upstream API returned ${response.status}`, parseError as Error, 502);
+      }
+      throw parseError;
+    }
+
     return {
       body,
       status: response.status,

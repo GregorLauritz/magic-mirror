@@ -1,17 +1,11 @@
 ---
-- name: Deploy Magic Mirror to backend server
+- name: Deploy Magic Mirror to backend server via k3s
   hosts: backend_server
   gather_facts: true
   become: true
 
-  vars_prompt:
-    - name: client_secret
-      prompt: "Google OAuth2 Client Secret"
-      private: true
-
-    - name: geocode_api_key
-      prompt: "Geocode Maps API Key"
-      private: true
+  vars_files:
+    - vault.yml
 
   roles:
     - setup_backend

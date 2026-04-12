@@ -1,11 +1,9 @@
-work_dir: /opt/test
+work_dir: /opt/magic-mirror
+cilium_pod_cidr: "10.0.0.0/8"
+k3s_service_cidr: "10.43.0.0/16"
 service_name: magic-mirror-server
 relevant_code_dirs:
-  - backend
-  - frontend
-  - oauth2-proxy
-  - certs
-  - docker-compose
+  - k8s
 
 server_fqdn: "{{ ansible_hostname | lower }}.{{ domain | lower }}"
 user_name: magicmirror

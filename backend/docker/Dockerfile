@@ -29,6 +29,7 @@ RUN yarn install --immutable \
 # Stage 2: Production image
 # =============================================================================
 FROM node:${NODE_IMG_VERSION} AS production
+ARG YARN_VERSION
 
 # Metadata labels following OCI image spec
 LABEL org.opencontainers.image.title="Magic Mirror Backend" \
@@ -44,9 +45,9 @@ ENV NODE_PATH=./src \
     NODE_OPTIONS="--enable-source-maps" \
     NPM_CONFIG_LOGLEVEL=warn
 
-# Install ca-certificates and dumb-init for proper signal handling
+# Install dumb-init for proper signal handling
 # dumb-init ensures proper signal forwarding to Node.js process
-RUN apk --no-cache add ca-certificates dumb-init \
+RUN apk --no-cache add dumb-init \
     && rm -rf /var/cache/apk/*
 
 # Create non-root user and group for security
@@ -58,14 +59,6 @@ RUN addgroup -g 1001 -S nodejs \
 WORKDIR /app
 
 RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate
-
-# Copy custom CA certificate and update certificates
-# This must be done before switching to non-root user
-COPY --chown=nodejs:nodejs rootCA.pem /usr/local/share/ca-certificates/rootCa.crt
-RUN update-ca-certificates
-
-# Copy SSL certificates to /etc/express with proper ownership
-COPY --chown=nodejs:nodejs ssl /etc/express
 
 # Copy production dependencies from dependencies stage
 COPY --from=dependencies --chown=nodejs:nodejs /app/node_modules ./node_modules
@@ -86,7 +79,6 @@ EXPOSE 3001
 
 # Health check to ensure container is healthy
 # Checks if the application is responding on port 3001
-# Adjust the path if you have a dedicated health endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:3001/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})" || exit 1
 

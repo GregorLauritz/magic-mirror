@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: magic-mirror
+data:
+  FRONTEND_URL: "https://{{ server_fqdn }}"
+  MONGO_PORT: "{{ mongo.port | string }}"
+  MONGO_SSL: "{{ mongo.ssl | to_json }}"
+  MONGO_HOSTNAME: "mongo"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: magic-mirror
+data:
+  API_BACKEND_CONTEXT: "{{ backend_context }}"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth2-proxy-config
+  namespace: magic-mirror
+data:
+  oauth2-proxy.cfg: |
+    provider = "google"
+    api_routes = [
+      "^/api"
+    ]
+    cookie_secure = true
+    cookie_httponly = true
+    upstreams = [
+        "http://backend:3001/api/",
+        "http://frontend:3000/"
+    ]
+{% if letsencrypt_enabled | default(false) %}
+    tls_cert_file="/opt/ssl/tls.crt"
+    tls_key_file="/opt/ssl/tls.key"
+{% else %}
+    tls_cert_file="/opt/ssl/{{ server_fqdn }}.pem"
+    tls_key_file="/opt/ssl/{{ server_fqdn }}.key"
+{% endif %}
+    pass_access_token = true
+    pass_authorization_header = true
+    cookie_csrf_per_request = true
+    cookie_csrf_expire = "5m"
+    cookie_refresh = "15m"
+    set_xauthrequest = true
+    set_authorization_header = true
+    skip_auth_preflight = true
+    scope = "{{ oauth2_proxy.scopes }}"

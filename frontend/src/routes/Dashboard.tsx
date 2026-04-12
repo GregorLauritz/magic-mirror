@@ -42,7 +42,7 @@ const DashboardComponent = () => {
 
 const DashBoardItems = memo(() => {
     const { data: userSettings } = useGetUserSettings(true)
-    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const { width, containerRef, mounted } = useContainerWidth()
     const { isEditMode } = useGridEditContext()
 

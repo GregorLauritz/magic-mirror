@@ -1,18 +1,14 @@
 ARG OAUTH2_PROXY_VERSION=v7.13.0-alpine
 
-FROM quay.io/oauth2-proxy/oauth2-proxy:v7.13.0-alpine
+FROM quay.io/oauth2-proxy/oauth2-proxy:${OAUTH2_PROXY_VERSION}
 
 # Create non-root user if not already in base image
 RUN addgroup -g 1000 oauth2 && adduser -u 1000 -G oauth2 -s /sbin/nologin -D oauth2 || true
 
-COPY --chown=oauth2:oauth2 --chmod=644 rootCA.pem /etc/
-
-COPY --chown=oauth2:oauth2 --chmod=755 ssl/ /opt/ssl/
-
-# Create config directory with proper permissions
-RUN mkdir -p /opt/conf && chown -R oauth2:oauth2 /opt/conf && chmod 755 /opt/conf
-
-COPY --chown=oauth2:oauth2 --chmod=644 oauth2-proxy.cfg /opt/conf/
+# Create mount points for runtime-injected config and certs
+RUN mkdir -p /opt/conf /opt/ssl \
+    && chown -R oauth2:oauth2 /opt/conf /opt/ssl \
+    && chmod 755 /opt/conf /opt/ssl
 
 # Switch to non-root user
 USER oauth2

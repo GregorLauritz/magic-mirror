@@ -1,7 +1,7 @@
 import express from 'express';
 import { default as session } from 'express-session';
 import bodyParser from 'body-parser';
-import { ENABLE_HTTPS, FRONTEND_URL, RATE_LIMIT, SESSION_SECRET } from 'config';
+import { FRONTEND_URL, RATE_LIMIT, SESSION_SECRET } from 'config';
 import { default as cors } from 'cors';
 
 import { EXPRESS_LOGGER } from 'services/loggers';
@@ -31,6 +31,12 @@ export abstract class Server<T extends http.Server> {
     this._database = database;
     this._app = express();
     this._app.set('port', port);
+    if (process.env.NODE_ENV === 'production') {
+      // Behind oauth2-proxy (TLS terminator). Trust the immediate hop so that
+      // req.secure / X-Forwarded-Proto are honored and the secure session
+      // cookie is correctly set.
+      this._app.set('trust proxy', 1);
+    }
     this.configureExpress();
   }
 
@@ -54,7 +60,7 @@ export abstract class Server<T extends http.Server> {
         saveUninitialized: false,
         rolling: true,
         cookie: {
-          secure: ENABLE_HTTPS,
+          secure: process.env.NODE_ENV === 'production',
           httpOnly: true,
           sameSite: true,
           maxAge: 2.592e9, //30d

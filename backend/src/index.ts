@@ -1,6 +1,5 @@
-import { ENABLE_HTTPS, mongoDbData, SERVER_PORT } from 'config';
+import { mongoDbData, SERVER_PORT } from 'config';
 import { HttpServer } from 'services/server/http_server';
-import { HttpsServer } from 'services/server/https_server';
 import { default as WeatherRoute } from 'routes/weather';
 import { default as EventsRoute } from 'routes/events';
 import { default as CalendarsRoute } from 'routes/calendars';
@@ -14,7 +13,9 @@ import { EXPRESS_ERROR_LOGGER, LOGGER } from 'services/loggers';
 import { MongoDb } from 'services/database/mongodb';
 
 const mongoDb: MongoDb = new MongoDb(mongoDbData);
-const server = ENABLE_HTTPS ? new HttpsServer(mongoDb, SERVER_PORT) : new HttpServer(mongoDb, SERVER_PORT);
+const server = new HttpServer(mongoDb, SERVER_PORT);
+
+server.app.get('/api/health', (_req, res) => res.status(200).send('OK'));
 
 server.app.use('/api/weather', WeatherRoute);
 server.app.use('/api/events', EventsRoute);

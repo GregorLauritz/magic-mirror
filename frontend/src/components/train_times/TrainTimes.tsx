@@ -149,16 +149,24 @@ const TrainTimesCardComponent = ({
 
     return (
         <MediumCard>
-            <Box height="100%">
+            <Box sx={{ height: '100%' }}>
                 <Box
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    marginBottom={1}
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 1,
+                    }}
                 >
                     <Typography variant="body1">Train Times</Typography>
                     {showCarouselControls && (
-                        <Box display="flex" alignItems="center" gap={1}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                            }}
+                        >
                             <IconButton
                                 size="small"
                                 onClick={onPrevious}
@@ -168,8 +176,8 @@ const TrainTimesCardComponent = ({
                             </IconButton>
                             <Typography
                                 variant="body2"
-                                fontSize={xSmallFontSize}
                                 color="text.secondary"
+                                sx={{ ...xSmallFontSize }}
                             >
                                 {currentIndex + 1}/{totalConnections}
                             </Typography>
@@ -185,9 +193,8 @@ const TrainTimesCardComponent = ({
                 </Box>
                 <Typography
                     variant="body2"
-                    fontSize={xSmallFontSize}
                     color="text.secondary"
-                    marginBottom={2}
+                    sx={{ ...xSmallFontSize, marginBottom: 2 }}
                 >
                     {departure_station_name} → {arrival_station_name}
                 </Typography>
@@ -205,7 +212,7 @@ const TrainTimesCardComponent = ({
                     )}
 
                     {error && (
-                        <Typography color="error" fontSize={xSmallFontSize}>
+                        <Typography color="error" sx={{ ...xSmallFontSize }}>
                             Error loading train connections
                         </Typography>
                     )}
@@ -216,7 +223,7 @@ const TrainTimesCardComponent = ({
                         connections.length === 0 && (
                             <Typography
                                 color="text.secondary"
-                                fontSize={xSmallFontSize}
+                                sx={{ ...xSmallFontSize }}
                             >
                                 No connections found
                             </Typography>
@@ -287,29 +294,31 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
             }}
         >
             <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}
             >
                 <Box>
                     <Typography
                         variant="body2"
-                        fontWeight="bold"
-                        sx={
-                            isCancelled
+                        sx={{
+                            fontWeight: 'bold',
+                            ...(isCancelled
                                 ? {
                                       textDecoration: 'line-through',
                                       color: 'text.disabled',
                                   }
-                                : undefined
-                        }
+                                : undefined),
+                        }}
                     >
                         {formatTime(departureTime)} → {formatTime(arrivalTime)}
                     </Typography>
                     <Typography
                         variant="body2"
-                        fontSize={xSmallFontSize}
                         color="text.secondary"
+                        sx={{ ...xSmallFontSize }}
                     >
                         {connection.legs
                             .filter((leg) => !leg.walking)
@@ -318,12 +327,12 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
                         • {formatDuration(connection.duration)}
                     </Typography>
                 </Box>
-                <Box textAlign="right">
+                <Box sx={{ textAlign: 'right' }}>
                     {isCancelled ? (
                         <Typography
                             variant="body2"
-                            fontSize={xSmallFontSize}
                             color="error.main"
+                            sx={{ ...xSmallFontSize }}
                         >
                             Cancelled
                         </Typography>
@@ -332,8 +341,8 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
                             {connection.departurePlatform && (
                                 <Typography
                                     variant="body2"
-                                    fontSize={xSmallFontSize}
                                     color="text.secondary"
+                                    sx={{ ...xSmallFontSize }}
                                 >
                                     Platform {connection.departurePlatform}
                                 </Typography>
@@ -342,8 +351,8 @@ const TrainConnectionComponent = ({ connection }: TrainConnectionProps) => {
                                 connection.delay > 0 && (
                                     <Typography
                                         variant="body2"
-                                        fontSize={xSmallFontSize}
                                         color={getDelayColor(connection.delay)}
+                                        sx={{ ...xSmallFontSize }}
                                     >
                                         +{connection.delay / 60} min
                                     </Typography>

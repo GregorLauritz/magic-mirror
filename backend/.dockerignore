@@ -1,7 +1,15 @@
-node_modules
-README.md
-dist
+node_modules/
 docker/
+README.md
+dist/
+ssl/
+*.pem
+*.key
+*.crt
+*.csr
+*.env
+.env*
+rootCA*
 
 .yarn/*
 !.yarn/releases

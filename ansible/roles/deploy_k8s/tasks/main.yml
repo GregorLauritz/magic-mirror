@@ -1,0 +1,129 @@
+---
+- name: Generate MongoDB root password
+  ansible.builtin.set_fact:
+    mongo_root_pw: "{{ lookup('ansible.builtin.password', pw_store_dir + '/mongopw.txt', chars=['ascii_letters', 'digits'], length=32) }}"
+  no_log: true
+
+- name: Generate OAuth2 cookie secret
+  ansible.builtin.set_fact:
+    oauth2_cookie_secret: "{{ lookup('ansible.builtin.password', pw_store_dir + '/cookie.txt', chars=['ascii_letters', 'digits'], length=32) }}"
+  no_log: true
+
+- name: Read OAuth2-Proxy TLS certificate
+  ansible.builtin.slurp:
+    src: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.pem"
+  register: oauth2_cert_pem_raw
+  when: not (letsencrypt_enabled | default(false) | bool)
+
+- name: Read OAuth2-Proxy TLS key
+  ansible.builtin.slurp:
+    src: "{{ certs_base_dir }}/oauth2-proxy/ssl/{{ server_fqdn }}.key"
+  register: oauth2_cert_key_raw
+  when: not (letsencrypt_enabled | default(false) | bool)
+
+- name: Set certificate facts (base64-encoded for k8s secrets)
+  ansible.builtin.set_fact:
+    oauth2_cert_pem: "{{ oauth2_cert_pem_raw.content | default('') }}"
+    oauth2_cert_key: "{{ oauth2_cert_key_raw.content | default('') }}"
+  no_log: true
+
+- name: Create rendered manifests directory
+  ansible.builtin.file:
+    path: "{{ k8s_manifest_dir }}"
+    state: directory
+    mode: "0700"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+
+- name: Render templated manifests (Jinja2)
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "{{ k8s_manifest_dir }}/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    mode: "0600"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+  with_fileglob:
+    - "{{ playbook_dir | dirname }}/k8s/templates/*.j2"
+  no_log: true
+
+- name: Copy static manifests
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ k8s_manifest_dir }}/{{ item | basename }}"
+    mode: "0600"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+  with_fileglob:
+    - "{{ playbook_dir | dirname }}/k8s/templates/*.yml"
+
+- name: Install Python kubernetes library
+  ansible.builtin.apt:
+    name: python3-kubernetes
+    state: present
+  become: true
+
+- name: Deploy Kubernetes manifests
+  block:
+    - name: Apply namespace
+      kubernetes.core.k8s:
+        src: "{{ k8s_manifest_dir }}/namespace.yml"
+        state: present
+        kubeconfig: "{{ k8s_kubeconfig }}"
+
+    - name: Apply secrets and configmaps
+      kubernetes.core.k8s:
+        src: "{{ k8s_manifest_dir }}/{{ item }}"
+        state: present
+        kubeconfig: "{{ k8s_kubeconfig }}"
+      loop:
+        - secrets.yml
+        - configmaps.yml
+      no_log: true
+
+    - name: Apply cert-manager resources (Let's Encrypt)
+      kubernetes.core.k8s:
+        src: "{{ k8s_manifest_dir }}/cert-manager.yml"
+        state: present
+        kubeconfig: "{{ k8s_kubeconfig }}"
+      when: letsencrypt_enabled | default(false) | bool
+
+    - name: Wait for Let's Encrypt certificate to be ready
+      ansible.builtin.command: >-
+        {{ kubectl_bin }} wait certificate/magic-mirror-tls
+        -n magic-mirror --for=condition=Ready --timeout=300s
+      changed_when: false
+      when: letsencrypt_enabled | default(false) | bool
+
+    - name: Apply persistent volume claims
+      kubernetes.core.k8s:
+        src: "{{ k8s_manifest_dir }}/mongo-pvc.yml"
+        state: present
+        kubeconfig: "{{ k8s_kubeconfig }}"
+
+    - name: Apply workloads and services
+      kubernetes.core.k8s:
+        src: "{{ k8s_manifest_dir }}/{{ item }}"
+        state: present
+        kubeconfig: "{{ k8s_kubeconfig }}"
+      loop:
+        - mongo.yml
+        - backend.yml
+        - frontend.yml
+        - oauth2-proxy.yml
+
+    - name: Wait for deployments to be ready
+      ansible.builtin.command: >-
+        {{ kubectl_bin }} rollout status deployment/{{ item }}
+        -n magic-mirror --timeout=300s
+      loop:
+        - mongo
+        - backend
+        - frontend
+        - oauth2-proxy
+      changed_when: false
+
+  always:
+    - name: Clean up rendered manifests
+      ansible.builtin.file:
+        path: "{{ k8s_manifest_dir }}"
+        state: absent

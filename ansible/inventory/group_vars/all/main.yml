@@ -1,7 +1,6 @@
 ---
 required_backend_packages:
-  - docker.io
-  - docker-compose-plugin
+  - curl
   - mkcert
   - rsync
 
@@ -18,6 +17,7 @@ required_rpi_packages:
     - unclutter
 
 domain: fritz.box
+backend_port: 30443
 additional_hostnames: "localhost 127.0.0.1 ::1"
 
 mongo:
@@ -30,6 +30,10 @@ oauth2_proxy:
   client_id: 428211582851-66891ucq97qkrbmsik41ftkfcke0u26f.apps.googleusercontent.com
   scopes: "email profile https://www.googleapis.com/auth/calendar.readonly"
   version: v7.13.0-alpine
+  # Restrict OAuth logins to specific email domains. Use "*" to allow any
+  # Google account (NOT recommended for production). Multiple domains may be
+  # provided as a comma-separated string, e.g. "example.com,other.org".
+  email_domains: "*"
 
 backend_context: "/api"
 pw_store_dir: "{{ playbook_dir }}/pwstore"
@@ -37,4 +41,23 @@ pw_store_dir: "{{ playbook_dir }}/pwstore"
 node:
   version: 24-alpine3.23
 
-backend_url: "https://nuc.{{ domain }}"
+backend_url: "https://nuc.{{ domain }}:{{ backend_port | default(443) }}"
+
+# Container registry for k3s image pulls (GitHub Container Registry)
+registry_url: "ghcr.io/gregorlauritz"
+registry_insecure: false
+
+# Image tags — pin to a specific SHA or version for deterministic deployments.
+# The CI pipeline tags images with the Git short SHA (e.g. "a1b2c3d") and "latest".
+backend_image_tag: "latest"
+frontend_image_tag: "latest"
+oauth2_proxy_image_tag: "latest"
+
+# Let's Encrypt configuration
+# Enable when you have a publicly-resolvable domain for the cluster.
+# The HTTP-01 solver requires port 80 to be reachable from the internet.
+# For local domains (e.g. *.fritz.box), leave disabled and use mkcert certs.
+letsencrypt_enabled: false
+letsencrypt_email: ""
+letsencrypt_domain: ""
+letsencrypt_issuer: letsencrypt-staging

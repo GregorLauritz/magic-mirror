@@ -3,6 +3,8 @@ import RPi.GPIO as GPIO
 import time
 from enum import Enum
 
+POLL_INTERVAL_S = 0.05
+
 
 class DisplayState(str, Enum):
     on = 'on'
@@ -11,13 +13,13 @@ class DisplayState(str, Enum):
 
 class ScreenToggle:
     def __init__(self):
-        self._currentScreenState = "off"
+        self._current_screen_state = DisplayState.off
 
-    def setScreenState(self, state: DisplayState) -> None:
-        if self._currentScreenState != state:
+    def set_screen_state(self, state: DisplayState) -> None:
+        if self._current_screen_state != state:
             subprocess.run(
                 ["xset", "-display", ":0.0", "dpms", "force", state])
-            self._currentScreenState = state
+            self._current_screen_state = state
 
 
 class MotionSensor:
@@ -25,14 +27,13 @@ class MotionSensor:
         self._pin = pin
         GPIO.setup(self._pin, GPIO.IN)
 
-    def motionIsDetected(self) -> bool:
+    def motion_is_detected(self) -> bool:
         return GPIO.input(self._pin) == GPIO.HIGH
 
-    def multiMotionIsDetect(self, count: int = 5):
-        res = []
+    def multi_motion_is_detected(self, count: int = 5) -> bool:
         threshold = count / 2
-        while count > 0:
-            res.append(self.motionIsDetected())
-            count = count - 1
-            time.sleep(50/1000)
-        return sum(res) >= threshold
+        readings = []
+        for _ in range(count):
+            readings.append(self.motion_is_detected())
+            time.sleep(POLL_INTERVAL_S)
+        return sum(readings) >= threshold
