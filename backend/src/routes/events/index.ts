@@ -38,7 +38,8 @@ class CalendarEventService {
     calendarId: string,
   ): Promise<calendar_v3.Schema$Events> {
     const userId = getUserId(req.headers);
-    const cacheKey = `${userId}:events:${calendarId}:${timeMin}:${timeMax ?? ''}:${maxResults}`;
+    const cacheTime = timeMin.includes('T') ? timeMin.substring(0, 16) : timeMin;
+    const cacheKey = `${userId}:events:${calendarId}:${cacheTime}:${timeMax ?? ''}:${maxResults}`;
 
     const cached = apiCache.get<calendar_v3.Schema$Events>(cacheKey);
     if (cached !== undefined) {
