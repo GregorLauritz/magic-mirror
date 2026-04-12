@@ -87,10 +87,11 @@ class CalendarEventService {
 // Route Handlers
 async function allCalendarEvents(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const maxResults = parseInt((req.query.count as string) || String(CALENDAR_CONFIG.DEFAULT_EVENT_COUNT));
-    const timeMin = (req.query.minTime as string) || new Date().toISOString();
-    const timeMax = req.query.maxTime as string | undefined;
-    const calId = (req.query.cal_id as string) || 'primary';
+    const countParam = typeof req.query.count === 'string' ? req.query.count : undefined;
+    const maxResults = parseInt(countParam || String(CALENDAR_CONFIG.DEFAULT_EVENT_COUNT));
+    const timeMin = typeof req.query.minTime === 'string' ? req.query.minTime : new Date().toISOString();
+    const timeMax = typeof req.query.maxTime === 'string' ? req.query.maxTime : undefined;
+    const calId = typeof req.query.cal_id === 'string' ? req.query.cal_id : 'primary';
 
     const events = await CalendarEventService.getEvents(req, timeMin, timeMax, maxResults, calId);
     const parsedEvents = CalendarEventService.parseEvents(events);
@@ -107,7 +108,7 @@ async function eventsAtDate(req: Request, res: Response, next: NextFunction): Pr
     const timeMin = new Date(date).toISOString();
     const timeMax = new Date(date);
     timeMax.setDate(timeMax.getDate() + 1);
-    const calId = (req.query.cal_id as string) || 'primary';
+    const calId = typeof req.query.cal_id === 'string' ? req.query.cal_id : 'primary';
 
     const events = await CalendarEventService.getEvents(req, timeMin, timeMax.toISOString(), 100, calId);
     const parsedEvents = CalendarEventService.parseEvents(events);
