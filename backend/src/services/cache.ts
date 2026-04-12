@@ -7,6 +7,7 @@ interface CacheEntry<T> {
 }
 
 class ApiCacheService {
+  private static readonly MAX_SIZE = 500;
   private readonly store = new Map<string, CacheEntry<unknown>>();
 
   constructor() {
@@ -33,6 +34,10 @@ class ApiCacheService {
   }
 
   set<T>(key: string, value: T): void {
+    if (!this.store.has(key) && this.store.size >= ApiCacheService.MAX_SIZE) {
+      const oldestKey = this.store.keys().next().value as string;
+      this.store.delete(oldestKey);
+    }
     this.store.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
   }
 

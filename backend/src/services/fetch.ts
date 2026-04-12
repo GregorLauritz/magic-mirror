@@ -19,7 +19,8 @@ export const fetchJson = async (
 ): Promise<ApiResponse<Json>> => {
   const displayUrl = logUrl ?? url;
 
-  const cached = apiCache.get<ApiResponse<Json>>(url);
+  const cacheKey = `${options.method ?? 'GET'}:${url}`;
+  const cached = apiCache.get<ApiResponse<Json>>(cacheKey);
   if (cached) {
     LOGGER.info(`Cache hit for ${displayUrl}`);
     return cached;
@@ -50,7 +51,7 @@ export const fetchJson = async (
     };
 
     if (result.statusOk) {
-      apiCache.set(url, result);
+      apiCache.set(cacheKey, result);
     }
 
     return result;
@@ -75,7 +76,8 @@ export const fetchBuffer = async (
 ): Promise<ApiResponse<ArrayBuffer>> => {
   const displayUrl = logUrl ?? url;
 
-  const cached = apiCache.get<ApiResponse<ArrayBuffer>>(url);
+  const cacheKey = `${options.method ?? 'GET'}:${url}`;
+  const cached = apiCache.get<ApiResponse<ArrayBuffer>>(cacheKey);
   if (cached) {
     LOGGER.info(`Cache hit for ${displayUrl}`);
     return cached;
@@ -97,7 +99,7 @@ export const fetchBuffer = async (
     };
 
     if (result.statusOk) {
-      apiCache.set(url, result);
+      apiCache.set(cacheKey, result);
     }
 
     return result;
