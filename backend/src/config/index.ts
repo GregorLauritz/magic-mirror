@@ -10,7 +10,7 @@ export const ferretDbData: IDatabaseConnection = {
   port: parseInt(process.env.FERRETDB_PORT ?? '27017'),
   username: process.env.FERRETDB_USERNAME,
   password: process.env.FERRETDB_PASSWORD,
-  database: process.env.FERRETDB_DATABASE,
+  database: process.env.FERRETDB_DATABASE ?? 'magic-mirror',
   options: [
     {
       name: 'authSource',

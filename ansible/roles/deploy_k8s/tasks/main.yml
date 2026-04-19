@@ -21,10 +21,17 @@
   register: ferretdb_cert_key_raw
   no_log: true
 
+- name: Read FerretDB root CA certificate
+  ansible.builtin.slurp:
+    src: "{{ certs_base_dir }}/ferretdb/ssl/rootCA.pem"
+  register: ferretdb_root_ca_raw
+  no_log: true
+
 - name: Set FerretDB certificate facts (base64-encoded for k8s secrets)
   ansible.builtin.set_fact:
     ferretdb_cert_pem: "{{ ferretdb_cert_pem_raw.content }}"
     ferretdb_cert_key: "{{ ferretdb_cert_key_raw.content }}"
+    ferretdb_root_ca: "{{ ferretdb_root_ca_raw.content }}"
   no_log: true
 
 - name: Read OAuth2-Proxy TLS certificate

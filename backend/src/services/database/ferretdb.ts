@@ -15,7 +15,8 @@ export class FerretDb extends Database {
     const options = dbConnection.options
       ? '?' + dbConnection.options.map((op) => `${op.name}=${op.value}`).join('&')
       : '';
-    return `mongodb://${credentials}@${dbConnection.hostname}:${dbConnection.port}/${dbConnection.database}${options}`;
+    const credentialPrefix = credentials ? `${credentials}@` : '';
+    return `mongodb://${credentialPrefix}${dbConnection.hostname}:${dbConnection.port}/${dbConnection.database ?? ''}${options}`;
   }
 
   protected initDatabaseConnection(): void {
