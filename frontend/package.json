@@ -27,7 +27,7 @@
         "react-grid-layout": "^2.2.3",
         "react-query": "^3.39.3",
         "react-router-dom": "^7.14.1",
-        "uuid": "^13.0.0"
+        "uuid": "^14.0.0"
     },
     "devDependencies": {
         "@eslint/compat": "^2.0.5",
