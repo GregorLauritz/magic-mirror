@@ -63,7 +63,7 @@
     "@types/passport-google-oauth20": "^2.0.17",
     "@types/passport-oauth2-refresh": "^1.1.4",
     "@types/supertest": "^7.2.0",
-    "@typescript-eslint/eslint-plugin": "^8.58.2",
+    "@typescript-eslint/eslint-plugin": "^8.59.0",
     "@typescript-eslint/parser": "^8.58.2",
     "@vitest/coverage-v8": "^4.1.4",
     "@vitest/ui": "^4.1.4",
