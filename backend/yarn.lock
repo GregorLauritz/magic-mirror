@@ -908,12 +908,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/express-session@npm:^1.18.2":
-  version: 1.18.2
-  resolution: "@types/express-session@npm:1.18.2"
+"@types/express-session@npm:^1.19.0":
+  version: 1.19.0
+  resolution: "@types/express-session@npm:1.19.0"
   dependencies:
     "@types/express": "npm:*"
-  checksum: 10c0/5d5aa134ce8990920b35f2dd0aa55168af44faaf14789b6921d361ce016c43bdc66feba287753981a2fee33fd95b8a829c4418c3ca480b03961724b8bc13e453
+  checksum: 10c0/523035f476c84623d6ee4ec81452066d0112f66a41ba9488003c8898f26c85c46951e093bb1cb81447571a467b4a7bba87bd52c08e519a2af254c9de48a25d5f
   languageName: node
   linkType: hard
 
@@ -1693,7 +1693,7 @@ __metadata:
     "@types/compression": "npm:^1.8.1"
     "@types/cors": "npm:^2.8.19"
     "@types/express": "npm:^5.0.6"
-    "@types/express-session": "npm:^1.18.2"
+    "@types/express-session": "npm:^1.19.0"
     "@types/luxon": "npm:^3.7.1"
     "@types/node": "npm:^25.6.0"
     "@types/passport": "npm:^1.0.17"
