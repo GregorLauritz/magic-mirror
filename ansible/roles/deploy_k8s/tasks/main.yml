@@ -1,12 +1,37 @@
 ---
-- name: Generate MongoDB root password
+- name: Generate FerretDB root password
   ansible.builtin.set_fact:
-    mongo_root_pw: "{{ lookup('ansible.builtin.password', pw_store_dir + '/mongopw.txt', chars=['ascii_letters', 'digits'], length=32) }}"
+    ferretdb_root_pw: "{{ lookup('ansible.builtin.password', pw_store_dir + '/ferretdbpw.txt', chars=['ascii_letters', 'digits'], length=32) }}"
   no_log: true
 
 - name: Generate OAuth2 cookie secret
   ansible.builtin.set_fact:
     oauth2_cookie_secret: "{{ lookup('ansible.builtin.password', pw_store_dir + '/cookie.txt', chars=['ascii_letters', 'digits'], length=32) }}"
+  no_log: true
+
+- name: Read FerretDB TLS certificate
+  ansible.builtin.slurp:
+    src: "{{ certs_base_dir }}/ferretdb/ssl/ferretdb.pem"
+  register: ferretdb_cert_pem_raw
+  no_log: true
+
+- name: Read FerretDB TLS key
+  ansible.builtin.slurp:
+    src: "{{ certs_base_dir }}/ferretdb/ssl/ferretdb.key"
+  register: ferretdb_cert_key_raw
+  no_log: true
+
+- name: Read FerretDB root CA certificate
+  ansible.builtin.slurp:
+    src: "{{ certs_base_dir }}/ferretdb/ssl/rootCA.pem"
+  register: ferretdb_root_ca_raw
+  no_log: true
+
+- name: Set FerretDB certificate facts (base64-encoded for k8s secrets)
+  ansible.builtin.set_fact:
+    ferretdb_cert_pem: "{{ ferretdb_cert_pem_raw.content }}"
+    ferretdb_cert_key: "{{ ferretdb_cert_key_raw.content }}"
+    ferretdb_root_ca: "{{ ferretdb_root_ca_raw.content }}"
   no_log: true
 
 - name: Read OAuth2-Proxy TLS certificate
@@ -96,7 +121,7 @@
 
     - name: Apply persistent volume claims
       kubernetes.core.k8s:
-        src: "{{ k8s_manifest_dir }}/mongo-pvc.yml"
+        src: "{{ k8s_manifest_dir }}/ferretdb-pvc.yml"
         state: present
         kubeconfig: "{{ k8s_kubeconfig }}"
 
@@ -106,7 +131,7 @@
         state: present
         kubeconfig: "{{ k8s_kubeconfig }}"
       loop:
-        - mongo.yml
+        - ferretdb.yml
         - backend.yml
         - frontend.yml
         - oauth2-proxy.yml
@@ -116,7 +141,7 @@
         {{ kubectl_bin }} rollout status deployment/{{ item }}
         -n magic-mirror --timeout=300s
       loop:
-        - mongo
+        - ferretdb
         - backend
         - frontend
         - oauth2-proxy

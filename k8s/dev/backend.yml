@@ -24,7 +24,7 @@ spec:
             - |
               corepack enable
               corepack prepare yarn@4.12.0 --activate
-              yarn install
+              yarn install --immutable
               exec yarn dev
           ports:
             - containerPort: 3001
@@ -36,6 +36,9 @@ spec:
             - secretRef:
                 name: backend-secrets
           volumeMounts:
+            - name: ferretdb-ca
+              mountPath: /etc/ferretdb
+              readOnly: true
             - name: backend-src
               mountPath: /app/src
               readOnly: true
@@ -98,6 +101,12 @@ spec:
           hostPath:
             path: ${REPO_ROOT}/.dev/backend-yarn
             type: DirectoryOrCreate
+        - name: ferretdb-ca
+          secret:
+            secretName: ferretdb-tls
+            items:
+              - key: rootCA.pem
+                path: rootCA.pem
 ---
 apiVersion: v1
 kind: Service

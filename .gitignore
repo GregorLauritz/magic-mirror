@@ -118,13 +118,11 @@ token.json
 *.csr
 *.crt
 
-# Mongo data
+# Legacy MongoDB data files
 *.wt
-*.lock
 *.bson
 *.turtle
 WiredTiger*
-mongo/*/**
 frontend/build/
 10-variables.conf
 .env.*

@@ -20,10 +20,10 @@ domain: fritz.box
 backend_port: 30443
 additional_hostnames: "localhost 127.0.0.1 ::1"
 
-mongo:
-  user: mongoadmin
-  host: mongo
-  ssl: false
+ferretdb:
+  user: ferretadmin
+  host: ferretdb
+  ssl: true
   port: 27017
 
 oauth2_proxy:

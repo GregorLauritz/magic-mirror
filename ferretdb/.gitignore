@@ -1,0 +1,5 @@
+# Ignore FerretDB SQLite database files
+data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

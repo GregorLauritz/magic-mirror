@@ -5,9 +5,10 @@ metadata:
   namespace: magic-mirror-dev
 data:
   FRONTEND_URL: "https://${HOSTNAME}"
-  MONGO_PORT: "27017"
-  MONGO_SSL: "false"
-  MONGO_HOSTNAME: "mongo"
+  FERRETDB_PORT: "27017"
+  FERRETDB_SSL: "true"
+  FERRETDB_SSL_CA_FILE: "/etc/ferretdb/rootCA.pem"
+  FERRETDB_HOSTNAME: "ferretdb"
   NODE_PATH: "./src"
   NODE_ENV: "development"
 ---

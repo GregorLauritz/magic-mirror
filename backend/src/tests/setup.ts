@@ -1,18 +1,18 @@
 import { afterAll, beforeAll, beforeEach, vi } from 'vitest';
 
-// Mock MongoDB connection before any imports
-vi.mock('../services/database/mongodb', () => {
-  class MockMongoDb {
+// Mock FerretDB connection before any imports
+vi.mock('../services/database/ferretdb', () => {
+  class MockFerretDb {
     _connection = null;
     _connectionString = 'mongodb://mock';
-    _databaseType = 'mongodb';
+    _databaseType = 'ferretdb';
     buildConnectionString = vi.fn();
     initDatabaseConnection = vi.fn();
     getConnection = vi.fn().mockReturnValue(null);
   }
 
   return {
-    MongoDb: MockMongoDb,
+    FerretDb: MockFerretDb,
   };
 });
 
