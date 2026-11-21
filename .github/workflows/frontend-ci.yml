@@ -42,7 +42,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Run ESLint
+      - name: Run ESLint (layer boundaries included, no warnings allowed)
         run: yarn lint
         continue-on-error: false
 
@@ -74,16 +74,54 @@ jobs:
           echo "✅ Build completed successfully"
           ls -lah dist
 
+  # Time handling must not depend on where the browser is: the whole suite runs
+  # again in zones east and west of UTC, with and without daylight saving.
+  frontend-timezones:
+    name: Unit tests (${{ matrix.timezone }})
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    strategy:
+      fail-fast: false
+      matrix:
+        timezone: [Asia/Tokyo, America/Los_Angeles, Pacific/Auckland]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node.js 24.x
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
+        with:
+          node-version: 24.x
+          cache: "yarn"
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run unit tests in ${{ matrix.timezone }}
+        run: yarn test --run
+        env:
+          CI: true
+          TZ: ${{ matrix.timezone }}
+
   summary:
     name: Frontend CI Summary
     runs-on: ubuntu-latest
-    needs: frontend-checks
+    needs: [frontend-checks, frontend-timezones]
     if: always()
 
     steps:
       - name: Check job status
         run: |
-          if [ "${{ needs.frontend-checks.result }}" == "success" ]; then
+          if [ "${{ needs.frontend-checks.result }}" == "success" ] && [ "${{ needs.frontend-timezones.result }}" == "success" ]; then
             echo "✅ All frontend checks passed!"
             exit 0
           else

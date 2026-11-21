@@ -22,22 +22,7 @@ const compat = new FlatCompat({
 //   shared / features (presentation) use domain + application, never
 //   infrastructure; only `app/` (the composition root) may import everything.
 //
-// Directories that still hold the pre-refactor code. The new layers must not
-// depend on them; they disappear in the last migration step.
 const layer = (name) => `./src/${name}`
-const LEGACY_DIRS = [
-    'components',
-    'apis',
-    'services',
-    'hooks',
-    'common',
-    'models',
-    'routes',
-    'constants',
-    'types',
-].map(layer)
-
-const NO_LEGACY = 'New layers must not import the legacy directories.'
 
 const pureLayerZones = [
     {
@@ -48,7 +33,6 @@ const pureLayerZones = [
             layer('features'),
             layer('shared'),
             layer('app'),
-            ...LEGACY_DIRS,
         ],
         message: 'domain is pure: it may only import from domain.',
     },
@@ -59,7 +43,6 @@ const pureLayerZones = [
             layer('features'),
             layer('shared'),
             layer('app'),
-            ...LEGACY_DIRS,
         ],
         message: 'application may only import from domain and application.',
     },
@@ -69,7 +52,6 @@ const pureLayerZones = [
             layer('features'),
             layer('shared'),
             layer('app'),
-            ...LEGACY_DIRS,
         ],
         message:
             'infrastructure adapters may only import from domain and application.',
@@ -79,8 +61,8 @@ const pureLayerZones = [
 const presentationZones = [
     {
         target: layer('shared'),
-        from: [layer('infrastructure'), layer('features'), ...LEGACY_DIRS],
-        message: `shared UI must not import infrastructure or features. ${NO_LEGACY}`,
+        from: [layer('infrastructure'), layer('features')],
+        message: 'shared UI must not import infrastructure or features.',
     },
     {
         target: layer('shared'),
@@ -90,8 +72,8 @@ const presentationZones = [
     },
     {
         target: layer('features'),
-        from: [layer('infrastructure'), ...LEGACY_DIRS],
-        message: `features must reach infrastructure through ports, via useServices(). ${NO_LEGACY}`,
+        from: [layer('infrastructure')],
+        message: 'features must reach infrastructure through ports, via useServices().',
     },
     {
         target: layer('features'),
@@ -224,7 +206,7 @@ export default [
         },
     },
     {
-        // The inner layers are born clean, so their rules are errors from day one.
+        // The inner layers may only depend inwards.
         files: [
             'src/domain/**/*.{ts,tsx}',
             'src/application/**/*.{ts,tsx}',
@@ -238,17 +220,16 @@ export default [
         },
     },
     {
-        // Presentation layers start as warnings while legacy code is migrated;
-        // the final migration step flips them to errors.
+        // Presentation code reaches the outside world only through ports.
         files: ['src/features/**/*.{ts,tsx}', 'src/shared/**/*.{ts,tsx}'],
         rules: {
             'import/no-restricted-paths': [
-                'warn',
+                'error',
                 { basePath: __dirname, zones: presentationZones },
             ],
-            'no-restricted-globals': ['warn', ...AMBIENT_GLOBALS],
+            'no-restricted-globals': ['error', ...AMBIENT_GLOBALS],
             'no-restricted-imports': [
-                'warn',
+                'error',
                 {
                     patterns: [
                         {

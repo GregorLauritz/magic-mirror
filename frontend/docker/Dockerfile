@@ -7,9 +7,8 @@ ARG YARN_VERSION=4.12.0
 # =============================================================================
 FROM node:${NODE_IMG_VERSION} AS builder
 
-# Set production environment for React build
-ENV REACT_APP_NODE_ENV=production \
-    NODE_ENV=production
+# Production build (Vite reads only VITE_* variables, see src/app/config.ts)
+ENV NODE_ENV=production
 
 # Install specific yarn version for reproducibility
 RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate
@@ -43,8 +42,6 @@ LABEL maintainer="magic-mirror" \
       org.opencontainers.image.vendor="magic-mirror" \
       org.opencontainers.image.version="1.0" \
       org.opencontainers.image.source="https://github.com/magic-mirror"
-
-ENV REACT_APP_NODE_ENV=production
 
 # Create non-root user for nginx
 RUN addgroup -g 102 -S nginx-app && \

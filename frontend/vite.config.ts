@@ -38,16 +38,46 @@ export default defineConfig({
                 'src/main.tsx',
                 'src/assets/',
             ],
-            // Ratchet: these are the measured baseline (lines 98.9, functions
-            // 97.8, branches 96.5, statements 99.1) minus 2 points. The earlier
-            // 80% gate only measured files that tests happened to import, so it
-            // never saw the untested components. Raise these as legacy code is
-            // replaced by tested layers; never lower them.
+            // Ratchet: each threshold is the measured value minus a few points
+            // (measured: domain 100/98, application 100/94, infrastructure
+            // 99/95, features 99/97, shared 98/100 lines/branches). Raise them
+            // when the tests get better; never lower them. A new layer or
+            // feature that arrives untested fails the gate here.
             thresholds: {
                 lines: 96,
                 functions: 95,
                 branches: 94,
                 statements: 96,
+                'src/domain/**': {
+                    lines: 97,
+                    functions: 97,
+                    branches: 95,
+                    statements: 97,
+                },
+                'src/application/**': {
+                    lines: 97,
+                    functions: 97,
+                    branches: 90,
+                    statements: 97,
+                },
+                'src/infrastructure/**': {
+                    lines: 96,
+                    functions: 96,
+                    branches: 90,
+                    statements: 96,
+                },
+                'src/features/**': {
+                    lines: 95,
+                    functions: 93,
+                    branches: 94,
+                    statements: 95,
+                },
+                'src/shared/**': {
+                    lines: 94,
+                    functions: 88,
+                    branches: 95,
+                    statements: 94,
+                },
             },
         },
     },

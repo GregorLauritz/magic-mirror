@@ -7,7 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Magic Mirror is a personalized smart display dashboard application that shows real-time weather, calendar events, birthdays, train departures, and time. It's a **fully static, client-side-rendered app with no backend server or database** — the browser calls external APIs directly and signs in to Google using Google Identity Services (GIS). Originally designed for Raspberry Pi displays.
 
 **Tech Stack:**
-- Frontend: React 18 + TypeScript + Vite + Material-UI + Yarn as package manager
+- Frontend: React 19 + TypeScript + Vite + Material-UI + Yarn 4 as package manager
+- Server state: react-query v3 (used in feature hooks and a little plumbing, see below)
 - Auth: Google Identity Services (GIS) — in-browser OAuth2 token client, no server-side auth
 - Hosting: Nginx (static files + TLS termination), Kubernetes (k3s) + Ansible for deployment
 
@@ -18,12 +19,13 @@ Run from `/frontend`:
 ```bash
 yarn dev              # Dev server on port 3000 with hot reload
 yarn build            # Production build (TypeScript + Vite)
-yarn lint             # Run ESLint
+yarn lint             # ESLint incl. the architecture rules; no warnings allowed
 yarn lint:fix         # Auto-fix ESLint issues
-yarn format           # Run Prettier
-yarn test             # Run Vitest unit tests
+yarn format           # Run Prettier (yarn format:check to only check)
+yarn test             # Run Vitest unit tests (watch mode; add --run for one pass)
 yarn test:ui          # Vitest UI
-yarn test:coverage    # Coverage report
+yarn test:coverage    # Coverage report + per-layer thresholds
+TZ=Asia/Tokyo yarn test --run   # time handling must not depend on the zone
 ```
 
 ### k3s dev environment (matches production deployment)
@@ -40,6 +42,8 @@ See [LOCAL_DEV.md](LOCAL_DEV.md) for details.
 
 ## Architecture Overview
 
+The frontend follows a **hexagonal architecture**. The full description, the dependency rules and the recipes live in [`frontend/src/ARCHITECTURE.md`](frontend/src/ARCHITECTURE.md); this is the summary.
+
 ### Request Flow
 
 ```
@@ -48,7 +52,7 @@ Browser
   ├── Google Identity Services  ──►  Google Calendar API (events, birthdays, calendar list)
   ├── Open-Meteo, OpenWeatherMap icons  (weather — keyless)
   ├── geocode.maps.co  (location lookup — user-supplied API key)
-  ├── db.transport.rest  (train departures — keyless, Deutsche Bahn public API)
+  ├── v6.db.transport.rest  (train departures — keyless, Deutsche Bahn public API)
   └── localStorage / sessionStorage  (settings, API keys, Google token)
 ```
 
@@ -56,79 +60,47 @@ Browser
 
 ### Frontend Structure
 
-**Component-based with Context + React Query:**
-
 ```
 frontend/src/
-├── main.tsx              # Entry point
-├── App.tsx               # Router setup (/, /settings, /error), shared QueryClient
-├── routes/
-│   ├── Dashboard.tsx     # Main dashboard (wraps components in contexts)
-│   ├── Settings.tsx      # User settings form
-│   ├── ErrorPage.tsx     # Query-param-driven error display
-│   └── RouteErrorPage.tsx # Router errorElement (status-code-driven)
-├── components/           # UI components (each in own folder)
-│   ├── current_weather/  # Current temperature display
-│   ├── hourly_forecast/  # Hourly weather
-│   ├── daily_forecast/   # Daily weather
-│   ├── birthdays/        # Upcoming birthdays (gated on Google sign-in)
-│   ├── upcoming_events/  # Calendar events (gated on Google sign-in)
-│   ├── train_times/      # Train departure board
-│   ├── time/             # Clock display
-│   ├── settings_form/    # Settings editor (location, API keys, Google sign-in, calendars, trains)
-│   └── appbar/           # Top navigation bar
-├── apis/                 # React Query hooks — call services/ (below), never a backend
-│   ├── current_weather.ts, daily_weather.ts, hourly_weather.ts, weather_icon.ts
-│   ├── trains.ts
-│   ├── geocode.ts
-│   ├── events.ts, birthday.ts, calendar_list.ts   # Google Calendar, gated on sign-in
-│   └── user_settings.ts, users.ts                 # localStorage-backed
-├── services/             # Business logic ported from the old Express backend,
-│   │                     # plus new client-only concerns (auth, storage)
-│   ├── weather/          # weatherCodes.ts, daynight.ts, openMeteo.ts
-│   ├── trains/           # deutscheBahn.ts
-│   ├── geocode.ts
-│   ├── googleAuth.ts     # GIS token client wrapper (sign in/out, silent refresh)
-│   ├── googleCalendar.ts # Google Calendar API v3 calls + response reshaping
-│   └── localStorage.ts   # Safe get/set/clear helpers
-├── hooks/
-│   ├── useApiKeys.ts     # localStorage-backed user-supplied API keys
-│   └── useGoogleAuth.ts  # React-facing wrapper around services/googleAuth.ts
-├── common/
-│   ├── LocationContext.tsx  # Resolves lat/long from settings + geocode API
-│   ├── TimeContext.tsx      # Manages timezone, triggers hourly/daily updates
-│   ├── externalFetch.ts     # fetch wrapper WITHOUT credentials — use for all
-│   │                         # third-party API calls (see below)
-│   ├── queryClient.ts       # Shared QueryClient singleton (used outside React
-│   │                         # too, e.g. by non-hook localStorage writes)
-│   └── dateParser.ts        # Date helpers, incl. exact getTimeDiff/TimeUnit
-└── models/               # TypeScript interfaces
+├── main.tsx             # loadConfig → createContainer → <AppProviders><RouterProvider/>
+├── domain/              # PURE types and rules (no React, no I/O, no clock)
+│   ├── shared/          #   time (Instant, PlainDate, zone-explicit helpers), Result, Measurement
+│   ├── location/ weather/ calendar/ trains/ settings/ auth/
+├── application/         # framework-free: ports (interfaces) + use cases
+│   ├── ports/           #   Clock, Scheduler, HttpClient, *Provider, *Repository, ...
+│   └── auth|settings|location|weather|calendar|time/   services and use cases
+├── infrastructure/      # adapters implementing the ports
+│   ├── http/ browser/ storage/ google/ weather/ geocode/ trains/
+├── features/            # React UI + feature hooks; each folder has an index.ts barrel
+│   └── auth/ calendar/ dashboard/ errors/ settings/ settings-page/ shell/ time/ trains/ weather/
+├── shared/              # UI/hooks used by several features (CardFrame, ConfirmDialog, ...)
+├── app/                 # composition root
+│   ├── config.ts        #   loadConfig(env): the only reader of VITE_* variables
+│   ├── container.ts     #   createContainer(config, overrides): builds the whole graph
+│   ├── router.tsx, routes.ts, AppProviders.tsx, queryClient.ts
+│   └── services/        #   AppDependencies, ServicesProvider, useServices
+└── tests/               # mirrors the layers; support/ has fakes + createTestContainer + renderWithDeps
 ```
 
-**State Management:**
-- **Server state:** React Query (caching, refetching, loading/error states)
-- **Global app state:** Context API (LocationContext, TimeContext)
-- **Persisted state:** `localStorage` (settings, API keys) and `sessionStorage` (Google token)
+**Dependency rules (enforced by ESLint, `yarn lint`):** `domain` imports only `domain`; `application` imports `domain` and `application`; `infrastructure` imports `domain` and `application`; `features`/`shared` use `domain`, `application`, `shared`, `@/app/services` (and `@/app/routes` for features) and reach other features only through their barrel (`@/features/<x>`); only `app/` may import everything. `domain`/`application` must not use `window`, `fetch`, timers, `new Date()` or `Date.now()` — time and I/O arrive through ports.
 
-Dashboard component wraps everything in providers:
-```tsx
-<LocationContextProvider>  {/* Fetches user location from settings, geocodes to coords */}
-  <TimeContextProvider>     {/* Manages timezone, triggers hourly/daily updates */}
-    {/* Weather/Events/Birthday components use both contexts */}
-  </TimeContextProvider>
-</LocationContextProvider>
-```
+**Dependency injection:** hand-rolled composition root, no library. `createContainer(config, overrides)` builds adapters and services; `ServicesProvider` exposes them and components get them through feature hooks that call `useServices()`. Tests build the real graph over fakes with `createTestContainer`.
+
+**State management:**
+- **Server state:** react-query (caching, refetching, loading/error states) in feature hooks, plus `app/queryClient.ts`, `app/AppProviders.tsx`, `shared/hooks/useInvalidateOnChange.ts` and `features/auth/useAuthenticatedQuery.ts`
+- **External state** (settings, API keys, sign-in state): observable stores in `application/`, read with `useSyncExternalStore` (`useSetting`, `useAuth`, ...)
+- **Persisted state:** `localStorage` (settings, API keys) and `sessionStorage` (Google token), accessed only by `infrastructure/storage`
 
 ## Authentication Architecture
 
 **Google Identity Services (GIS), entirely client-side:**
 
 1. The app loads with no login gate — weather, trains, and the clock work immediately.
-2. The user clicks "Sign in with Google" in Settings, which calls `services/googleAuth.ts`'s `signIn()`.
-3. GIS's token client shows a consent popup and returns a short-lived Calendar-scoped (`calendar.readonly`) access token.
-4. The token is cached in `sessionStorage`; `getAccessToken()` silently refreshes it when expired.
-5. `services/googleCalendar.ts` calls `https://www.googleapis.com/calendar/v3/...` directly with `Authorization: Bearer <token>`.
-6. Birthdays/Events widgets and the Settings calendar picker are gated on `useGoogleAuth().isSignedIn`.
+2. The user clicks "Sign in with Google" in Settings, which calls `useAuth().signIn`.
+3. `infrastructure/google/GisTokenGateway` (the `OAuthTokenGateway` port) shows GIS's consent popup and returns a short-lived Calendar-scoped (`calendar.readonly`) access token.
+4. `application/auth/AuthSessionService` keeps the token in `sessionStorage` (via `TokenStore`), renews it silently before it expires (single-flight, with a cooldown after a failure) and exposes `signed-out | signing-in | signed-in | needs-reauth`.
+5. `infrastructure/google/AuthorizedHttpClient` adds `Authorization: Bearer <token>` to Google requests, so providers never handle tokens.
+6. Calendar widgets and the calendar picker use `useAuthenticatedQuery`, which runs only for a signed-in user and stores data under the `['google', ...]` key; signing out purges that key.
 
 **There is no server-side auth of any kind.** Never add a backend, session cookie, or reverse-auth-proxy for this — it's a deliberate architectural choice (see git history for the SSR→CSR migration).
 
@@ -139,52 +111,47 @@ Dashboard component wraps everything in providers:
 | `api.open-meteo.com` | Current/hourly/daily weather | No |
 | `openweathermap.org` (icon CDN) | Weather icons | No |
 | `geocode.maps.co` | City/country/zip → coordinates | Yes — user-supplied, see `api-keys.md` |
-| `v6.db.transport.rest` | Train stations, connections | No |
+| `v6.db.transport.rest` | Train stations, journeys | No |
 | `www.googleapis.com/calendar/v3` | Events, birthdays, calendar list | Google OAuth token (GIS) |
 
-**Always use `common/externalFetch.ts` for these calls, never `fetch()` directly and never with credentials.** Sending `credentials:'include'` (or cookies) to a third-party API causes the browser to require a non-wildcard CORS response, which these APIs don't return — the request will be silently blocked.
+**All outbound calls go through the `HttpClient` port (`infrastructure/http/FetchHttpClient`)**, never bare `fetch()`, and never with credentials. Sending `credentials:'include'` (or cookies) to a third-party API causes the browser to require a non-wildcard CORS response, which these APIs don't return — the request would be silently blocked. The adapter also gives every call a timeout, retries only transient failures (network, 5xx, 429) and reports typed errors (`HttpError`, `NetworkError`, `TimeoutError`, `ProviderResponseError`).
 
 ## Settings & API Keys
 
-`UserSettings` (location, calendar IDs, dashboard widget layout, train connections) lives entirely in `localStorage`, written via `apis/user_settings.ts`/`apis/users.ts`. There is no cross-device sync — settings are per-browser.
+`UserSettings` (address, calendar ids, dashboard layout, train connections) and the user-supplied API keys (Geocode Maps) live entirely in `localStorage`, behind `SettingsStore` / `ApiKeyStore` (`application/settings`) and the `LocalStorage*Repository` adapters. There is no cross-device sync — settings are per-browser.
 
-User-supplied API keys (Geocode Maps, optionally OpenWeatherMap) live in `localStorage` via `hooks/useApiKeys.ts`, entered in the Settings screen. `api-keys.md` (linked from Settings) explains how to obtain them — keep it up to date if the required keys change.
+The storage keys are a compatibility contract with data saved by earlier versions and must never be renamed or made configurable: `magic-mirror.user-settings`, `magic-mirror.api-keys` (localStorage) and `magic-mirror.google-token` (sessionStorage). `infrastructure/storage/settingsDto.ts` maps the stored snake_case shape to the domain model; it never throws, keeps keys it does not know and adds an additive `schema_version`. "Clear Local Data" (`resetLocalData`) removes every `magic-mirror.*` key from both storages, forgets cached server data and reloads the app.
+
+`api-keys.md` (linked from Settings via `config.docsUrl`) explains how to obtain the Geocode Maps key — keep it in sync with `domain/settings/ApiKeys.ts` and the settings form.
 
 ## Adding a New External API Integration
 
-1. **Add a service module** under `frontend/src/services/` — pure functions that build the request URL and reshape the response, using `common/externalFetch.ts`'s `externalFetchJson`. Keep backend-style reshaping logic (e.g. weathercode→icon mapping) here, not in components.
-2. **Add a React Query hook** in `frontend/src/apis/` that calls the service function inside `queryFn`. Configure `staleTime`/`refetchInterval` as appropriate.
-3. **Use the hook in a component** under `frontend/src/components/`.
-4. If the API needs a key, extend `hooks/useApiKeys.ts` and the Settings form, and document how to obtain it in `api-keys.md`.
-5. If the API needs Google auth, gate the query's `enabled` on `useGoogleAuth().isSignedIn` and call `getAccessToken()` from `services/googleAuth.ts` inside `queryFn`.
+1. **Domain:** the types and rules (pure, table-tested).
+2. **Port:** an interface in `application/ports/` — no token parameter, no `fetch`.
+3. **Adapter:** `infrastructure/<name>/` — a provider over the `HttpClient` port plus a pure mapper that turns the response into domain objects (drop what cannot be understood, throw `ProviderResponseError` for a malformed response). Base URL comes from `app/config.ts`.
+4. **Wire it** in `app/container.ts` (with an override for tests) and `app/services/AppDependencies.ts`. For Google APIs, wrap the client in `AuthorizedHttpClient`.
+5. **Service** in `application/<name>/` only if there is policy to decide; otherwise hooks use the port directly.
+6. **Feature:** hooks in `features/<name>/hooks/` using `useQuery` (or `useAuthenticatedQuery` for Google), then the widget; export it from the feature's `index.ts`.
+7. If the API needs a user-supplied key, extend `ApiKeys`, the settings form and `api-keys.md`.
+8. Add a fake for the port to `tests/support/` and write the tests first (mapper, provider, hooks, widget states).
+
+## Adding a Dashboard Widget
+
+Put the component in its feature, export it from the barrel and add one entry (id + default place) to `features/dashboard/widgetRegistry.tsx`. Widget ids are stored in saved layouts: never rename one.
 
 ## React Query Configuration
 
-Global config in `App.tsx` (via `common/queryClient.ts`):
-```typescript
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: true,
-      retry: 2,
-      retryDelay: 300,
-      staleTime: 60000, // 1 minute
-    },
-  },
-})
-```
+Global config in `app/queryClient.ts` (`createQueryClient(config)`): `refetchOnWindowFocus: true`, `staleTime` from `config.staleTimeMs`, and a retry policy that retries at most once and only for failures that can succeed on a second try (`isRetryable`). Live widgets pass `refetchInterval: config.refreshIntervalMs`; train polling follows `domain/trains/pollingPolicy`.
 
 ## Testing
 
-**Frontend tests:** Vitest + Testing Library
-- Location: `frontend/src/tests/`
-- `tests/services/` — unit tests for ported business logic (weather-code mapping, day/night detection, train journey reshaping, Google Calendar event reshaping, GIS auth token handling)
-- `tests/apis/` — React Query hook tests, mocking the underlying `services/*` module
-- `tests/contexts/`, `tests/hooks/`, `tests/utils/` — context/hook/utility tests
-- Run all: `yarn test`
-- Run one file: `yarn test src/tests/services/googleCalendar.test.ts`
-
-When porting or adding reshaping logic (e.g. date-diff math), watch for floating-point pitfalls — prefer exact integer-safe division (see `common/dateParser.ts`'s `getTimeDiff`) over approximate multiplication constants when the result needs to hit an exact value (like a 24-hour all-day-event boundary).
+**Frontend tests:** Vitest + Testing Library, in `frontend/src/tests/`, mirroring the layers (`domain/`, `application/`, `infrastructure/`, `features/`, `shared/`, `app/`, `repo/`).
+- **Fakes at the port boundary**, not module mocks (`vi.spyOn(<module>)` on our own code is a smell): `FakeClock`, `FakeScheduler`, `FakeHttpClient`, `InMemoryKeyValueStore`, `FakeAuthSession`, `Fake*Provider`, ... in `tests/support/`.
+- `createTestContainer(options)` builds the real graph over fakes; `renderWithDeps` / `renderHookWithDeps` render inside the app's providers.
+- Write the regression test first and watch it fail. Hand-author API fixtures in `tests/fixtures/` from the API's documentation.
+- Time must not depend on the machine: use `FakeClock`/`FakeScheduler`, local-time constructors only where a zone is irrelevant, and check `TZ=Asia/Tokyo` / `TZ=America/Los_Angeles` runs (CI does).
+- Coverage thresholds are enforced per layer in `vite.config.ts` and are ratcheted: raise them when coverage improves, never lower them.
+- Run all: `yarn test --run`; one file: `yarn test --run src/tests/domain/calendar/eventRules.test.ts`.
 
 ## Deployment
 
@@ -202,14 +169,18 @@ When porting or adding reshaping logic (e.g. date-diff math), watch for floating
 
 1. **No backend.** Don't add one. If a feature seems to need server-side secrets, prefer a user-supplied API key (like Geocode Maps) over a shared server-side credential.
 
-2. **External fetches never send credentials.** Use `common/externalFetch.ts`, not bare `fetch()` with cookies, for any call to a third-party API.
+2. **Respect the layers.** Business rules go in `domain`/`application`, I/O in `infrastructure`, React in `features`/`shared`, wiring only in `app`. Components don't construct adapters or touch `window`/`fetch`/`localStorage`; they call hooks that use `useServices()`. `yarn lint` enforces this.
 
-3. **Settings persistence:** `localStorage` via `apis/user_settings.ts`, `apis/users.ts`, `hooks/useApiKeys.ts` — not a database. No cross-device sync.
+3. **External fetches never send credentials** and go through the `HttpClient` port.
 
-4. **Google auth:** `services/googleAuth.ts` (token lifecycle) + `hooks/useGoogleAuth.ts` (React-facing). Gate any Google Calendar-dependent query/UI on `isSignedIn`.
+4. **Time through ports.** `Instant` and `PlainDate` instead of `Date` and zone-less strings; "now" from `Clock`, timers from `Scheduler`; every zone-dependent function takes the zone as an argument.
 
-5. **Context Usage:** LocationContext provides coords for weather (via user settings + geocode API + user's Geocode Maps key). TimeContext triggers periodic refetches.
+5. **Errors are values or typed.** Expected failures (validation, geocoding, auth) are returned as `Result`/discriminated unions; infrastructure throws the typed errors from `application/ports/errors`. No `alert()` — feedback is inline field messages and a Snackbar.
 
-6. **TypeScript:** Frontend uses Vite + TypeScript with `noUnusedLocals`/`noUnusedParameters` enabled — don't leave stale parameters when refactoring hook signatures.
+6. **Settings persistence:** only via `SettingsStore` / `ApiKeyStore` and their repositories — not a database, no cross-device sync. Never rename a storage key or a widget id.
 
-7. **Docs page:** `api-keys.md` at repo root (served the same way as `privacy.md`/`impressum.md`) explains how to obtain the Geocode Maps API key — keep it in sync with `hooks/useApiKeys.ts`.
+7. **Google auth:** `AuthSessionService` + `useAuth` / `useAuthenticatedQuery`. Gate any Google Calendar-dependent query/UI on the sign-in state; never call `refetch()` to bypass `enabled`.
+
+8. **TypeScript:** strict, with `noUnusedLocals`/`noUnusedParameters` — don't leave stale parameters when refactoring hook signatures. No `any` outside tests.
+
+9. **Docs:** `api-keys.md` at repo root (served the same way as `privacy.md`/`impressum.md`) explains how to obtain the Geocode Maps API key — keep it in sync with the settings form. `frontend/src/ARCHITECTURE.md` describes the layers; update it when the rules change.
