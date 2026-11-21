@@ -20,14 +20,6 @@ export const setItem = <T>(key: string, value: T): boolean => {
     }
 }
 
-export const removeItem = (key: string): void => {
-    try {
-        window.localStorage.removeItem(key)
-    } catch {
-        // ignore
-    }
-}
-
 const APP_STORAGE_PREFIX = 'magic-mirror.'
 
 // Removes every localStorage entry this app has written (settings, API keys,

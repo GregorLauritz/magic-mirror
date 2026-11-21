@@ -1,18 +1,7 @@
 import { useQuery, UseQueryResult } from 'react-query'
 import { ServerStateKeysEnum } from '../common/statekeys'
-import { TrainStation, TrainConnection } from '../models/trains'
-import { getConnections, searchStations } from '../services/trains/deutscheBahn'
-
-export const useSearchTrainStations = (
-    query: string,
-    enabled: boolean = true
-): UseQueryResult<TrainStation[], Error> =>
-    useQuery<TrainStation[], Error>({
-        queryKey: [ServerStateKeysEnum.train_stations, query],
-        queryFn: async (): Promise<TrainStation[]> => searchStations(query, 10),
-        enabled: enabled && query.length >= 2,
-        staleTime: 300000, // 5 minutes
-    })
+import { TrainConnection } from '../models/trains'
+import { getConnections } from '../services/trains/deutscheBahn'
 
 const REFETCH_INTERVAL_FAR = 300000 // 5 minutes
 const REFETCH_INTERVAL_NEAR = 60000 // 1 minute

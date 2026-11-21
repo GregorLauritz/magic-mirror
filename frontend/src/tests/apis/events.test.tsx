@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from 'react-query'
-import { useGetEvents, useGetDateEvents } from '../../apis/events'
+import { useGetEvents } from '../../apis/events'
 import * as googleAuth from '../../services/googleAuth'
 import * as googleCalendar from '../../services/googleCalendar'
 import { ReactNode } from 'react'
@@ -127,71 +127,6 @@ describe('events API hooks', () => {
             })
 
             expect(result.current.error).toEqual(mockError)
-        })
-    })
-
-    describe('useGetDateEvents', () => {
-        it('should fetch date-specific events successfully', async () => {
-            const getEventsSpy = vi
-                .spyOn(googleCalendar, 'getEvents')
-                .mockResolvedValue(mockEvents)
-
-            const { result } = renderHook(
-                () => useGetDateEvents('cal_123', '2024-01-15'),
-                { wrapper }
-            )
-
-            await waitFor(() => {
-                expect(result.current.isSuccess).toBe(true)
-            })
-
-            expect(result.current.data).toEqual(mockEvents)
-            expect(getEventsSpy).toHaveBeenCalledWith(
-                'fake-token',
-                'cal_123',
-                new Date('2024-01-15').toISOString(),
-                expect.any(String),
-                100
-            )
-        })
-
-        it('should handle fetch errors', async () => {
-            const mockError = new Error('Date events API error')
-            vi.spyOn(googleCalendar, 'getEvents').mockRejectedValue(mockError)
-
-            const { result } = renderHook(
-                () => useGetDateEvents('cal_123', '2024-01-15'),
-                { wrapper }
-            )
-
-            await waitFor(() => {
-                expect(result.current.isError).toBe(true)
-            })
-
-            expect(result.current.error).toEqual(mockError)
-        })
-
-        it('should have unique query keys for different dates', async () => {
-            vi.spyOn(googleCalendar, 'getEvents').mockResolvedValue({
-                count: 0,
-                list: [],
-            })
-
-            const { result: result1 } = renderHook(
-                () => useGetDateEvents('cal_123', '2024-01-15'),
-                { wrapper }
-            )
-            const { result: result2 } = renderHook(
-                () => useGetDateEvents('cal_123', '2024-01-16'),
-                { wrapper }
-            )
-
-            await waitFor(() => {
-                expect(result1.current.isSuccess).toBe(true)
-                expect(result2.current.isSuccess).toBe(true)
-            })
-
-            expect(googleCalendar.getEvents).toHaveBeenCalledTimes(2)
         })
     })
 })

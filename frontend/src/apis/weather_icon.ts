@@ -1,8 +1,9 @@
 import { useQuery } from 'react-query'
 import { ServerStateKeysEnum } from '../common/statekeys'
 import { WEATHER_ICON_ZOOM } from '../constants/weather'
+import { runtimeConfig } from '../constants/runtimeConfig'
 
-const OPENWEATHER_URL = 'https://openweathermap.org'
+const OPENWEATHER_URL = runtimeConfig.weatherIconBaseUrl
 
 // Open-Meteo/OpenWeatherMap icon URLs are keyless and public, so this is just
 // a direct image URL rather than a fetched-and-cached Blob.

@@ -33,32 +33,3 @@ export const useGetEvents = (
         enabled: isSignedIn,
     })
 }
-
-export const useGetDateEvents = (
-    calendar_id: string,
-    date: string
-): UseQueryResult<CalendarEventList, Error> => {
-    const { isSignedIn } = useGoogleAuth()
-
-    return useQuery<CalendarEventList, Error>({
-        queryKey: [ServerStateKeysEnum.events_day, date],
-        queryFn: async (): Promise<CalendarEventList> => {
-            const accessToken = await getAccessToken()
-            if (!accessToken) {
-                throw new Error('Not signed in with Google')
-            }
-            const timeMin = new Date(date).toISOString()
-            const timeMax = new Date(date)
-            timeMax.setDate(timeMax.getDate() + 1)
-            return getEvents(
-                accessToken,
-                calendar_id,
-                timeMin,
-                timeMax.toISOString(),
-                100
-            )
-        },
-        refetchInterval: REFETCH_INTERVAL,
-        enabled: isSignedIn,
-    })
-}

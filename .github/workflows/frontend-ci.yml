@@ -56,7 +56,7 @@ jobs:
 
       - name: Verify coverage threshold
         run: |
-          echo "✅ Coverage thresholds validated by vitest (80% minimum)"
+          echo "✅ Coverage thresholds validated by vitest (see test.coverage.thresholds in vite.config.ts)"
           if [ -f "coverage/coverage-summary.json" ]; then
             echo "📊 Coverage Summary:"
             cat coverage/coverage-summary.json | jq '.total'

@@ -19,9 +19,9 @@ import { getGeocode } from '../../services/geocode'
 import { readApiKeys, useApiKeys } from '../../hooks/useApiKeys'
 import { useGoogleAuth } from '../../hooks/useGoogleAuth'
 import { useListCalendars } from '../../apis/calendar_list'
+import { runtimeConfig } from '../../constants/runtimeConfig'
 
-const API_KEYS_DOCS_URL =
-    'https://github.com/GregorLauritz/magic-mirror/blob/main/api-keys.md'
+const API_KEYS_DOCS_URL = runtimeConfig.docsUrl
 
 const DEFAULT_CALENDAR_ID = 'primary'
 

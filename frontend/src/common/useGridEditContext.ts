@@ -1,5 +1,8 @@
 import { useContext } from 'react'
-import { GridEditContext, type GridEditContextType } from './gridEditContext'
+import {
+    GridEditContext,
+    type GridEditContextType,
+} from './gridEditContextValue'
 
 export const useGridEditContext = (): GridEditContextType => {
     const context = useContext(GridEditContext)
