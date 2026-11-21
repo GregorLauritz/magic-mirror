@@ -1,4 +1,3 @@
-import { QueryClientProvider } from 'react-query'
 import { memo, type ReactNode } from 'react'
 import MenuAppBar from './components/appbar/MenuAppBar'
 import { PADDING } from './assets/styles/theme'
@@ -9,7 +8,6 @@ import ErrorPage from './routes/ErrorPage'
 import { Dashboard } from './routes/Dashboard'
 import { Settings } from './routes/Settings'
 import { GridEditContextProvider } from './common/GridEditContext'
-import { queryClient } from './common/queryClient'
 
 interface BaseFrameProps {
     children: ReactNode
@@ -62,11 +60,9 @@ const router = createBrowserRouter([
 
 export const App = () => {
     return (
-        <QueryClientProvider client={queryClient}>
-            <GridEditContextProvider>
-                <RouterProvider router={router} />
-            </GridEditContextProvider>
-        </QueryClientProvider>
+        <GridEditContextProvider>
+            <RouterProvider router={router} />
+        </GridEditContextProvider>
     )
 }
 

@@ -1,15 +1,8 @@
-import { QueryClient } from 'react-query'
+// Transitional shim: legacy non-hook code (patchUserSettings, useApiKeys, ...)
+// still writes to a module-level QueryClient. The composition root reuses this
+// instance so the app has exactly one cache. Removed in step S5, when settings
+// persistence moves behind a store and nothing outside React touches the cache.
+import { createQueryClient } from '../app/queryClient'
+import { runtimeConfig } from '../constants/runtimeConfig'
 
-// A single shared QueryClient instance so plain (non-hook) functions like
-// patchUserSettings/putUserSettings can update the cache after writing to
-// localStorage, in addition to the QueryClientProvider used by the app tree.
-export const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: {
-            refetchOnWindowFocus: true,
-            retry: 2,
-            retryDelay: 300,
-            staleTime: 60000,
-        },
-    },
-})
+export const queryClient = createQueryClient(runtimeConfig)

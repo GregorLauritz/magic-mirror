@@ -1,56 +1,28 @@
-// Like ./fetch.ts, but without `credentials: 'include'`. Third-party APIs
-// (Open-Meteo, geocode.maps.co, db.transport.rest, googleapis.com) generally
-// respond to CORS with a wildcard/non-credentialed origin, and a credentialed
-// request against such a response is blocked outright by the browser.
+// Transitional shim. The legacy services still call `externalFetchJson`; it now
+// delegates to the HttpClient adapter, so they get its timeout, retry
+// (network/5xx/429, never 4xx), typed errors and credential-free requests.
+// Removed together with the last legacy caller (hexagonal refactor, step S8).
+import { runtimeConfig } from '../constants/runtimeConfig'
+import { BrowserScheduler } from '../infrastructure/browser/BrowserScheduler'
+import { FetchHttpClient } from '../infrastructure/http/FetchHttpClient'
 
-export const externalFetchJson = async <T>(
+const http = new FetchHttpClient({
+    scheduler: new BrowserScheduler(),
+    timeoutMs: runtimeConfig.http.timeoutMs,
+    retries: runtimeConfig.http.retries,
+})
+
+const toHeaderRecord = (
+    headers: HeadersInit | undefined
+): Record<string, string> | undefined => {
+    if (headers === undefined) return undefined
+    if (Array.isArray(headers)) return Object.fromEntries(headers)
+    if (headers instanceof Headers) return Object.fromEntries(headers.entries())
+    return headers
+}
+
+export const externalFetchJson = <T>(
     url: string,
-    options: RequestInit = {},
-    allowed_status_codes: number[] = [200],
-    retries: number = 1
-): Promise<T> => {
-    const response = await externalFetchRetry(
-        url,
-        options,
-        allowed_status_codes,
-        retries
-    )
-    return response.json() as Promise<T>
-}
-
-// https://dev.to/ycmjason/javascript-fetch-retry-upon-failure-3p6g
-export const externalFetchRetry = async (
-    url: string,
-    options: RequestInit = {},
-    allowed_status_codes: number[] = [200],
-    retries: number = 1
-): Promise<Response> => {
-    try {
-        const response = await fetch(url, options)
-        return checkHttpStatusCode(response, allowed_status_codes, url)
-    } catch (err) {
-        if (retries <= 1) throw err
-        return externalFetchRetry(
-            url,
-            options,
-            allowed_status_codes,
-            retries - 1
-        )
-    }
-}
-
-const checkHttpStatusCode = (
-    response: Response,
-    allowed_status_codes: number[],
-    url?: string
-): Response => {
-    if (allowed_status_codes.includes(response.status)) {
-        return response
-    }
-    throw Object.assign(
-        new Error(
-            `Request to ${url ?? 'URL'} failed with status code ${response.status}`
-        ),
-        { code: response.status }
-    )
-}
+    options: RequestInit = {}
+): Promise<T> =>
+    http.getJson<T>({ url, headers: toHeaderRecord(options.headers) })
