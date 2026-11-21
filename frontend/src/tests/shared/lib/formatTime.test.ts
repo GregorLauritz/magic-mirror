@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseTime } from '../../common/timeParser'
+import { parseTime } from '@/shared/lib/formatTime'
 
 describe('timeParser', () => {
     describe('parseTime', () => {

@@ -1,11 +1,12 @@
 import { Box, Skeleton, Stack, Typography } from '@mui/material'
 import unknownWeatherIcon from '../../assets/unknown-weather.svg'
 import { WeatherForecastResource } from '../../models/daily_forecast'
-import { smallFontSize } from '../../assets/styles/theme'
+import { smallFontSize } from '@/shared/styles/theme'
 import { useGetWeatherIcon } from '../../apis/weather_icon'
-import { useGetDayName } from '../../apis/day_name'
+import { getDayName } from '../../common/dateParser'
+import { DEFAULT_LOCALE } from '../../constants/defaults'
 import { useMemo } from 'react'
-import { CARD_HEIGHT } from '../../assets/styles/cards'
+import { CARD_HEIGHT } from '@/shared/styles/cards'
 
 interface IForecastItem {
     item: WeatherForecastResource | undefined
@@ -14,7 +15,7 @@ interface IForecastItem {
 
 const ForecastItem = ({ item, isLoading }: IForecastItem) => {
     const date = useMemo(() => new Date(item?.date ?? 0), [item?.date])
-    const { data: dayName } = useGetDayName(date)
+    const dayName = getDayName(date, DEFAULT_LOCALE)
 
     const {
         data: icon,

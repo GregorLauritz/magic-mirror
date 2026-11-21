@@ -30,8 +30,9 @@ export interface TestContainerOptions extends ContainerOverrides {
 export const createTestContainer = (
     options: TestContainerOptions = {}
 ): TestContainer => {
-    const config = createTestConfig(options.config)
-    const clock = new FakeClock(options.now, options.timeZone)
+    const { config: configOverrides, now, timeZone, ...ports } = options
+    const config = createTestConfig(configOverrides)
+    const clock = new FakeClock(now, timeZone)
     const scheduler = new FakeScheduler(clock)
     const http = new FakeHttpClient()
 
@@ -40,7 +41,7 @@ export const createTestContainer = (
         scheduler,
         http,
         queryClient: createTestQueryClient(),
-        ...options,
+        ...ports,
     })
 
     return { deps, config, clock, scheduler, http }

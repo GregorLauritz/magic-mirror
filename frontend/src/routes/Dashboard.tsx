@@ -1,5 +1,5 @@
 import CurrentWeather from '../components/current_weather/CurrentWeather'
-import Time from '../components/time/Time'
+import { ClockWidget } from '@/features/time'
 import { Box } from '@mui/material'
 import DailyForecast from '../components/daily_forecast/DailyForecast'
 import Birthdays from '../components/birthdays/Birthdays'
@@ -9,7 +9,7 @@ import TrainTimes from '../components/train_times/TrainTimes'
 import { TimeContextProvider } from '../common/TimeContext'
 import { LocationContextProvider } from '../common/LocationContext'
 import { memo, useCallback, useMemo, useRef } from 'react'
-import { PADDING, SPACING } from '../assets/styles/theme'
+import { PADDING, SPACING } from '@/shared/styles/theme'
 import {
     GridLayout,
     useContainerWidth,
@@ -127,7 +127,7 @@ const DashBoardItems = memo(() => {
                     }
                 >
                     <Box key="time" sx={gridItemSx}>
-                        <Time />
+                        <ClockWidget />
                     </Box>
                     <Box key="birthdays" sx={gridItemSx}>
                         <Birthdays />

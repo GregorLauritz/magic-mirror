@@ -1,6 +1,6 @@
 import ForecastItem from './ForecastItem'
 import { useGetDailyWeather } from '../../apis/daily_weather'
-import { MediumCard } from '../CardFrame'
+import { MediumCard } from '@/shared/ui/CardFrame'
 import { Grid, Typography } from '@mui/material'
 import { memo, useMemo } from 'react'
 import { useTimeContext } from '../../hooks/useTimeContext'

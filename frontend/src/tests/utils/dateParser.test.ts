@@ -7,10 +7,8 @@ import {
     getMonth,
     getYear,
     getIsoDate,
-    getDate,
     getTimeDifferenceInHours,
     getDifferenceInDays,
-    isToday,
     isSameDate,
     getDateInXDays,
     getISODayStartString,
@@ -104,14 +102,6 @@ describe('dateParser', () => {
         })
     })
 
-    describe('getDate', () => {
-        it('should return date in DD.MM.YYYY format', () => {
-            expect(getDate(new Date('2024-01-15T12:00:00Z'))).toBe('15.01.2024')
-            expect(getDate(new Date('2023-05-05T12:00:00Z'))).toBe('05.05.2023')
-            expect(getDate(new Date('2024-12-31T12:00:00Z'))).toBe('31.12.2024')
-        })
-    })
-
     describe('getTimeDifferenceInHours', () => {
         it('should calculate hours difference between dates', () => {
             const start = new Date('2024-01-15T12:00:00Z')
@@ -152,34 +142,6 @@ describe('dateParser', () => {
             const start = new Date('2024-01-18T12:00:00Z')
             const end = new Date('2024-01-15T12:00:00Z')
             expect(getDifferenceInDays(start, end)).toBe(-3)
-        })
-    })
-
-    describe('isToday', () => {
-        beforeEach(() => {
-            vi.useFakeTimers()
-        })
-
-        afterEach(() => {
-            vi.useRealTimers()
-        })
-
-        it('should return true for today date', () => {
-            const now = new Date('2024-01-15T12:00:00Z')
-            vi.setSystemTime(now)
-            expect(isToday(new Date('2024-01-15T18:00:00Z'))).toBe(true)
-        })
-
-        it('should return false for yesterday', () => {
-            const now = new Date('2024-01-15T12:00:00Z')
-            vi.setSystemTime(now)
-            expect(isToday(new Date('2024-01-14T12:00:00Z'))).toBe(false)
-        })
-
-        it('should return false for tomorrow', () => {
-            const now = new Date('2024-01-15T12:00:00Z')
-            vi.setSystemTime(now)
-            expect(isToday(new Date('2024-01-16T12:00:00Z'))).toBe(false)
         })
     })
 

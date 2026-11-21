@@ -1,10 +1,10 @@
 import { Box, Skeleton, Stack, Typography } from '@mui/material'
 import unknownWeatherIcon from '../../assets/unknown-weather.svg'
 import { HourlyWeatherResource } from '../../models/hourly_forecast'
-import { parseTime } from '../../common/timeParser'
-import { smallFontSize } from '../../assets/styles/theme'
+import { parseTime } from '@/shared/lib/formatTime'
+import { smallFontSize } from '@/shared/styles/theme'
 import { useGetWeatherIcon } from '../../apis/weather_icon'
-import { CARD_HEIGHT } from '../../assets/styles/cards'
+import { CARD_HEIGHT } from '@/shared/styles/cards'
 
 interface IForecastItem {
     item?: HourlyWeatherResource

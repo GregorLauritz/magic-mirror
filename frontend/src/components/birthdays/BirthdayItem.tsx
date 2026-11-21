@@ -1,9 +1,9 @@
 import { Typography, Paper, Stack } from '@mui/material'
 import { Birthday } from '../../models/birthdays'
-import { PAPER_CARD_COLOR, xSmallFontSize } from '../../assets/styles/theme'
+import { PAPER_CARD_COLOR, xSmallFontSize } from '@/shared/styles/theme'
 import { memo, useMemo } from 'react'
 import { getDifferenceInDays } from '../../common/dateParser'
-import { hideTextOverflow } from '../../assets/styles/coloredBox'
+import { hideTextOverflow } from '@/shared/styles/text'
 import { useTimeContext } from '../../hooks/useTimeContext'
 
 interface BirthdayItemProps {

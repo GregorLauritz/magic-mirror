@@ -1,5 +1,5 @@
 import { Button, Stack, Typography } from '@mui/material'
-import { LargeCard, MediumCard, SmallCard } from '../CardFrame'
+import { LargeCard, MediumCard, SmallCard } from '@/shared/ui/CardFrame'
 import { useNavigate } from 'react-router-dom'
 
 type Props = {

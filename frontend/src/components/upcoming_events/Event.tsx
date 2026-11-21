@@ -6,10 +6,10 @@ import {
     getTimeFromDate,
     isSameDate,
 } from '../../common/dateParser'
-import { PAPER_CARD_COLOR, xSmallFontSize } from '../../assets/styles/theme'
+import { PAPER_CARD_COLOR, xSmallFontSize } from '@/shared/styles/theme'
 import { CalendarEvent } from '../../models/calendar'
 import { DEFAULT_LOCALE } from '../../constants/defaults'
-import { hideTextOverflow } from '../../assets/styles/coloredBox'
+import { hideTextOverflow } from '@/shared/styles/text'
 import { Paper, Stack } from '@mui/material'
 
 interface EventProps {

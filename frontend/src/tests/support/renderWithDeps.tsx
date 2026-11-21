@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from 'react'
+import { Fragment, StrictMode, type ReactElement, type ReactNode } from 'react'
 import { ThemeProvider } from '@mui/material'
 import {
     render,
@@ -10,7 +10,7 @@ import { QueryClientProvider } from 'react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { ServicesProvider } from '@/app/services/ServicesProvider'
 import type { AppDependencies } from '@/app/services/AppDependencies'
-import { theme } from '../../assets/styles/theme'
+import { theme } from '@/shared/styles/theme'
 import {
     createTestContainer,
     type TestContainerOptions,
@@ -19,25 +19,31 @@ import {
 export interface RenderDepsOptions {
     /** Use an existing container instead of building a fresh test one. */
     readonly deps?: AppDependencies
-    readonly container?: TestContainerOptions
+    /** Options for the fake-backed container built when `deps` is not given. */
+    readonly testContainer?: TestContainerOptions
     readonly route?: string
+    /** Wrap in <StrictMode> to surface double-mount / double-effect bugs. */
+    readonly strict?: boolean
 }
 
 const buildWrapper = (options: RenderDepsOptions) => {
     const test = options.deps
         ? undefined
-        : createTestContainer(options.container)
+        : createTestContainer(options.testContainer)
     const deps = options.deps ?? test!.deps
+    const Strict = options.strict ? StrictMode : Fragment
     const Wrapper = ({ children }: { children: ReactNode }) => (
-        <ServicesProvider deps={deps}>
-            <QueryClientProvider client={deps.queryClient}>
-                <ThemeProvider theme={theme}>
-                    <MemoryRouter initialEntries={[options.route ?? '/']}>
-                        {children}
-                    </MemoryRouter>
-                </ThemeProvider>
-            </QueryClientProvider>
-        </ServicesProvider>
+        <Strict>
+            <ServicesProvider deps={deps}>
+                <QueryClientProvider client={deps.queryClient}>
+                    <ThemeProvider theme={theme}>
+                        <MemoryRouter initialEntries={[options.route ?? '/']}>
+                            {children}
+                        </MemoryRouter>
+                    </ThemeProvider>
+                </QueryClientProvider>
+            </ServicesProvider>
+        </Strict>
     )
     return { Wrapper, deps, test }
 }
@@ -45,17 +51,23 @@ const buildWrapper = (options: RenderDepsOptions) => {
 /** render() with the services, query client, theme and router in place. */
 export const renderWithDeps = (
     ui: ReactElement,
-    options: RenderDepsOptions & Omit<RenderOptions, 'wrapper'> = {}
+    depsOptions: RenderDepsOptions = {},
+    renderOptions: Omit<RenderOptions, 'wrapper'> = {}
 ) => {
-    const { Wrapper, deps, test } = buildWrapper(options)
-    return { ...render(ui, { wrapper: Wrapper, ...options }), deps, test }
+    const { Wrapper, deps, test } = buildWrapper(depsOptions)
+    return { ...render(ui, { wrapper: Wrapper, ...renderOptions }), deps, test }
 }
 
 /** renderHook() with the same providers. */
 export const renderHookWithDeps = <Result, Props>(
     hook: (props: Props) => Result,
-    options: RenderDepsOptions & Omit<RenderHookOptions<Props>, 'wrapper'> = {}
+    depsOptions: RenderDepsOptions = {},
+    renderOptions: Omit<RenderHookOptions<Props>, 'wrapper'> = {}
 ) => {
-    const { Wrapper, deps, test } = buildWrapper(options)
-    return { ...renderHook(hook, { wrapper: Wrapper, ...options }), deps, test }
+    const { Wrapper, deps, test } = buildWrapper(depsOptions)
+    return {
+        ...renderHook(hook, { wrapper: Wrapper, ...renderOptions }),
+        deps,
+        test,
+    }
 }

@@ -2,7 +2,7 @@ import { type Theme } from '@emotion/react'
 import { type SxProps } from '@mui/material'
 import Card from '@mui/material/Card'
 import { type ReactNode, memo } from 'react'
-import { card_small, card_medium, card_large } from '../assets/styles/cards'
+import { card_small, card_medium, card_large } from '@/shared/styles/cards'
 
 export interface CardProps {
     children: ReactNode

@@ -1,6 +1,6 @@
 import { memo, type ReactNode } from 'react'
 import MenuAppBar from './components/appbar/MenuAppBar'
-import { PADDING } from './assets/styles/theme'
+import { PADDING } from '@/shared/styles/theme'
 import { Box } from '@mui/material'
 import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom'
 import RouteErrorPage from './routes/RouteErrorPage'

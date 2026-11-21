@@ -1,5 +1,5 @@
 import { WeekdayFormat } from '../models/time'
-import { parseTime } from './timeParser'
+import { parseTime } from '@/shared/lib/formatTime'
 import moment from 'moment'
 
 const ISO8601_REGEX =
@@ -50,10 +50,6 @@ export const getIsoDate = (date: Date): string => {
     return `${getYear(date)}-${getMonth(date)}-${getDay(date)}`
 }
 
-export const getDate = (date: Date): string => {
-    return `${getDay(date)}.${getMonth(date)}.${getYear(date)}`
-}
-
 export const getTimeDifferenceInHours = (
     startDate: Date,
     endDate: Date
@@ -83,10 +79,6 @@ export const getTimeDiff = (
 export const getDifferenceInDays = (startDate: Date, endDate: Date): number => {
     const diffTime = endDate.getTime() - startDate.getTime()
     return Math.round(diffTime / (1000 * 60 * 60 * 24))
-}
-
-export const isToday = (date: Date): boolean => {
-    return isSameDate(date, new Date())
 }
 
 export const isSameDate = (date1: Date, date2: Date): boolean => {

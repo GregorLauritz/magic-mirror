@@ -45,7 +45,7 @@ export class FakeScheduler implements Scheduler {
             if (++runs > MAX_RUNS_PER_ADVANCE) {
                 throw new Error('FakeScheduler: too many timer runs (loop?)')
             }
-            this.clock.set(due.at)
+            this.clock.set(Math.max(this.clock.now(), due.at)) // an overdue timer never rewinds time
             if (due.everyMs === undefined) {
                 this.timers = this.timers.filter((t) => t.id !== due.id)
             } else {

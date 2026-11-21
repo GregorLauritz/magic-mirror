@@ -61,6 +61,17 @@ describe('FakeScheduler', () => {
         expect(fn).not.toHaveBeenCalled()
     })
 
+    it('never rewinds the clock when a timer is already overdue', () => {
+        const seen: number[] = []
+        scheduler.setTimeout(() => seen.push(clock.now()), 100)
+        const start = clock.now()
+
+        clock.advance(300)
+        scheduler.advance(0)
+
+        expect(seen).toEqual([start + 300])
+    })
+
     it('runs timers that a running timer schedules within the same advance', () => {
         const fn = vi.fn()
         scheduler.setTimeout(() => scheduler.setTimeout(fn, 50), 100)

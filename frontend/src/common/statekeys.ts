@@ -2,7 +2,6 @@ export enum ServerStateKeysEnum {
     hourly_weather,
     daily_weather,
     current_weather,
-    time,
     birthdays,
     weather_icon,
     events,

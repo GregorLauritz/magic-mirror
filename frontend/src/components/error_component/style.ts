@@ -1,4 +1,4 @@
-import { card_medium } from '../../assets/styles/cards'
+import { card_medium } from '@/shared/styles/cards'
 
 export const cardStyle = {
     ...card_medium,
