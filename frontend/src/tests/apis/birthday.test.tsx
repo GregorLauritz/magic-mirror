@@ -1,33 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from 'react-query'
+import { waitFor } from '@testing-library/react'
 import { useGetBirthdays } from '../../apis/birthday'
-import * as googleAuth from '../../services/googleAuth'
 import * as googleCalendar from '../../services/googleCalendar'
-import { ReactNode } from 'react'
+import type { AppDependencies } from '@/app/services/AppDependencies'
+import { createTestContainer } from '../support/createTestContainer'
+import { FakeAuthSession } from '../support/FakeAuthSession'
+import { renderHookWithDeps } from '../support/renderWithDeps'
 
 describe('useGetBirthdays', () => {
-    let queryClient: QueryClient
+    let auth: FakeAuthSession
+    let deps: AppDependencies
 
     beforeEach(() => {
-        queryClient = new QueryClient({
-            defaultOptions: {
-                queries: {
-                    retry: false,
-                    cacheTime: 0,
-                },
-            },
-        })
+        auth = new FakeAuthSession()
+        deps = createTestContainer({ authSession: auth }).deps
         vi.clearAllMocks()
-        vi.spyOn(googleAuth, 'isSignedIn').mockReturnValue(true)
-        vi.spyOn(googleAuth, 'getAccessToken').mockResolvedValue('fake-token')
     })
-
-    const wrapper = ({ children }: { children: ReactNode }) => (
-        <QueryClientProvider client={queryClient}>
-            {children}
-        </QueryClientProvider>
-    )
 
     const mockBirthdays = {
         count: 2,
@@ -42,9 +30,10 @@ describe('useGetBirthdays', () => {
             .spyOn(googleCalendar, 'getBirthdays')
             .mockResolvedValue(mockBirthdays)
 
-        const { result } = renderHook(() => useGetBirthdays('cal_123', 5), {
-            wrapper,
-        })
+        const { result } = renderHookWithDeps(
+            () => useGetBirthdays('cal_123', 5),
+            { deps }
+        )
 
         await waitFor(() => {
             expect(result.current.isSuccess).toBe(true)
@@ -59,9 +48,10 @@ describe('useGetBirthdays', () => {
             .spyOn(googleCalendar, 'getBirthdays')
             .mockResolvedValue({ count: 0, list: [] })
 
-        const { result } = renderHook(() => useGetBirthdays('cal_123'), {
-            wrapper,
-        })
+        const { result } = renderHookWithDeps(
+            () => useGetBirthdays('cal_123'),
+            { deps }
+        )
 
         await waitFor(() => {
             expect(result.current.isSuccess).toBe(true)
@@ -75,12 +65,13 @@ describe('useGetBirthdays', () => {
     })
 
     it('should not fetch when not signed in with Google', () => {
-        vi.spyOn(googleAuth, 'isSignedIn').mockReturnValue(false)
+        auth.setState({ status: 'signed-out' })
         const getBirthdaysSpy = vi.spyOn(googleCalendar, 'getBirthdays')
 
-        const { result } = renderHook(() => useGetBirthdays('cal_123', 5), {
-            wrapper,
-        })
+        const { result } = renderHookWithDeps(
+            () => useGetBirthdays('cal_123', 5),
+            { deps }
+        )
 
         expect(result.current.isLoading).toBe(false)
         expect(getBirthdaysSpy).not.toHaveBeenCalled()
@@ -90,9 +81,10 @@ describe('useGetBirthdays', () => {
         const mockError = new Error('Birthdays API error')
         vi.spyOn(googleCalendar, 'getBirthdays').mockRejectedValue(mockError)
 
-        const { result } = renderHook(() => useGetBirthdays('cal_123', 5), {
-            wrapper,
-        })
+        const { result } = renderHookWithDeps(
+            () => useGetBirthdays('cal_123', 5),
+            { deps }
+        )
 
         await waitFor(() => {
             expect(result.current.isError).toBe(true)
@@ -107,13 +99,13 @@ describe('useGetBirthdays', () => {
             list: [],
         })
 
-        const { result: result1 } = renderHook(
+        const { result: result1 } = renderHookWithDeps(
             () => useGetBirthdays('cal_123', 5),
-            { wrapper }
+            { deps }
         )
-        const { result: result2 } = renderHook(
+        const { result: result2 } = renderHookWithDeps(
             () => useGetBirthdays('cal_456', 10),
-            { wrapper }
+            { deps }
         )
 
         await waitFor(() => {

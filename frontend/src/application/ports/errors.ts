@@ -1,3 +1,5 @@
+import type { AuthFailureReason } from '@/domain/auth/AuthToken'
+
 // Typed failures of the outbound ports. Adapters translate whatever the
 // platform throws into these, so callers can decide what is worth retrying
 // without knowing about fetch or DOM exceptions.
@@ -41,6 +43,17 @@ export class ProviderResponseError extends Error {
     constructor(message: string, options?: ErrorOptions) {
         super(message, options)
         this.name = 'ProviderResponseError'
+    }
+}
+
+/** A call needed a signed-in user and there is none (or Google rejected the token). */
+export class AuthRequiredError extends Error {
+    constructor(
+        readonly reason: 'signed-out' | 'refresh-failed' | 'rejected',
+        readonly detail?: AuthFailureReason
+    ) {
+        super(`Authentication required: ${reason}`)
+        this.name = 'AuthRequiredError'
     }
 }
 

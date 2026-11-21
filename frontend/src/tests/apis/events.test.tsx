@@ -1,33 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from 'react-query'
+import { waitFor } from '@testing-library/react'
 import { useGetEvents } from '../../apis/events'
-import * as googleAuth from '../../services/googleAuth'
 import * as googleCalendar from '../../services/googleCalendar'
-import { ReactNode } from 'react'
+import type { AppDependencies } from '@/app/services/AppDependencies'
+import { createTestContainer } from '../support/createTestContainer'
+import { FakeAuthSession } from '../support/FakeAuthSession'
+import { renderHookWithDeps } from '../support/renderWithDeps'
 
 describe('events API hooks', () => {
-    let queryClient: QueryClient
+    let auth: FakeAuthSession
+    let deps: AppDependencies
 
     beforeEach(() => {
-        queryClient = new QueryClient({
-            defaultOptions: {
-                queries: {
-                    retry: false,
-                    cacheTime: 0,
-                },
-            },
-        })
+        auth = new FakeAuthSession()
+        deps = createTestContainer({ authSession: auth }).deps
         vi.clearAllMocks()
-        vi.spyOn(googleAuth, 'isSignedIn').mockReturnValue(true)
-        vi.spyOn(googleAuth, 'getAccessToken').mockResolvedValue('fake-token')
     })
-
-    const wrapper = ({ children }: { children: ReactNode }) => (
-        <QueryClientProvider client={queryClient}>
-            {children}
-        </QueryClientProvider>
-    )
 
     const mockEvents = {
         count: 1,
@@ -55,8 +43,8 @@ describe('events API hooks', () => {
                 minTime: '2024-01-15T00:00:00.000Z',
             })
 
-            const { result } = renderHook(() => useGetEvents(params), {
-                wrapper,
+            const { result } = renderHookWithDeps(() => useGetEvents(params), {
+                deps,
             })
 
             await waitFor(() => {
@@ -74,12 +62,12 @@ describe('events API hooks', () => {
         })
 
         it('should not fetch when not signed in with Google', () => {
-            vi.spyOn(googleAuth, 'isSignedIn').mockReturnValue(false)
+            auth.setState({ status: 'signed-out' })
             const getEventsSpy = vi.spyOn(googleCalendar, 'getEvents')
 
             const params = new URLSearchParams({ cal_id: 'cal_123' })
-            const { result } = renderHook(() => useGetEvents(params), {
-                wrapper,
+            const { result } = renderHookWithDeps(() => useGetEvents(params), {
+                deps,
             })
 
             expect(result.current.isLoading).toBe(false)
@@ -95,13 +83,13 @@ describe('events API hooks', () => {
             const params1 = new URLSearchParams({ cal_id: 'cal_123' })
             const params2 = new URLSearchParams({ cal_id: 'cal_456' })
 
-            const { result: result1 } = renderHook(
+            const { result: result1 } = renderHookWithDeps(
                 () => useGetEvents(params1),
-                { wrapper }
+                { deps }
             )
-            const { result: result2 } = renderHook(
+            const { result: result2 } = renderHookWithDeps(
                 () => useGetEvents(params2),
-                { wrapper }
+                { deps }
             )
 
             await waitFor(() => {
@@ -118,8 +106,8 @@ describe('events API hooks', () => {
 
             const params = new URLSearchParams({ cal_id: 'cal_123' })
 
-            const { result } = renderHook(() => useGetEvents(params), {
-                wrapper,
+            const { result } = renderHookWithDeps(() => useGetEvents(params), {
+                deps,
             })
 
             await waitFor(() => {

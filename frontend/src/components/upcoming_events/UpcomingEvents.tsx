@@ -14,7 +14,7 @@ import {
 } from '../../common/dateParser'
 import { useTimeContext } from '../../hooks/useTimeContext'
 import { useSetting } from '@/features/settings'
-import { useGoogleAuth } from '../../hooks/useGoogleAuth'
+import { useAuth } from '@/features/auth'
 import { ServerStateKeysEnum } from '../../common/statekeys'
 import { useQuery } from 'react-query'
 
@@ -93,7 +93,7 @@ const EventsOnDay = ({
 }): ReactElement | ReactElement[] => {
     const eventsCalendarId = useSetting((settings) => settings.eventsCalendarId)
     const { data: minTime } = useGetMinTime(date, isCurrentDay)
-    const { isSignedIn } = useGoogleAuth()
+    const { isSignedIn } = useAuth()
 
     const params = useMemo(
         () =>

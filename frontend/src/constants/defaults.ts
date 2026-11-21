@@ -1,7 +1,6 @@
 import { WidgetLayout } from '../models/user_settings'
 import { runtimeConfig } from './runtimeConfig'
 
-export const APP_BASE_URL = '/'
 export const DEFAULT_LOCALE = runtimeConfig.locale
 
 export const DEFAULT_LAYOUT: WidgetLayout[] = [

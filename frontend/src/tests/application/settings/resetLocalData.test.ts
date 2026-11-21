@@ -24,6 +24,7 @@ describe('resetLocalData (B5: the token and the cache survived "Clear Local Data
             reload: [],
             clearCache: () => {},
             lifecycle: new FakeAppLifecycle(),
+            signOut: async () => {},
         })
 
         await reset()
@@ -43,6 +44,7 @@ describe('resetLocalData (B5: the token and the cache survived "Clear Local Data
             reload: [],
             clearCache: () => queryClient.clear(),
             lifecycle: new FakeAppLifecycle(),
+            signOut: async () => {},
         })()
 
         expect(queryClient.getQueryData(['google', 'events'])).toBeUndefined()
@@ -58,6 +60,7 @@ describe('resetLocalData (B5: the token and the cache survived "Clear Local Data
             reload: [reloadStores],
             clearCache: () => {},
             lifecycle: new FakeAppLifecycle(),
+            signOut: async () => {},
         })()
 
         expect(reloadStores).toHaveBeenCalledTimes(1)
@@ -76,8 +79,28 @@ describe('resetLocalData (B5: the token and the cache survived "Clear Local Data
             reload: [],
             clearCache: () => {},
             lifecycle,
+            signOut: async () => {},
         })()
 
         expect(keysAtReload).toEqual([2]) // only the two foreign keys remained
+    })
+
+    it('signs out first, while the token is still stored, so it can be revoked at Google', async () => {
+        const { local, session } = seed()
+        const seenAtSignOut: string[] = []
+
+        await createResetLocalData({
+            stores: [local, session],
+            prefix: 'magic-mirror.',
+            reload: [],
+            clearCache: () => {},
+            lifecycle: new FakeAppLifecycle(),
+            signOut: async () => {
+                seenAtSignOut.push(...session.keys())
+            },
+        })()
+
+        expect(seenAtSignOut).toContain('magic-mirror.google-token')
+        expect(session.keys()).toEqual(['other-app'])
     })
 })

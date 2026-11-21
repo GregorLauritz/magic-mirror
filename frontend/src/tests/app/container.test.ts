@@ -8,6 +8,7 @@ import { FakeGeocodingProvider } from '../support/FakeGeocodingProvider'
 import { FakeWeatherProvider } from '../support/FakeWeatherProvider'
 import { InMemoryKeyValueStore } from '../support/InMemoryKeyValueStore'
 import { FakeAppLifecycle } from '../support/FakeAppLifecycle'
+import { FakeOAuthGateway } from '../support/FakeOAuthGateway'
 import { FULL_RAW } from '../infrastructure/storage/legacyFixtures'
 import { currentWeather } from '../support/weatherFixtures'
 import { currentResponse } from '../fixtures/openMeteo'
@@ -186,6 +187,99 @@ describe('settings wiring', () => {
         expect(deps.queryClient.getQueryData(['google', 'x'])).toBeUndefined()
         expect(deps.settings.getSnapshot().address).toBeUndefined()
         expect(lifecycle.reloads).toBe(1)
+    })
+})
+
+describe('auth wiring', () => {
+    it('starts signed in when the session storage holds a token', () => {
+        const sessionStore = new InMemoryKeyValueStore()
+        sessionStore.set(
+            'magic-mirror.google-token',
+            JSON.stringify({
+                accessToken: 't',
+                expiresAt: Date.now() + 3_600_000,
+            })
+        )
+
+        const { deps } = createTestContainer({ sessionStore })
+
+        expect(deps.auth.getSnapshot()).toEqual({ status: 'signed-in' })
+    })
+
+    it('stores a sign-in in the session storage (in the shape earlier versions used)', async () => {
+        const gateway = new FakeOAuthGateway()
+        const sessionStore = new InMemoryKeyValueStore()
+        const { deps } = createTestContainer({
+            oauthGateway: gateway,
+            sessionStore,
+        })
+
+        const signIn = deps.auth.signIn()
+        gateway.grant('abc', 3600)
+        await signIn
+
+        expect(
+            JSON.parse(sessionStore.get('magic-mirror.google-token')!)
+        ).toMatchObject({
+            accessToken: 'abc',
+        })
+    })
+
+    it('purges cached Google data on sign-out, and only that', async () => {
+        const sessionStore = new InMemoryKeyValueStore()
+        sessionStore.set(
+            'magic-mirror.google-token',
+            JSON.stringify({
+                accessToken: 't',
+                expiresAt: Date.now() + 3_600_000,
+            })
+        )
+        const { deps } = createTestContainer({
+            sessionStore,
+            oauthGateway: new FakeOAuthGateway(),
+        })
+        deps.queryClient.setQueryData(['google', 'events'], ['private'])
+        deps.queryClient.setQueryData(['weather', 'current'], 'public')
+
+        await deps.auth.signOut()
+
+        expect(
+            deps.queryClient.getQueryData(['google', 'events'])
+        ).toBeUndefined()
+        expect(deps.queryClient.getQueryData(['weather', 'current'])).toBe(
+            'public'
+        )
+    })
+
+    it('warms up Google sign-in only when started, not while the graph is built', () => {
+        const gateway = new FakeOAuthGateway()
+        const { deps } = createTestContainer({ oauthGateway: gateway })
+        expect(gateway.warmUps).toBe(0)
+
+        deps.start()
+
+        expect(gateway.warmUps).toBe(1)
+    })
+
+    it('revokes the Google token when all local data is cleared', async () => {
+        const gateway = new FakeOAuthGateway()
+        const sessionStore = new InMemoryKeyValueStore()
+        sessionStore.set(
+            'magic-mirror.google-token',
+            JSON.stringify({
+                accessToken: 'revoke-me',
+                expiresAt: Date.now() + 3_600_000,
+            })
+        )
+        const { deps } = createTestContainer({
+            oauthGateway: gateway,
+            sessionStore,
+        })
+
+        await deps.resetLocalData()
+
+        expect(gateway.revoked).toEqual(['revoke-me'])
+        expect(sessionStore.keys()).toEqual([])
     })
 })
 

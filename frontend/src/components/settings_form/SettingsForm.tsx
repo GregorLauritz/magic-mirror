@@ -21,7 +21,7 @@ import {
     toSettingsInput,
     type SettingsParams,
 } from './formAdapter'
-import { useGoogleAuth } from '../../hooks/useGoogleAuth'
+import { useAuth } from '@/features/auth'
 import { useListCalendars } from '../../apis/calendar_list'
 import { runtimeConfig } from '../../constants/runtimeConfig'
 
@@ -82,7 +82,7 @@ export const SettingsForm = ({
         error: googleAuthError,
         signIn,
         signOut,
-    } = useGoogleAuth()
+    } = useAuth()
     const { data: calendars } = useListCalendars()
 
     const handleSend = useCallback(async () => {

@@ -1,25 +1,21 @@
-import { useQuery, UseQueryResult } from 'react-query'
+import { UseQueryResult } from 'react-query'
+import { useAccessToken, useAuthenticatedQuery } from '@/features/auth'
 import { ServerStateKeysEnum } from '../common/statekeys'
 import { REFETCH_INTERVAL } from '../constants/api'
 import { CalendarEventList } from '../models/calendar'
-import { getAccessToken } from '../services/googleAuth'
 import { getEvents } from '../services/googleCalendar'
-import { useGoogleAuth } from '../hooks/useGoogleAuth'
 
 const DEFAULT_EVENT_COUNT = 100
 
 export const useGetEvents = (
     query_params: URLSearchParams
 ): UseQueryResult<CalendarEventList, Error> => {
-    const { isSignedIn } = useGoogleAuth()
+    const getAccessToken = useAccessToken()
 
-    return useQuery<CalendarEventList, Error>({
-        queryKey: [ServerStateKeysEnum.events, query_params.toString()],
-        queryFn: async (): Promise<CalendarEventList> => {
+    return useAuthenticatedQuery<CalendarEventList>(
+        [ServerStateKeysEnum.events, query_params.toString()],
+        async (): Promise<CalendarEventList> => {
             const accessToken = await getAccessToken()
-            if (!accessToken) {
-                throw new Error('Not signed in with Google')
-            }
             const minTime =
                 query_params.get('minTime') ?? new Date().toISOString()
             const maxTime = query_params.get('maxTime') ?? undefined
@@ -29,7 +25,6 @@ export const useGetEvents = (
             )
             return getEvents(accessToken, calId, minTime, maxTime, count)
         },
-        refetchInterval: REFETCH_INTERVAL,
-        enabled: isSignedIn,
-    })
+        { refetchIntervalMs: REFETCH_INTERVAL }
+    )
 }

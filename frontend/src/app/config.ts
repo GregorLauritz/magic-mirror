@@ -31,6 +31,18 @@ export interface AppConfig {
         /** Additional attempts after the first one (network/5xx/429 only). */
         readonly retries: number
     }
+    readonly auth: {
+        /** Renew the Google token this long before it expires. */
+        readonly refreshMarginMs: number
+        /** After a failed renewal, pause silent attempts for this long. */
+        readonly refreshCooldownMs: number
+        /** How long the user gets to finish the consent popup. */
+        readonly interactiveTimeoutMs: number
+        /** How long a silent renewal may take. */
+        readonly silentTimeoutMs: number
+        /** How long to wait for the Google Identity Services script. */
+        readonly loadTimeoutMs: number
+    }
 }
 
 export type EnvSource = Readonly<Record<string, unknown>>
@@ -87,4 +99,11 @@ export const loadConfig = (env: EnvSource): AppConfig => ({
         googleCalendar: 'https://www.googleapis.com/calendar/v3',
     },
     http: { timeoutMs: 10_000, retries: 1 },
+    auth: {
+        refreshMarginMs: 60_000,
+        refreshCooldownMs: 300_000,
+        interactiveTimeoutMs: 120_000,
+        silentTimeoutMs: 15_000,
+        loadTimeoutMs: 10_000,
+    },
 })

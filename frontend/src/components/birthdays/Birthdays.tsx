@@ -7,7 +7,7 @@ import { useGetBirthdays } from '../../apis/birthday'
 import { SmallCard } from '@/shared/ui/CardFrame'
 import { useTimeContext } from '../../hooks/useTimeContext'
 import { useSetting } from '@/features/settings'
-import { useGoogleAuth } from '../../hooks/useGoogleAuth'
+import { useAuth } from '@/features/auth'
 import { useRegisterUpdateTrigger } from '../../hooks/useRegisterUpdateTrigger'
 
 const MAX_BIRTHDAYS = 5
@@ -17,7 +17,7 @@ const BirthdaysComponent = () => {
     const birthdayCalendarId = useSetting(
         (settings) => settings.birthdayCalendarId
     )
-    const { isSignedIn } = useGoogleAuth()
+    const { isSignedIn } = useAuth()
 
     const {
         data: birthdays,

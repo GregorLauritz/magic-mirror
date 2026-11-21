@@ -21,6 +21,13 @@ describe('loadConfig', () => {
             googleCalendar: 'https://www.googleapis.com/calendar/v3',
         })
         expect(config.http).toEqual({ timeoutMs: 10_000, retries: 1 })
+        expect(config.auth).toEqual({
+            refreshMarginMs: 60_000,
+            refreshCooldownMs: 300_000,
+            interactiveTimeoutMs: 120_000,
+            silentTimeoutMs: 15_000,
+            loadTimeoutMs: 10_000,
+        })
     })
 
     it('reads VITE_REFRESH_INTERVAL_MS', () => {

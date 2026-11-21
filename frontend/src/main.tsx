@@ -12,6 +12,7 @@ import { createContainer } from './app/container.ts'
 const config = loadConfig(import.meta.env)
 
 const deps = createContainer(config)
+deps.start()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>

@@ -3,6 +3,7 @@ import type { AppConfig } from '@/app/config'
 import type { Clock } from '@/application/ports/Clock'
 import type { HttpClient } from '@/application/ports/HttpClient'
 import type { Scheduler } from '@/application/ports/Scheduler'
+import type { AuthSession } from '@/application/ports/AuthSession'
 import type { GeocodingProvider } from '@/application/ports/GeocodingProvider'
 import type { ResolveCoordinates } from '@/application/location/resolveCoordinates'
 import type { ApiKeyStore } from '@/application/settings/ApiKeyStore'
@@ -28,8 +29,11 @@ export interface AppDependencies {
     readonly settings: SettingsStore
     readonly saveSettings: SaveSettings
     readonly resetLocalData: ResetLocalData
+    readonly auth: AuthSession
     readonly geocoding: GeocodingProvider
     readonly resolveCoordinates: ResolveCoordinates
     /** The only framework object in the container: server-state cache. */
     readonly queryClient: QueryClient
+    /** Starts background work (warming up Google sign-in); call once at startup. */
+    readonly start: () => void
 }

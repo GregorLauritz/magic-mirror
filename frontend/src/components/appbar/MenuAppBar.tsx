@@ -10,7 +10,7 @@ import EditOffIcon from '@mui/icons-material/EditOff'
 import MenuItem from '@mui/material/MenuItem'
 import Menu from '@mui/material/Menu'
 import Tooltip from '@mui/material/Tooltip'
-import { logout } from '../../apis/logout'
+import { useAuth } from '@/features/auth'
 import { useQueryClient } from 'react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useGridEditContext } from '../../common/useGridEditContext'
@@ -35,6 +35,7 @@ const MenuAppBarComponent = () => {
     const isDashboard = location.pathname === '/'
     const patchSettings = usePatchSettings()
     const resetLocalData = useResetLocalData()
+    const { signOut } = useAuth()
 
     const handleMenu = useCallback((event: MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget)
@@ -56,6 +57,12 @@ const MenuAppBarComponent = () => {
         },
         [handleClose, navigate]
     )
+
+    const logout = useCallback(async () => {
+        await signOut()
+        navigate('/')
+        handleClose()
+    }, [signOut, navigate, handleClose])
 
     const menuItemArray = useMemo(
         () =>
@@ -105,7 +112,7 @@ const MenuAppBarComponent = () => {
                     },
                 ],
             ]),
-        [redirect, reload, patchSettings, resetLocalData]
+        [redirect, reload, patchSettings, resetLocalData, logout]
     )
 
     const menuItems = useMemo(
