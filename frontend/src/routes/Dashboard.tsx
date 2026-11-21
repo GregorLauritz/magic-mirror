@@ -1,12 +1,12 @@
 import { BirthdaysWidget, UpcomingEventsWidget } from '@/features/calendar'
 import { ClockWidget } from '@/features/time'
+import { TrainTimesWidget } from '@/features/trains'
 import {
     CurrentWeatherWidget,
     DailyForecastWidget,
     HourlyForecastWidget,
 } from '@/features/weather'
 import { Box } from '@mui/material'
-import TrainTimes from '../components/train_times/TrainTimes'
 import { memo, useCallback, useMemo, useRef } from 'react'
 import { PADDING, SPACING } from '@/shared/styles/theme'
 import {
@@ -130,7 +130,7 @@ export const Dashboard = memo(() => {
                         <UpcomingEventsWidget />
                     </Box>
                     <Box key="trains" sx={gridItemSx}>
-                        <TrainTimes />
+                        <TrainTimesWidget />
                     </Box>
                     <Box key="current-weather" sx={gridItemSx}>
                         <CurrentWeatherWidget />

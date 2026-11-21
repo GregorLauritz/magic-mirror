@@ -14,6 +14,7 @@ import type { HttpClient } from '@/application/ports/HttpClient'
 import type { KeyValueStore } from '@/application/ports/KeyValueStore'
 import type { OAuthTokenGateway } from '@/application/ports/OAuthTokenGateway'
 import type { Scheduler } from '@/application/ports/Scheduler'
+import type { TrainProvider } from '@/application/ports/TrainProvider'
 import type { WeatherProvider } from '@/application/ports/WeatherProvider'
 import { ApiKeyStore } from '@/application/settings/ApiKeyStore'
 import { createResetLocalData } from '@/application/settings/resetLocalData'
@@ -33,6 +34,7 @@ import { LocalStorageSettingsRepository } from '@/infrastructure/storage/LocalSt
 import { SessionTokenStore } from '@/infrastructure/storage/SessionTokenStore'
 import { APP_STORAGE_PREFIX } from '@/infrastructure/storage/storageKeys'
 import { WebStorageKeyValueStore } from '@/infrastructure/storage/WebStorageKeyValueStore'
+import { DbTransportRestProvider } from '@/infrastructure/trains/DbTransportRestProvider'
 import { OpenMeteoWeatherProvider } from '@/infrastructure/weather/OpenMeteoWeatherProvider'
 
 // Read-only access to the user's calendars: all this app needs from Google.
@@ -47,6 +49,7 @@ export interface ContainerOverrides {
     readonly weatherProvider?: WeatherProvider
     readonly geocodingProvider?: GeocodingProvider
     readonly calendarProvider?: CalendarProvider
+    readonly trainProvider?: TrainProvider
     /** Where durable data lives; defaults to the browser's localStorage. */
     readonly localStore?: KeyValueStore
     /** Where per-session data (the Google token) lives; defaults to sessionStorage. */
@@ -146,6 +149,11 @@ export const createContainer = (
         clock,
     })
 
+    // ── trains (keyless: the plain HTTP client, never the authorized one)
+    const trains =
+        overrides.trainProvider ??
+        new DbTransportRestProvider(http, config.urls.trains)
+
     const resetLocalData = createResetLocalData({
         stores: [localStore, sessionStore],
         prefix: APP_STORAGE_PREFIX,
@@ -162,6 +170,7 @@ export const createContainer = (
         http,
         weather,
         calendar,
+        trains,
         apiKeys,
         settings,
         saveSettings,

@@ -10,6 +10,8 @@ import { InMemoryKeyValueStore } from '../support/InMemoryKeyValueStore'
 import { FakeAppLifecycle } from '../support/FakeAppLifecycle'
 import { FakeAuthSession } from '../support/FakeAuthSession'
 import { FakeCalendarProvider } from '../support/FakeCalendarProvider'
+import { FakeTrainProvider } from '../support/FakeTrainProvider'
+import { stationsResponse } from '../fixtures/dbTransportRest'
 import { AuthRequiredError } from '@/application/ports/errors'
 import { FakeOAuthGateway } from '../support/FakeOAuthGateway'
 import { FULL_RAW } from '../infrastructure/storage/legacyFixtures'
@@ -364,5 +366,30 @@ describe('calendar wiring', () => {
         for (const request of http.requests) {
             expect(request.headers?.Authorization).toBeUndefined()
         }
+    })
+})
+
+describe('train wiring', () => {
+    it('builds the train provider over the configured base url, without credentials of any account', async () => {
+        const { deps, http } = createTestContainer({
+            config: { urls: { trains: 'https://db.test/v6' } },
+            authSession: new FakeAuthSession({ status: 'signed-in' }),
+        })
+        http.when('https://db.test/v6/locations').reply(stationsResponse)
+
+        const stations = await deps.trains.searchStations('Stu', 10)
+
+        expect(stations.map((s) => s.id)).toEqual(['8000096', '8000105'])
+        expect(http.requests[0].headers?.Authorization).toBeUndefined()
+    })
+
+    it('uses an injected provider instead of the adapter', async () => {
+        const provider = new FakeTrainProvider({ stations: [] })
+        const { deps, http } = createTestContainer({ trainProvider: provider })
+
+        await deps.trains.searchStations('Stu', 10)
+
+        expect(provider.stationCalls).toHaveLength(1)
+        expect(http.requests).toEqual([])
     })
 })

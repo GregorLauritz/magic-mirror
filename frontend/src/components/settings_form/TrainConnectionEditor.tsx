@@ -1,8 +1,8 @@
 import { Box, IconButton, Paper } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { TrainConnection } from '../../models/user_settings'
-import { TrainStation } from '../../models/trains'
-import { StationAutocomplete } from './StationAutocomplete'
+import type { Station } from '@/domain/trains/types'
+import { StationAutocomplete } from '@/features/trains'
 import { useCallback, useMemo } from 'react'
 
 interface TrainConnectionEditorProps {
@@ -16,7 +16,7 @@ export const TrainConnectionEditor = ({
     onUpdate,
     onRemove,
 }: TrainConnectionEditorProps) => {
-    const departureStation: TrainStation | null = useMemo(
+    const departureStation: Station | null = useMemo(
         () =>
             connection.departure_station_id
                 ? {
@@ -27,7 +27,7 @@ export const TrainConnectionEditor = ({
         [connection.departure_station_id, connection.departure_station_name]
     )
 
-    const arrivalStation: TrainStation | null = useMemo(
+    const arrivalStation: Station | null = useMemo(
         () =>
             connection.arrival_station_id
                 ? {
@@ -39,7 +39,7 @@ export const TrainConnectionEditor = ({
     )
 
     const handleDepartureChange = useCallback(
-        (station: TrainStation | null) => {
+        (station: Station | null) => {
             onUpdate({
                 ...connection,
                 departure_station_id: station?.id || '',
@@ -50,7 +50,7 @@ export const TrainConnectionEditor = ({
     )
 
     const handleArrivalChange = useCallback(
-        (station: TrainStation | null) => {
+        (station: Station | null) => {
             onUpdate({
                 ...connection,
                 arrival_station_id: station?.id || '',

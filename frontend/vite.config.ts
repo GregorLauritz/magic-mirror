@@ -38,16 +38,16 @@ export default defineConfig({
                 'src/main.tsx',
                 'src/assets/',
             ],
-            // Ratchet: these are the measured baseline (lines 77.5, functions
-            // 73.4, branches 73.5, statements 77.2) minus 2 points. The earlier
+            // Ratchet: these are the measured baseline (lines 85.3, functions
+            // 82.0, branches 84.3, statements 85.1) minus 2 points. The earlier
             // 80% gate only measured files that tests happened to import, so it
             // never saw the untested components. Raise these as legacy code is
             // replaced by tested layers; never lower them.
             thresholds: {
-                lines: 75,
-                functions: 71,
-                branches: 71,
-                statements: 75,
+                lines: 83,
+                functions: 79,
+                branches: 82,
+                statements: 83,
             },
         },
     },
