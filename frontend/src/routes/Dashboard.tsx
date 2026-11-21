@@ -1,9 +1,11 @@
-import CurrentWeather from '../components/current_weather/CurrentWeather'
 import { ClockWidget } from '@/features/time'
+import {
+    CurrentWeatherWidget,
+    DailyForecastWidget,
+    HourlyForecastWidget,
+} from '@/features/weather'
 import { Box } from '@mui/material'
-import DailyForecast from '../components/daily_forecast/DailyForecast'
 import Birthdays from '../components/birthdays/Birthdays'
-import HourlyWeather from '../components/hourly_forecast/HourlyForecast'
 import UpcomingEvents from '../components/upcoming_events/UpcomingEvents'
 import TrainTimes from '../components/train_times/TrainTimes'
 import { TimeContextProvider } from '../common/TimeContext'
@@ -139,13 +141,13 @@ const DashBoardItems = memo(() => {
                         <TrainTimes />
                     </Box>
                     <Box key="current-weather" sx={gridItemSx}>
-                        <CurrentWeather />
+                        <CurrentWeatherWidget />
                     </Box>
                     <Box key="hourly-weather" sx={gridItemSx}>
-                        <HourlyWeather />
+                        <HourlyForecastWidget />
                     </Box>
                     <Box key="daily-forecast" sx={gridItemSx}>
-                        <DailyForecast />
+                        <DailyForecastWidget />
                     </Box>
                 </GridLayout>
             )}

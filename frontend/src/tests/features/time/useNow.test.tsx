@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { act } from '@testing-library/react'
 import { floorToMinute } from '@/domain/shared/time'
+import { useHourKey } from '@/features/time/useHourKey'
 import { useNow } from '@/features/time/useNow'
 import { useTimeZone } from '@/features/time/useTimeZone'
 import { useToday } from '@/features/time/useToday'
@@ -116,5 +117,37 @@ describe('useNow re-render stability', () => {
 
     it('is a StrictMode-safe export', () => {
         expect(StrictMode).toBeDefined()
+    })
+})
+
+describe('useHourKey', () => {
+    it('changes only when the local hour (or day) changes', () => {
+        const test = createTestContainer({
+            now: '2024-01-15T10:58:30Z',
+            timeZone: 'UTC',
+        })
+        const { result } = renderHookWithDeps(() => useHourKey(), {
+            deps: test.deps,
+        })
+        const first = result.current
+
+        act(() => test.scheduler.advance(60_000)) // 10:59:30
+        expect(result.current).toBe(first)
+
+        act(() => test.scheduler.advance(60_000)) // 11:00:30
+        expect(result.current).not.toBe(first)
+    })
+
+    it('is the hour in the display zone, not in UTC', () => {
+        const test = createTestContainer({
+            now: '2024-01-15T12:30:00Z',
+            timeZone: 'Asia/Tokyo',
+        })
+
+        const { result } = renderHookWithDeps(() => useHourKey(), {
+            deps: test.deps,
+        })
+
+        expect(result.current).toBe('2024-01-15T21')
     })
 })

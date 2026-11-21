@@ -3,6 +3,7 @@ import type { AppConfig } from '@/app/config'
 import type { Clock } from '@/application/ports/Clock'
 import type { HttpClient } from '@/application/ports/HttpClient'
 import type { Scheduler } from '@/application/ports/Scheduler'
+import type { WeatherService } from '@/application/weather/WeatherService'
 
 /**
  * Everything the UI may depend on, assembled once by the composition root
@@ -16,6 +17,7 @@ export interface AppDependencies {
     readonly clock: Clock
     readonly scheduler: Scheduler
     readonly http: HttpClient
+    readonly weather: WeatherService
     /** The only framework object in the container: server-state cache. */
     readonly queryClient: QueryClient
 }

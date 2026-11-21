@@ -122,7 +122,7 @@ describe('TimeContext', () => {
     })
 
     it('should not trigger daily updates if day has not changed', async () => {
-        const now = new Date('2024-01-15T12:00:00Z')
+        const now = new Date(2024, 0, 15, 12) // local time: same day in any zone
         vi.setSystemTime(now)
 
         const { result } = renderHook(() => useTimeContext(), {
@@ -136,7 +136,7 @@ describe('TimeContext', () => {
 
         // Advance time within same day
         act(() => {
-            vi.setSystemTime(new Date('2024-01-15T18:00:00Z'))
+            vi.setSystemTime(new Date(2024, 0, 15, 18))
             vi.advanceTimersByTime(5000)
         })
 

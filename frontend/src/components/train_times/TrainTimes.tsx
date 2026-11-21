@@ -6,7 +6,7 @@ import { useGetTrainConnections } from '../../apis/trains'
 import { useGetUserSettings } from '../../apis/user_settings'
 import { TrainConnection as TrainConnectionType } from '../../models/trains'
 import { PAPER_CARD_COLOR, xSmallFontSize } from '@/shared/styles/theme'
-import ErrorCard from '../error_card/ErrorCard'
+import ErrorCard from '@/shared/ui/ErrorCard'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 

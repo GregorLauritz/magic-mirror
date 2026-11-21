@@ -5,15 +5,19 @@ import type { AppDependencies } from '@/app/services/AppDependencies'
 import type { Clock } from '@/application/ports/Clock'
 import type { HttpClient } from '@/application/ports/HttpClient'
 import type { Scheduler } from '@/application/ports/Scheduler'
+import type { WeatherProvider } from '@/application/ports/WeatherProvider'
+import { createWeatherService } from '@/application/weather/WeatherService'
 import { BrowserScheduler } from '@/infrastructure/browser/BrowserScheduler'
 import { SystemClock } from '@/infrastructure/browser/SystemClock'
 import { FetchHttpClient } from '@/infrastructure/http/FetchHttpClient'
+import { OpenMeteoWeatherProvider } from '@/infrastructure/weather/OpenMeteoWeatherProvider'
 
 /** Ports a caller (typically a test) may replace before anything is built. */
 export interface ContainerOverrides {
     readonly clock?: Clock
     readonly scheduler?: Scheduler
     readonly http?: HttpClient
+    readonly weatherProvider?: WeatherProvider
     readonly queryClient?: QueryClient
 }
 
@@ -37,5 +41,12 @@ export const createContainer = (
         })
     const queryClient = overrides.queryClient ?? createQueryClient(config)
 
-    return { config, clock, scheduler, http, queryClient }
+    const weather = createWeatherService({
+        provider:
+            overrides.weatherProvider ??
+            new OpenMeteoWeatherProvider(http, config.urls.openMeteo),
+        clock,
+    })
+
+    return { config, clock, scheduler, http, weather, queryClient }
 }

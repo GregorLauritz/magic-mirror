@@ -2,6 +2,7 @@ import {
     zonedParts,
     utcOffsetMinutes,
     type Instant,
+    type PlainDate,
     type TimeZoneId,
 } from '@/domain/shared/time'
 import { parseTime } from '@/shared/lib/formatTime'
@@ -39,3 +40,19 @@ export const formatClock = (
         utcOffset: formatUtcOffset(utcOffsetMinutes(at, timeZone)),
     }
 }
+
+/** "HH:mm" of an instant in the given zone. */
+export const formatTimeOfDay = (at: Instant, timeZone: TimeZoneId): string => {
+    const { hour, minute } = zonedParts(at, timeZone)
+    return `${parseTime(hour)}:${parseTime(minute)}`
+}
+
+/** The weekday of a calendar date; a date has no zone, so none can shift it. */
+export const formatWeekday = (
+    date: PlainDate,
+    locale: string,
+    style: 'short' | 'long' = 'short'
+): string =>
+    new Intl.DateTimeFormat(locale, { weekday: style, timeZone: 'UTC' }).format(
+        Date.parse(`${date}T00:00:00Z`)
+    )

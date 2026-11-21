@@ -4,6 +4,9 @@ import { FetchHttpClient } from '@/infrastructure/http/FetchHttpClient'
 import { createTestConfig } from '../support/createTestConfig'
 import { createTestContainer } from '../support/createTestContainer'
 import { createTestQueryClient } from '../support/createTestQueryClient'
+import { FakeWeatherProvider } from '../support/FakeWeatherProvider'
+import { currentWeather } from '../support/weatherFixtures'
+import { currentResponse } from '../fixtures/openMeteo'
 import { FakeClock } from '../support/FakeClock'
 import { FakeScheduler } from '../support/FakeScheduler'
 
@@ -47,6 +50,32 @@ describe('createContainer', () => {
 
         expect(first.queryClient).not.toBe(second.queryClient)
         expect(first.http).not.toBe(second.http)
+    })
+})
+
+describe('weather wiring', () => {
+    it('builds the weather service over the Open-Meteo adapter and the configured base url', async () => {
+        const { deps, http } = createTestContainer({
+            config: { urls: { openMeteo: 'https://om.test/v1' } },
+        })
+        http.when('https://om.test/v1/forecast/').reply(currentResponse())
+
+        const weather = await deps.weather.getCurrent({
+            latitude: 1,
+            longitude: 2,
+        })
+
+        expect(weather.condition.kind).toBe('overcast')
+        expect(http.requests).toHaveLength(1)
+    })
+
+    it('uses an injected provider instead of the adapter', async () => {
+        const provider = new FakeWeatherProvider({ current: currentWeather() })
+        const { deps } = createTestContainer({ weatherProvider: provider })
+
+        await deps.weather.getCurrent({ latitude: 1, longitude: 2 })
+
+        expect(provider.currentCalls).toHaveLength(1)
     })
 })
 

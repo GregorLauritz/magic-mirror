@@ -147,8 +147,8 @@ describe('dateParser', () => {
 
     describe('isSameDate', () => {
         it('should return true for same date with different times', () => {
-            const date1 = new Date('2024-01-15T12:00:00Z')
-            const date2 = new Date('2024-01-15T18:00:00Z')
+            const date1 = new Date(2024, 0, 15, 12)
+            const date2 = new Date(2024, 0, 15, 18)
             expect(isSameDate(date1, date2)).toBe(true)
         })
 
