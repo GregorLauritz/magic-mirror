@@ -5,9 +5,8 @@ import { Box } from '@mui/material'
 import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom'
 import RouteErrorPage from './routes/RouteErrorPage'
 import ErrorPage from './routes/ErrorPage'
-import { Dashboard } from './routes/Dashboard'
+import { Dashboard, LayoutEditingProvider } from '@/features/dashboard'
 import { Settings } from './routes/Settings'
-import { GridEditContextProvider } from './common/GridEditContext'
 
 interface BaseFrameProps {
     children: ReactNode
@@ -60,9 +59,9 @@ const router = createBrowserRouter([
 
 export const App = () => {
     return (
-        <GridEditContextProvider>
+        <LayoutEditingProvider>
             <RouterProvider router={router} />
-        </GridEditContextProvider>
+        </LayoutEditingProvider>
     )
 }
 

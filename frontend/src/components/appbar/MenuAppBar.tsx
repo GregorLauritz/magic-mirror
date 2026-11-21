@@ -13,8 +13,8 @@ import Tooltip from '@mui/material/Tooltip'
 import { useAuth } from '@/features/auth'
 import { useQueryClient } from 'react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useGridEditContext } from '../../common/useGridEditContext'
-import { usePatchSettings, useResetLocalData } from '@/features/settings'
+import { useResetLayout, useLayoutEditing } from '@/features/dashboard'
+import { useResetLocalData } from '@/features/settings'
 
 type MenuItemType = {
     text: string
@@ -31,9 +31,9 @@ const MenuAppBarComponent = () => {
     const queryClient = useQueryClient()
     const navigate = useNavigate()
     const location = useLocation()
-    const { isEditMode, toggleEditMode } = useGridEditContext()
+    const { isEditing: isEditMode, toggle: toggleEditMode } = useLayoutEditing()
     const isDashboard = location.pathname === '/'
-    const patchSettings = usePatchSettings()
+    const resetLayout = useResetLayout()
     const resetLocalData = useResetLocalData()
     const { signOut } = useAuth()
 
@@ -72,14 +72,8 @@ const MenuAppBarComponent = () => {
                     {
                         text: 'Reset Layout',
                         onClick: () => {
-                            // No saved layout means "the default layout".
-                            const result = patchSettings({ layout: undefined })
-                            if (result.ok) window.location.reload()
-                            else
-                                console.error(
-                                    'Failed to reset the widget layout:',
-                                    result.error
-                                )
+                            resetLayout()
+                            handleClose()
                         },
                     },
                 ],
@@ -112,7 +106,7 @@ const MenuAppBarComponent = () => {
                     },
                 ],
             ]),
-        [redirect, reload, patchSettings, resetLocalData, logout]
+        [redirect, reload, resetLayout, resetLocalData, logout, handleClose]
     )
 
     const menuItems = useMemo(
