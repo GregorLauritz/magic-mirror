@@ -4,6 +4,7 @@ import type { AppDependencies } from '@/app/services/AppDependencies'
 import { FakeAppLifecycle } from './FakeAppLifecycle'
 import { FakeClock } from './FakeClock'
 import { FakeHttpClient } from './FakeHttpClient'
+import { FakeIdGenerator } from './FakeIdGenerator'
 import { FakeScheduler } from './FakeScheduler'
 import { InMemoryKeyValueStore } from './InMemoryKeyValueStore'
 import { createTestConfig, type TestConfigOverrides } from './createTestConfig'
@@ -49,6 +50,7 @@ export const createTestContainer = (
         localStore: new InMemoryKeyValueStore(),
         sessionStore: new InMemoryKeyValueStore(),
         lifecycle,
+        ids: new FakeIdGenerator(),
         ...ports,
     })
 

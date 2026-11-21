@@ -6,6 +6,9 @@ import {
     type UserSettings,
 } from './UserSettings'
 
+/** How many train connections the dashboard can show. */
+export const MAX_TRAIN_ROUTES = 5
+
 const MIN_CAROUSEL_SECONDS = 5
 const DEFAULT_CAROUSEL_SECONDS = 15
 

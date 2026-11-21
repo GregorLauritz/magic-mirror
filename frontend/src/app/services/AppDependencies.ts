@@ -2,6 +2,7 @@ import type { QueryClient } from 'react-query'
 import type { AppConfig } from '@/app/config'
 import type { Clock } from '@/application/ports/Clock'
 import type { HttpClient } from '@/application/ports/HttpClient'
+import type { IdGenerator } from '@/application/ports/IdGenerator'
 import type { Scheduler } from '@/application/ports/Scheduler'
 import type { AuthSession } from '@/application/ports/AuthSession'
 import type { GeocodingProvider } from '@/application/ports/GeocodingProvider'
@@ -25,6 +26,7 @@ export interface AppDependencies {
     readonly config: AppConfig
     readonly clock: Clock
     readonly scheduler: Scheduler
+    readonly ids: IdGenerator
     readonly http: HttpClient
     readonly weather: WeatherService
     readonly calendar: CalendarService

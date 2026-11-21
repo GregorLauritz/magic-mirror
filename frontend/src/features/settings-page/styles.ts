@@ -18,7 +18,7 @@ export const inputBoxStyle = {
     justifyContent: 'center',
 }
 
-export const apiKeysHeaderStyle = {
+export const sectionHeaderStyle = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

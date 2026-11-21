@@ -11,6 +11,7 @@ import type { CalendarProvider } from '@/application/ports/CalendarProvider'
 import type { Clock } from '@/application/ports/Clock'
 import type { GeocodingProvider } from '@/application/ports/GeocodingProvider'
 import type { HttpClient } from '@/application/ports/HttpClient'
+import type { IdGenerator } from '@/application/ports/IdGenerator'
 import type { KeyValueStore } from '@/application/ports/KeyValueStore'
 import type { OAuthTokenGateway } from '@/application/ports/OAuthTokenGateway'
 import type { Scheduler } from '@/application/ports/Scheduler'
@@ -24,6 +25,7 @@ import { createWeatherService } from '@/application/weather/WeatherService'
 import { BrowserAppLifecycle } from '@/infrastructure/browser/BrowserAppLifecycle'
 import { BrowserScheduler } from '@/infrastructure/browser/BrowserScheduler'
 import { SystemClock } from '@/infrastructure/browser/SystemClock'
+import { UuidIdGenerator } from '@/infrastructure/browser/UuidIdGenerator'
 import { MapsCoGeocodingProvider } from '@/infrastructure/geocode/MapsCoGeocodingProvider'
 import { AuthorizedHttpClient } from '@/infrastructure/google/AuthorizedHttpClient'
 import { GisTokenGateway } from '@/infrastructure/google/GisTokenGateway'
@@ -50,6 +52,7 @@ export interface ContainerOverrides {
     readonly geocodingProvider?: GeocodingProvider
     readonly calendarProvider?: CalendarProvider
     readonly trainProvider?: TrainProvider
+    readonly ids?: IdGenerator
     /** Where durable data lives; defaults to the browser's localStorage. */
     readonly localStore?: KeyValueStore
     /** Where per-session data (the Google token) lives; defaults to sessionStorage. */
@@ -80,6 +83,7 @@ export const createContainer = (
             timeoutMs: config.http.timeoutMs,
             retries: config.http.retries,
         })
+    const ids = overrides.ids ?? new UuidIdGenerator()
     const queryClient = overrides.queryClient ?? createQueryClient(config)
 
     const localStore =
@@ -167,6 +171,7 @@ export const createContainer = (
         config,
         clock,
         scheduler,
+        ids,
         http,
         weather,
         calendar,

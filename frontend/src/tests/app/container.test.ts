@@ -393,3 +393,17 @@ describe('train wiring', () => {
         expect(http.requests).toEqual([])
     })
 })
+
+describe('id generation wiring', () => {
+    it('builds the production graph with an id generator that makes unique ids', () => {
+        const deps = createContainer(createTestConfig())
+
+        expect(deps.ids.next()).not.toBe(deps.ids.next())
+    })
+
+    it('uses an injected id generator', () => {
+        const ids = { next: () => 'fixed' }
+
+        expect(createContainer(createTestConfig(), { ids }).ids).toBe(ids)
+    })
+})
