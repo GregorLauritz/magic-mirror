@@ -1,11 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import { CssBaseline, ThemeProvider } from '@mui/material'
-import { theme } from '@/shared/styles/theme'
+import { RouterProvider } from 'react-router-dom'
 import { AppProviders } from './app/AppProviders.tsx'
 import { loadConfig } from './app/config.ts'
 import { createContainer } from './app/container.ts'
+import { createAppRouter } from './app/router.tsx'
 
 // Composition root: the only place that reads the build-time environment and
 // decides which adapters back the ports.
@@ -16,11 +15,8 @@ deps.start()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <AppProviders deps={deps}>
-                <App />
-            </AppProviders>
-        </ThemeProvider>
+        <AppProviders deps={deps}>
+            <RouterProvider router={createAppRouter()} />
+        </AppProviders>
     </React.StrictMode>
 )

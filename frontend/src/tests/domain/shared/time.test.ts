@@ -170,6 +170,21 @@ describe('startOfDay', () => {
         expect((next - start) / 3_600_000).toBe(25)
     })
 
+    it.each([
+        // the clocks jump from 00:00 to 01:00: the day has no midnight and starts at 01:00
+        ['America/Sao_Paulo', '2018-11-04', '2018-11-04T03:00:00Z'],
+        ['Asia/Beirut', '2024-03-31', '2024-03-30T22:00:00Z'],
+    ])(
+        'starts a day without a midnight at its first moment (%s, %s)',
+        (zone, date, utcIso) => {
+            const start = startOfDay(plainDate(date), zone)
+
+            expect(start).toBe(at(utcIso))
+            expect(toPlainDate(start, zone)).toBe(date)
+            expect(toPlainDate(instant(start - 1), zone) < date).toBe(true)
+        }
+    )
+
     it('round-trips with toPlainDate', () => {
         for (const zone of [
             'UTC',

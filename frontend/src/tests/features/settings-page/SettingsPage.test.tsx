@@ -219,6 +219,28 @@ describe('SettingsPage', () => {
             expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled()
         })
 
+        it('stores the zip code and the birthday calendar as typed', async () => {
+            const { user, field, savedSettings, send } = renderPage({
+                settings: SAVED,
+                apiKey: 'k',
+            })
+
+            await user.clear(field('Zip Code'))
+            await user.type(field('Zip Code'), '75002')
+            const birthdays = screen.getByRole('combobox', {
+                name: 'Birthday Calendar ID',
+            })
+            await user.clear(birthdays)
+            await user.type(birthdays, 'family@x')
+            await send()
+
+            await screen.findByText('Settings saved')
+            expect(savedSettings()).toMatchObject({
+                zip_code: '75002',
+                birthday_cal_id: 'family@x',
+            })
+        })
+
         it('stores a chosen calendar by its id', async () => {
             const { user, savedSettings, send } = renderPage({
                 settings: SAVED,

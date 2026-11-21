@@ -1,16 +1,13 @@
 import { Fragment, StrictMode, type ReactElement, type ReactNode } from 'react'
-import { ThemeProvider } from '@mui/material'
 import {
     render,
     renderHook,
     type RenderHookOptions,
     type RenderOptions,
 } from '@testing-library/react'
-import { QueryClientProvider } from 'react-query'
 import { MemoryRouter } from 'react-router-dom'
-import { ServicesProvider } from '@/app/services/ServicesProvider'
+import { AppProviders } from '@/app/AppProviders'
 import type { AppDependencies } from '@/app/services/AppDependencies'
-import { theme } from '@/shared/styles/theme'
 import {
     createTestContainer,
     type TestContainerOptions,
@@ -34,15 +31,11 @@ const buildWrapper = (options: RenderDepsOptions) => {
     const Strict = options.strict ? StrictMode : Fragment
     const Wrapper = ({ children }: { children: ReactNode }) => (
         <Strict>
-            <ServicesProvider deps={deps}>
-                <QueryClientProvider client={deps.queryClient}>
-                    <ThemeProvider theme={theme}>
-                        <MemoryRouter initialEntries={[options.route ?? '/']}>
-                            {children}
-                        </MemoryRouter>
-                    </ThemeProvider>
-                </QueryClientProvider>
-            </ServicesProvider>
+            <AppProviders deps={deps}>
+                <MemoryRouter initialEntries={[options.route ?? '/']}>
+                    {children}
+                </MemoryRouter>
+            </AppProviders>
         </Strict>
     )
     return { Wrapper, deps, test }

@@ -1,47 +1,37 @@
 import {
+    Accordion,
+    AccordionDetails,
+    AccordionSummary,
     Box,
     Button,
-    Typography,
     Card,
-    CardContent,
     CardActions,
+    CardContent,
     CardMedia,
-    AccordionSummary,
-    AccordionDetails,
-    Accordion,
+    Typography,
 } from '@mui/material'
-import { To, useNavigate } from 'react-router-dom'
-import errorImage from '../../assets/error.png'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { useNavigate } from 'react-router-dom'
+import errorImage from '@/assets/error.png'
+import type { BackTarget } from './describeError'
 import { cardStyle } from './style'
 
-type Props = {
-    title?: string
-    details?: string
-    navigateBackTo?: To | number
+interface ErrorViewProps {
+    readonly title: string
+    readonly details: string
+    readonly backTo: BackTarget
 }
 
-export const ErrorComponent = ({
-    title,
-    details,
-    navigateBackTo = -1,
-}: Props) => {
+/** An error as a card: what happened, details on demand, and a way out. */
+export const ErrorView = ({ title, details, backTo }: ErrorViewProps) => {
     const navigate = useNavigate()
     const back = () => {
-        if (typeof navigateBackTo === 'number') {
-            navigate(navigateBackTo)
-        } else {
-            navigate(navigateBackTo)
-        }
+        if (typeof backTo === 'number') navigate(backTo)
+        else navigate(backTo)
     }
 
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                justifyContent: 'center',
-            }}
-        >
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <Card sx={cardStyle}>
                 <CardMedia
                     component="img"
@@ -52,14 +42,14 @@ export const ErrorComponent = ({
                     sx={{ objectFit: 'contain' }}
                 />
                 <CardContent>
-                    <Typography variant="h5" gutterBottom>
+                    <Typography variant="h5" component="h2" gutterBottom>
                         {title}
                     </Typography>
                     <Accordion>
                         <AccordionSummary
                             expandIcon={<ExpandMoreIcon />}
-                            aria-controls="panel1a-content"
-                            id="panel1a-header"
+                            aria-controls="error-details-content"
+                            id="error-details-header"
                         >
                             <Typography>Details</Typography>
                         </AccordionSummary>
@@ -70,12 +60,7 @@ export const ErrorComponent = ({
                         </AccordionDetails>
                     </Accordion>
                 </CardContent>
-                <CardActions
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                    }}
-                >
+                <CardActions sx={{ display: 'flex', justifyContent: 'center' }}>
                     <Button variant="outlined" onClick={back}>
                         Back
                     </Button>
