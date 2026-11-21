@@ -7,6 +7,8 @@ import { createTestQueryClient } from '../support/createTestQueryClient'
 import { FakeGeocodingProvider } from '../support/FakeGeocodingProvider'
 import { FakeWeatherProvider } from '../support/FakeWeatherProvider'
 import { InMemoryKeyValueStore } from '../support/InMemoryKeyValueStore'
+import { FakeAppLifecycle } from '../support/FakeAppLifecycle'
+import { FULL_RAW } from '../infrastructure/storage/legacyFixtures'
 import { currentWeather } from '../support/weatherFixtures'
 import { currentResponse } from '../fixtures/openMeteo'
 import { FakeClock } from '../support/FakeClock'
@@ -125,6 +127,65 @@ describe('location wiring', () => {
         )
 
         expect(geocoding.calls).toHaveLength(1)
+    })
+})
+
+describe('settings wiring', () => {
+    it('loads the saved settings from the injected storage at startup', () => {
+        const localStore = new InMemoryKeyValueStore()
+        localStore.set('magic-mirror.user-settings', JSON.stringify(FULL_RAW))
+
+        const { deps } = createTestContainer({ localStore })
+
+        expect(deps.settings.getSnapshot().address?.city).toBe('Stuttgart')
+    })
+
+    it('saves through the container: it geocodes with the key, then persists', async () => {
+        const geocoding = new FakeGeocodingProvider()
+        const localStore = new InMemoryKeyValueStore()
+        const { deps } = createTestContainer({
+            localStore,
+            geocodingProvider: geocoding,
+        })
+
+        const result = await deps.saveSettings({
+            address: { country: 'DE', city: 'Stuttgart', postalCode: '70176' },
+            eventsCalendarId: 'primary',
+            birthdayCalendarId: 'primary',
+            trainRoutes: [],
+            trainDisplay: { mode: 'carousel', carouselIntervalSeconds: 15 },
+            geocodeApiKey: 'k',
+        })
+
+        expect(result).toEqual({ ok: true, value: 'saved' })
+        expect(
+            JSON.parse(localStore.get('magic-mirror.user-settings')!).city
+        ).toBe('Stuttgart')
+        expect(
+            JSON.parse(localStore.get('magic-mirror.api-keys')!).geocodeApiKey
+        ).toBe('k')
+    })
+
+    it('resets all local data: both storages, the cache, the stores, then reloads', async () => {
+        const localStore = new InMemoryKeyValueStore()
+        const sessionStore = new InMemoryKeyValueStore()
+        localStore.set('magic-mirror.user-settings', JSON.stringify(FULL_RAW))
+        sessionStore.set('magic-mirror.google-token', '{}')
+        const lifecycle = new FakeAppLifecycle()
+        const { deps } = createTestContainer({
+            localStore,
+            sessionStore,
+            lifecycle,
+        })
+        deps.queryClient.setQueryData(['google', 'x'], 1)
+
+        await deps.resetLocalData()
+
+        expect(localStore.keys()).toEqual([])
+        expect(sessionStore.keys()).toEqual([])
+        expect(deps.queryClient.getQueryData(['google', 'x'])).toBeUndefined()
+        expect(deps.settings.getSnapshot().address).toBeUndefined()
+        expect(lifecycle.reloads).toBe(1)
     })
 })
 

@@ -14,18 +14,11 @@ import { logout } from '../../apis/logout'
 import { useQueryClient } from 'react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useGridEditContext } from '../../common/useGridEditContext'
-import { patchUserSettings } from '../../apis/user_settings'
-import { DEFAULT_LAYOUT } from '../../constants/defaults'
-import { clearAllAppData } from '../../services/localStorage'
+import { usePatchSettings, useResetLocalData } from '@/features/settings'
 
 type MenuItemType = {
     text: string
     onClick?: () => Promise<void> | void
-}
-
-const clearLocalData = async (): Promise<void> => {
-    clearAllAppData()
-    window.location.reload()
 }
 
 const SETTING_MENU_ITEM_MAP = new Map<string, Array<string>>([
@@ -40,6 +33,8 @@ const MenuAppBarComponent = () => {
     const location = useLocation()
     const { isEditMode, toggleEditMode } = useGridEditContext()
     const isDashboard = location.pathname === '/'
+    const patchSettings = usePatchSettings()
+    const resetLocalData = useResetLocalData()
 
     const handleMenu = useCallback((event: MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget)
@@ -69,17 +64,16 @@ const MenuAppBarComponent = () => {
                     'resetlayout',
                     {
                         text: 'Reset Layout',
-                        onClick: () =>
-                            patchUserSettings({
-                                widget_layout: DEFAULT_LAYOUT,
-                            })
-                                .then(() => window.location.reload())
-                                .catch((error) => {
-                                    console.error(
-                                        'Failed to save widget layout:',
-                                        error
-                                    )
-                                }),
+                        onClick: () => {
+                            // No saved layout means "the default layout".
+                            const result = patchSettings({ layout: undefined })
+                            if (result.ok) window.location.reload()
+                            else
+                                console.error(
+                                    'Failed to reset the widget layout:',
+                                    result.error
+                                )
+                        },
                     },
                 ],
                 [
@@ -107,11 +101,11 @@ const MenuAppBarComponent = () => {
                     'clearlocaldata',
                     {
                         text: 'Clear Local Data',
-                        onClick: clearLocalData,
+                        onClick: resetLocalData,
                     },
                 ],
             ]),
-        [redirect, reload]
+        [redirect, reload, patchSettings, resetLocalData]
     )
 
     const menuItems = useMemo(

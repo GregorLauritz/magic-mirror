@@ -4,7 +4,7 @@ import { NetworkError } from '@/application/ports/errors'
 import type { GeocodeError } from '@/application/ports/GeocodingProvider'
 import { isGeocodable } from '@/domain/location/Address'
 import type { Coordinates } from '@/domain/location/Coordinates'
-import { useApiKeys, useSettingsAddress } from '@/features/settings'
+import { useApiKeys, useSetting } from '@/features/settings'
 import type { CoordinatesState } from './CoordinatesState'
 
 /** A lookup that failed for a reason a second attempt cannot fix. */
@@ -22,7 +22,7 @@ class LocationLookupError extends Error {
  */
 export const useCoordinates = (): CoordinatesState => {
     const { resolveCoordinates, config } = useServices()
-    const { address, isLoading: settingsLoading } = useSettingsAddress()
+    const address = useSetting((settings) => settings.address)
     const { apiKeys } = useApiKeys()
     const apiKey = apiKeys.geocodeApiKey.trim()
 
@@ -52,7 +52,7 @@ export const useCoordinates = (): CoordinatesState => {
             )
         },
         {
-            enabled: !settingsLoading && geocodable && hasKey,
+            enabled: geocodable && hasKey,
             // An address does not move: resolve it once per address and key.
             staleTime: Infinity,
             cacheTime: Infinity,
@@ -67,7 +67,6 @@ export const useCoordinates = (): CoordinatesState => {
         }
     )
 
-    if (settingsLoading) return { status: 'loading' }
     if (!geocodable) return { status: 'not-configured', reason: 'no-address' }
     if (!hasKey) return { status: 'not-configured', reason: 'no-api-key' }
     if (query.data) return { status: 'ready', coordinates: query.data }

@@ -17,3 +17,10 @@ export const isGeocodable = (
     address !== undefined &&
     filled(address.country) &&
     (filled(address.city) || filled(address.postalCode))
+
+/** Pre-fills the settings form for a first-time user. Never an effective setting. */
+export const DEFAULT_ADDRESS: Address = {
+    country: 'DE',
+    city: 'Stuttgart',
+    postalCode: '70176',
+}

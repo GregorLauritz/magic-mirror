@@ -6,7 +6,7 @@ import BirthdayItem from './BirthdayItem'
 import { useGetBirthdays } from '../../apis/birthday'
 import { SmallCard } from '@/shared/ui/CardFrame'
 import { useTimeContext } from '../../hooks/useTimeContext'
-import { useGetUserSettings } from '../../apis/user_settings'
+import { useSetting } from '@/features/settings'
 import { useGoogleAuth } from '../../hooks/useGoogleAuth'
 import { useRegisterUpdateTrigger } from '../../hooks/useRegisterUpdateTrigger'
 
@@ -14,7 +14,9 @@ const MAX_BIRTHDAYS = 5
 
 const BirthdaysComponent = () => {
     const { addDailyUpdateTrigger } = useTimeContext()
-    const { data: userSettings } = useGetUserSettings()
+    const birthdayCalendarId = useSetting(
+        (settings) => settings.birthdayCalendarId
+    )
     const { isSignedIn } = useGoogleAuth()
 
     const {
@@ -22,7 +24,7 @@ const BirthdaysComponent = () => {
         isLoading,
         error,
         refetch,
-    } = useGetBirthdays(userSettings?.birthday_cal_id ?? '', MAX_BIRTHDAYS)
+    } = useGetBirthdays(birthdayCalendarId ?? '', MAX_BIRTHDAYS)
 
     useRegisterUpdateTrigger(addDailyUpdateTrigger, refetch)
 

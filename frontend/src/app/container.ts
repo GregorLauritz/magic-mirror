@@ -6,16 +6,23 @@ import type { Clock } from '@/application/ports/Clock'
 import type { HttpClient } from '@/application/ports/HttpClient'
 import type { Scheduler } from '@/application/ports/Scheduler'
 import type { WeatherProvider } from '@/application/ports/WeatherProvider'
+import type { AppLifecycle } from '@/application/ports/AppLifecycle'
 import type { GeocodingProvider } from '@/application/ports/GeocodingProvider'
 import type { KeyValueStore } from '@/application/ports/KeyValueStore'
 import { createResolveCoordinates } from '@/application/location/resolveCoordinates'
 import { ApiKeyStore } from '@/application/settings/ApiKeyStore'
+import { createResetLocalData } from '@/application/settings/resetLocalData'
+import { createSaveSettings } from '@/application/settings/saveSettings'
+import { SettingsStore } from '@/application/settings/SettingsStore'
 import { createWeatherService } from '@/application/weather/WeatherService'
 import { BrowserScheduler } from '@/infrastructure/browser/BrowserScheduler'
 import { SystemClock } from '@/infrastructure/browser/SystemClock'
 import { FetchHttpClient } from '@/infrastructure/http/FetchHttpClient'
+import { BrowserAppLifecycle } from '@/infrastructure/browser/BrowserAppLifecycle'
 import { MapsCoGeocodingProvider } from '@/infrastructure/geocode/MapsCoGeocodingProvider'
 import { LocalStorageApiKeyRepository } from '@/infrastructure/storage/LocalStorageApiKeyRepository'
+import { LocalStorageSettingsRepository } from '@/infrastructure/storage/LocalStorageSettingsRepository'
+import { APP_STORAGE_PREFIX } from '@/infrastructure/storage/storageKeys'
 import { WebStorageKeyValueStore } from '@/infrastructure/storage/WebStorageKeyValueStore'
 import { OpenMeteoWeatherProvider } from '@/infrastructure/weather/OpenMeteoWeatherProvider'
 
@@ -28,6 +35,9 @@ export interface ContainerOverrides {
     readonly geocodingProvider?: GeocodingProvider
     /** Where durable data lives; defaults to the browser's localStorage. */
     readonly localStore?: KeyValueStore
+    /** Where per-session data (the Google token) lives; defaults to sessionStorage. */
+    readonly sessionStore?: KeyValueStore
+    readonly lifecycle?: AppLifecycle
     readonly queryClient?: QueryClient
 }
 
@@ -70,6 +80,22 @@ export const createContainer = (
         new MapsCoGeocodingProvider(http, config.urls.geocode)
     const resolveCoordinates = createResolveCoordinates({ geocoding })
 
+    const settings = new SettingsStore(
+        new LocalStorageSettingsRepository(localStore)
+    )
+    const saveSettings = createSaveSettings({ settings, apiKeys, geocoding })
+
+    const sessionStore =
+        overrides.sessionStore ??
+        new WebStorageKeyValueStore(() => window.sessionStorage)
+    const resetLocalData = createResetLocalData({
+        stores: [localStore, sessionStore],
+        prefix: APP_STORAGE_PREFIX,
+        reload: [() => settings.reload(), () => apiKeys.reload()],
+        clearCache: () => queryClient.clear(),
+        lifecycle: overrides.lifecycle ?? new BrowserAppLifecycle(),
+    })
+
     return {
         config,
         clock,
@@ -77,6 +103,9 @@ export const createContainer = (
         http,
         weather,
         apiKeys,
+        settings,
+        saveSettings,
+        resetLocalData,
         geocoding,
         resolveCoordinates,
         queryClient,

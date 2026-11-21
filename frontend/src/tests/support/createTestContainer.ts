@@ -1,9 +1,11 @@
 import { createContainer, type ContainerOverrides } from '@/app/container'
 import type { AppConfig } from '@/app/config'
 import type { AppDependencies } from '@/app/services/AppDependencies'
+import { FakeAppLifecycle } from './FakeAppLifecycle'
 import { FakeClock } from './FakeClock'
 import { FakeHttpClient } from './FakeHttpClient'
 import { FakeScheduler } from './FakeScheduler'
+import { InMemoryKeyValueStore } from './InMemoryKeyValueStore'
 import { createTestConfig, type TestConfigOverrides } from './createTestConfig'
 import { createTestQueryClient } from './createTestQueryClient'
 
@@ -13,6 +15,7 @@ export interface TestContainer {
     readonly clock: FakeClock
     readonly scheduler: FakeScheduler
     readonly http: FakeHttpClient
+    readonly lifecycle: FakeAppLifecycle
 }
 
 export interface TestContainerOptions extends ContainerOverrides {
@@ -35,14 +38,19 @@ export const createTestContainer = (
     const clock = new FakeClock(now, timeZone)
     const scheduler = new FakeScheduler(clock)
     const http = new FakeHttpClient()
+    const lifecycle = new FakeAppLifecycle()
 
     const deps = createContainer(config, {
         clock,
         scheduler,
         http,
         queryClient: createTestQueryClient(),
+        // isolated from the real browser storage unless a test injects its own
+        localStore: new InMemoryKeyValueStore(),
+        sessionStore: new InMemoryKeyValueStore(),
+        lifecycle,
         ...ports,
     })
 
-    return { deps, config, clock, scheduler, http }
+    return { deps, config, clock, scheduler, http, lifecycle }
 }

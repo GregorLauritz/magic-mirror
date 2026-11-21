@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { screen } from '@testing-library/react'
 import { CoordinatesGate } from '@/features/weather/CoordinatesGate'
 import { MediumCard } from '@/shared/ui/CardFrame'
@@ -8,8 +8,6 @@ import { FakeGeocodingProvider } from '../../support/FakeGeocodingProvider'
 import { InMemoryKeyValueStore } from '../../support/InMemoryKeyValueStore'
 import { renderWithDeps } from '../../support/renderWithDeps'
 
-const SETTINGS_KEY = 'magic-mirror.user-settings'
-
 const renderGate = (
     options: {
         address?: Record<string, string>
@@ -17,13 +15,10 @@ const renderGate = (
         geocoding?: FakeGeocodingProvider
     } = {}
 ) => {
-    if (options.address) {
-        window.localStorage.setItem(
-            SETTINGS_KEY,
-            JSON.stringify(options.address)
-        )
-    }
     const store = new InMemoryKeyValueStore()
+    if (options.address) {
+        store.set(STORAGE_KEYS.userSettings, JSON.stringify(options.address))
+    }
     if (options.key)
         store.set(
             STORAGE_KEYS.apiKeys,
@@ -52,9 +47,6 @@ const renderGate = (
 const FULL = { country: 'DE', city: 'Stuttgart', zip_code: '70176' }
 
 describe('CoordinatesGate', () => {
-    beforeEach(() => window.localStorage.clear())
-    afterEach(() => window.localStorage.clear())
-
     it('shows the loading placeholder while the location is being resolved', () => {
         renderGate({ address: FULL, key: 'k' })
 

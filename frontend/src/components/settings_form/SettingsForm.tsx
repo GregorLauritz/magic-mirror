@@ -15,8 +15,12 @@ import {
 } from '../../models/user_settings'
 import { CalendarListItem } from '../../models/calendar'
 import { TrainSettingsSection } from './TrainSettingsSection'
-import { useServices } from '@/app/services/useServices'
-import { useApiKeys } from '@/features/settings'
+import { useApiKeys, useSaveSettings } from '@/features/settings'
+import {
+    describeSaveError,
+    toSettingsInput,
+    type SettingsParams,
+} from './formAdapter'
 import { useGoogleAuth } from '../../hooks/useGoogleAuth'
 import { useListCalendars } from '../../apis/calendar_list'
 import { runtimeConfig } from '../../constants/runtimeConfig'
@@ -25,20 +29,9 @@ const API_KEYS_DOCS_URL = runtimeConfig.docsUrl
 
 const DEFAULT_CALENDAR_ID = 'primary'
 
-export interface SettingsParams {
-    country: string
-    city: string
-    zipCode: string
-    birthdayCalId: string
-    eventsCalId: string
-    trainConnections?: TrainConnection[]
-    trainDisplaySettings?: TrainDisplaySettings
-}
-
 interface SettingsFormProps {
     defaults: SettingsParams
     showBackButton: boolean
-    onSend: (data: SettingsParams) => void
     onBack: () => void
 }
 
@@ -50,7 +43,6 @@ const DEFAULT_TRAIN_DISPLAY_SETTINGS: TrainDisplaySettings = {
 export const SettingsForm = ({
     defaults,
     showBackButton,
-    onSend,
     onBack,
 }: SettingsFormProps) => {
     const {
@@ -80,8 +72,8 @@ export const SettingsForm = ({
             defaultTrainDisplaySettings || DEFAULT_TRAIN_DISPLAY_SETTINGS
         )
 
-    const { geocoding } = useServices()
-    const { apiKeys, setApiKeys } = useApiKeys()
+    const saveSettings = useSaveSettings()
+    const { apiKeys } = useApiKeys()
     const [geocodeApiKey, setGeocodeApiKey] = useState(apiKeys.geocodeApiKey)
 
     const {
@@ -93,62 +85,28 @@ export const SettingsForm = ({
     } = useGoogleAuth()
     const { data: calendars } = useListCalendars()
 
-    const handleSend = useCallback(() => {
-        if (country === '') {
-            alert('Country must not be empty!')
-            return
-        }
-        if (!birthdayCalendar) {
-            alert('Birthday Calendar must not be empty!')
-            return
-        }
-        if (!eventsCalendar) {
-            alert('Events Calendar must not be empty!')
-            return
-        }
-        if (!geocodeApiKey) {
-            alert('Geocode Maps API Key must not be empty!')
-            return
-        }
-
-        geocoding
-            .geocode(
+    const handleSend = useCallback(async () => {
+        const result = await saveSettings(
+            toSettingsInput(
                 {
                     country,
                     city: city.current?.value ?? '',
-                    postalCode: zip.current?.value ?? '',
+                    zipCode: zip.current?.value ?? '',
+                    birthdayCalId: birthdayCalendar,
+                    eventsCalId: eventsCalendar,
+                    trainConnections,
+                    trainDisplaySettings,
                 },
                 geocodeApiKey
             )
-            .then((result) => {
-                if (!result.ok) {
-                    alert('Address could not be geolocated!')
-                    return
-                }
-                setApiKeys({ geocodeApiKey })
-
-                const validConnections = trainConnections.filter(
-                    (conn) =>
-                        conn.departure_station_id && conn.arrival_station_id
-                )
-                onSend({
-                    country,
-                    city: city.current!.value,
-                    zipCode: zip.current!.value,
-                    birthdayCalId: birthdayCalendar,
-                    eventsCalId: eventsCalendar,
-                    trainConnections: validConnections,
-                    trainDisplaySettings,
-                })
-            })
+        )
+        if (!result.ok) alert(describeSaveError(result.error))
     }, [
         country,
         birthdayCalendar,
         eventsCalendar,
         geocodeApiKey,
-        geocoding,
-        setApiKeys,
-        onSend,
+        saveSettings,
         trainConnections,
         trainDisplaySettings,
     ])

@@ -1,9 +1,9 @@
 import Typography from '@mui/material/Typography'
 import { Box, Skeleton, Stack, IconButton } from '@mui/material'
 import { MediumCard } from '@/shared/ui/CardFrame'
-import { memo, useState, useEffect } from 'react'
+import { memo, useState, useEffect, useMemo } from 'react'
 import { useGetTrainConnections } from '../../apis/trains'
-import { useGetUserSettings } from '../../apis/user_settings'
+import { useSetting } from '@/features/settings'
 import { TrainConnection as TrainConnectionType } from '../../models/trains'
 import { PAPER_CARD_COLOR, xSmallFontSize } from '@/shared/styles/theme'
 import ErrorCard from '@/shared/ui/ErrorCard'
@@ -11,12 +11,25 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 
 const TrainTimesComponent = () => {
-    const { data: userSettings } = useGetUserSettings()
+    const trainRoutes = useSetting((settings) => settings.trainRoutes)
+    const trainDisplay = useSetting((settings) => settings.trainDisplay)
 
-    const trainConnections = userSettings?.train_connections || []
-    const trainDisplaySettings = userSettings?.train_display_settings || {
-        mode: 'carousel',
-        carousel_interval: 15,
+    // This widget still works with the flat connection shape; it is rebuilt on
+    // the domain model in step S8.
+    const trainConnections = useMemo(
+        () =>
+            trainRoutes.map((route) => ({
+                id: route.id,
+                departure_station_id: route.from.id,
+                departure_station_name: route.from.name,
+                arrival_station_id: route.to.id,
+                arrival_station_name: route.to.name,
+            })),
+        [trainRoutes]
+    )
+    const trainDisplaySettings = {
+        mode: trainDisplay.mode,
+        carousel_interval: trainDisplay.carouselIntervalSeconds,
     }
 
     if (trainConnections.length === 0) {

@@ -13,7 +13,7 @@ import {
     getISODayStartString,
 } from '../../common/dateParser'
 import { useTimeContext } from '../../hooks/useTimeContext'
-import { useGetUserSettings } from '../../apis/user_settings'
+import { useSetting } from '@/features/settings'
 import { useGoogleAuth } from '../../hooks/useGoogleAuth'
 import { ServerStateKeysEnum } from '../../common/statekeys'
 import { useQuery } from 'react-query'
@@ -91,7 +91,7 @@ const EventsOnDay = ({
     eventTexts: EventTexts
     isCurrentDay: boolean
 }): ReactElement | ReactElement[] => {
-    const { data: userSettings } = useGetUserSettings()
+    const eventsCalendarId = useSetting((settings) => settings.eventsCalendarId)
     const { data: minTime } = useGetMinTime(date, isCurrentDay)
     const { isSignedIn } = useGoogleAuth()
 
@@ -100,9 +100,9 @@ const EventsOnDay = ({
             new URLSearchParams({
                 minTime: minTime ?? date.toISOString(),
                 maxTime: getISODayEndString(date, true),
-                cal_id: userSettings?.events_cal_id ?? '',
+                cal_id: eventsCalendarId ?? '',
             }),
-        [date, minTime, userSettings?.events_cal_id]
+        [date, minTime, eventsCalendarId]
     )
     const { data: events, isLoading, error } = useGetEvents(params)
 

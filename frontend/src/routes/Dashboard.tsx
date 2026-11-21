@@ -18,8 +18,7 @@ import {
 } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
-import { useGetUserSettings } from '../apis/user_settings'
-import { patchUserSettings } from '../apis/user_settings'
+import { usePatchSettings, useSetting } from '@/features/settings'
 import { WidgetLayout } from '../models/user_settings'
 import { useGridEditContext } from '../common/useGridEditContext'
 import { DEFAULT_LAYOUT } from '../constants/defaults'
@@ -40,21 +39,25 @@ const DashboardComponent = () => {
 }
 
 const DashBoardItems = memo(() => {
-    const { data: userSettings } = useGetUserSettings()
+    const savedLayout = useSetting((settings) => settings.layout)
+    const patchSettings = usePatchSettings()
     const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const { width, containerRef, mounted } = useContainerWidth()
     const { isEditMode } = useGridEditContext()
 
     // Use saved layout or default layout
     const layout = useMemo<WidgetLayout[]>(() => {
-        if (
-            userSettings?.widget_layout &&
-            userSettings.widget_layout.length > 0
-        ) {
-            return userSettings.widget_layout
+        if (savedLayout && savedLayout.length > 0) {
+            return savedLayout.map((placement) => ({
+                i: placement.widgetId,
+                x: placement.x,
+                y: placement.y,
+                w: placement.w,
+                h: placement.h,
+            }))
         }
         return DEFAULT_LAYOUT
-    }, [userSettings?.widget_layout])
+    }, [savedLayout])
 
     // Grid configuration
     const gridConfig = useMemo(
@@ -84,29 +87,31 @@ const DashBoardItems = memo(() => {
     )
 
     // Persist layout when it changes (debounced)
-    const handleLayoutChange = useCallback((newLayout: RGLLayout) => {
-        // Clear any pending save
-        if (saveTimeoutRef.current) {
-            clearTimeout(saveTimeoutRef.current)
-        }
+    const handleLayoutChange = useCallback(
+        (newLayout: RGLLayout) => {
+            // Clear any pending save
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current)
+            }
 
-        // Debounce the save to avoid too many API calls
-        saveTimeoutRef.current = setTimeout(() => {
-            const widgetLayout: WidgetLayout[] = newLayout.map((item) => ({
-                i: item.i,
-                x: item.x,
-                y: item.y,
-                w: item.w,
-                h: item.h,
-            }))
-
-            patchUserSettings({ widget_layout: widgetLayout }).catch(
-                (error) => {
-                    console.error('Failed to save widget layout:', error)
+            // Debounce the save to avoid too many API calls
+            saveTimeoutRef.current = setTimeout(() => {
+                const result = patchSettings({
+                    layout: newLayout.map((item) => ({
+                        widgetId: item.i,
+                        x: item.x,
+                        y: item.y,
+                        w: item.w,
+                        h: item.h,
+                    })),
+                })
+                if (!result.ok) {
+                    console.error('Failed to save widget layout:', result.error)
                 }
-            )
-        }, 500) // Wait 500ms after last change
-    }, [])
+            }, 500) // Wait 500ms after last change
+        },
+        [patchSettings]
+    )
 
     return (
         <Box ref={containerRef} sx={{ width: '100%' }}>
