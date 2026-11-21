@@ -108,3 +108,52 @@ export const utcOffsetMinutes = (at: Instant, timeZone: TimeZoneId): number => {
     const wholeSeconds = Math.floor(at / 1000) * 1000
     return Math.round((wallClockAsUtc - wholeSeconds) / MINUTE_MS)
 }
+
+const DAY_MS = 86_400_000
+const HOUR_MS = 3_600_000
+
+const utcMidnightOf = (date: PlainDate): number =>
+    Date.parse(`${date}T00:00:00Z`)
+
+/**
+ * A calendar date plus a number of days. Pure date arithmetic: it never
+ * touches a clock or a zone, so a daylight-saving change cannot skew it.
+ */
+export const addDays = (date: PlainDate, days: number): PlainDate =>
+    plainDate(
+        new Date(utcMidnightOf(date) + days * DAY_MS).toISOString().slice(0, 10)
+    )
+
+/** Whole days from one calendar date to another (negative when `to` is earlier). */
+export const daysBetween = (from: PlainDate, to: PlainDate): number =>
+    Math.round((utcMidnightOf(to) - utcMidnightOf(from)) / DAY_MS)
+
+/**
+ * The first instant of a calendar day in a zone. Days are 23 or 25 hours long
+ * when the clocks change, and in a few zones midnight does not exist at all
+ * (the day then starts at the first moment that is on that date).
+ */
+export const startOfDay = (date: PlainDate, timeZone: TimeZoneId): Instant => {
+    const utcMidnight = utcMidnightOf(date)
+    const offsetAt = (at: number): number =>
+        utcOffsetMinutes(instant(at), timeZone) * MINUTE_MS
+
+    // Local midnight is UTC midnight minus the zone's offset; the offset is
+    // read at the first estimate, which settles a change in between.
+    const estimate = utcMidnight - offsetAt(utcMidnight - offsetAt(utcMidnight))
+    const isFirstInstantOfDay = (at: number): boolean =>
+        toPlainDate(instant(at), timeZone) === date &&
+        toPlainDate(instant(at - 1), timeZone) < date
+    if (isFirstInstantOfDay(estimate)) return instant(estimate)
+
+    // Rare fallback: bisect for the first instant on `date` or later. A local
+    // midnight is never more than 14 hours before or 12 after UTC midnight.
+    let low = utcMidnight - 14 * HOUR_MS
+    let high = utcMidnight + 12 * HOUR_MS
+    while (low < high) {
+        const middle = Math.floor((low + high) / 2)
+        if (toPlainDate(instant(middle), timeZone) < date) low = middle + 1
+        else high = middle
+    }
+    return instant(low)
+}

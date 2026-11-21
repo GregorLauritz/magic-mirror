@@ -1,3 +1,4 @@
+import { BirthdaysWidget, UpcomingEventsWidget } from '@/features/calendar'
 import { ClockWidget } from '@/features/time'
 import {
     CurrentWeatherWidget,
@@ -5,10 +6,7 @@ import {
     HourlyForecastWidget,
 } from '@/features/weather'
 import { Box } from '@mui/material'
-import Birthdays from '../components/birthdays/Birthdays'
-import UpcomingEvents from '../components/upcoming_events/UpcomingEvents'
 import TrainTimes from '../components/train_times/TrainTimes'
-import { TimeContextProvider } from '../common/TimeContext'
 import { memo, useCallback, useMemo, useRef } from 'react'
 import { PADDING, SPACING } from '@/shared/styles/theme'
 import {
@@ -30,15 +28,7 @@ const gridItemSx = {
     overflow: 'visible',
 }
 
-const DashboardComponent = () => {
-    return (
-        <TimeContextProvider>
-            <DashBoardItems />
-        </TimeContextProvider>
-    )
-}
-
-const DashBoardItems = memo(() => {
+export const Dashboard = memo(() => {
     const savedLayout = useSetting((settings) => settings.layout)
     const patchSettings = usePatchSettings()
     const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -134,10 +124,10 @@ const DashBoardItems = memo(() => {
                         <ClockWidget />
                     </Box>
                     <Box key="birthdays" sx={gridItemSx}>
-                        <Birthdays />
+                        <BirthdaysWidget />
                     </Box>
                     <Box key="events" sx={gridItemSx}>
-                        <UpcomingEvents />
+                        <UpcomingEventsWidget />
                     </Box>
                     <Box key="trains" sx={gridItemSx}>
                         <TrainTimes />
@@ -157,7 +147,4 @@ const DashBoardItems = memo(() => {
     )
 })
 
-DashBoardItems.displayName = 'DashBoardItems'
-
-export const Dashboard = memo(DashboardComponent)
 Dashboard.displayName = 'Dashboard'

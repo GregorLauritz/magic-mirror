@@ -3,9 +3,11 @@ import type { AppConfig } from '@/app/config'
 import { createQueryClient } from '@/app/queryClient'
 import type { AppDependencies } from '@/app/services/AppDependencies'
 import { AuthSessionService } from '@/application/auth/AuthSessionService'
+import { createCalendarService } from '@/application/calendar/CalendarService'
 import { createResolveCoordinates } from '@/application/location/resolveCoordinates'
 import type { AppLifecycle } from '@/application/ports/AppLifecycle'
 import type { AuthSession } from '@/application/ports/AuthSession'
+import type { CalendarProvider } from '@/application/ports/CalendarProvider'
 import type { Clock } from '@/application/ports/Clock'
 import type { GeocodingProvider } from '@/application/ports/GeocodingProvider'
 import type { HttpClient } from '@/application/ports/HttpClient'
@@ -22,7 +24,9 @@ import { BrowserAppLifecycle } from '@/infrastructure/browser/BrowserAppLifecycl
 import { BrowserScheduler } from '@/infrastructure/browser/BrowserScheduler'
 import { SystemClock } from '@/infrastructure/browser/SystemClock'
 import { MapsCoGeocodingProvider } from '@/infrastructure/geocode/MapsCoGeocodingProvider'
+import { AuthorizedHttpClient } from '@/infrastructure/google/AuthorizedHttpClient'
 import { GisTokenGateway } from '@/infrastructure/google/GisTokenGateway'
+import { GoogleCalendarProvider } from '@/infrastructure/google/GoogleCalendarProvider'
 import { FetchHttpClient } from '@/infrastructure/http/FetchHttpClient'
 import { LocalStorageApiKeyRepository } from '@/infrastructure/storage/LocalStorageApiKeyRepository'
 import { LocalStorageSettingsRepository } from '@/infrastructure/storage/LocalStorageSettingsRepository'
@@ -42,6 +46,7 @@ export interface ContainerOverrides {
     readonly http?: HttpClient
     readonly weatherProvider?: WeatherProvider
     readonly geocodingProvider?: GeocodingProvider
+    readonly calendarProvider?: CalendarProvider
     /** Where durable data lives; defaults to the browser's localStorage. */
     readonly localStore?: KeyValueStore
     /** Where per-session data (the Google token) lives; defaults to sessionStorage. */
@@ -130,6 +135,17 @@ export const createContainer = (
             queryClient.removeQueries(['google'])
     })
 
+    // ── calendar: Google requests carry the signed-in user's token
+    const calendar = createCalendarService({
+        provider:
+            overrides.calendarProvider ??
+            new GoogleCalendarProvider(
+                new AuthorizedHttpClient(http, auth),
+                config.urls.googleCalendar
+            ),
+        clock,
+    })
+
     const resetLocalData = createResetLocalData({
         stores: [localStore, sessionStore],
         prefix: APP_STORAGE_PREFIX,
@@ -145,6 +161,7 @@ export const createContainer = (
         scheduler,
         http,
         weather,
+        calendar,
         apiKeys,
         settings,
         saveSettings,

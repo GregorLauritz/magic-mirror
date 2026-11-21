@@ -5,6 +5,7 @@ import type { HttpClient } from '@/application/ports/HttpClient'
 import type { Scheduler } from '@/application/ports/Scheduler'
 import type { AuthSession } from '@/application/ports/AuthSession'
 import type { GeocodingProvider } from '@/application/ports/GeocodingProvider'
+import type { CalendarService } from '@/application/calendar/CalendarService'
 import type { ResolveCoordinates } from '@/application/location/resolveCoordinates'
 import type { ApiKeyStore } from '@/application/settings/ApiKeyStore'
 import type { ResetLocalData } from '@/application/settings/resetLocalData'
@@ -25,6 +26,7 @@ export interface AppDependencies {
     readonly scheduler: Scheduler
     readonly http: HttpClient
     readonly weather: WeatherService
+    readonly calendar: CalendarService
     readonly apiKeys: ApiKeyStore
     readonly settings: SettingsStore
     readonly saveSettings: SaveSettings

@@ -13,7 +13,7 @@ import {
     TrainConnection,
     TrainDisplaySettings,
 } from '../../models/user_settings'
-import { CalendarListItem } from '../../models/calendar'
+import type { CalendarInfo } from '@/domain/calendar/CalendarEvent'
 import { TrainSettingsSection } from './TrainSettingsSection'
 import { useApiKeys, useSaveSettings } from '@/features/settings'
 import {
@@ -22,7 +22,7 @@ import {
     type SettingsParams,
 } from './formAdapter'
 import { useAuth } from '@/features/auth'
-import { useListCalendars } from '../../apis/calendar_list'
+import { useCalendarList } from '@/features/calendar'
 import { runtimeConfig } from '../../constants/runtimeConfig'
 
 const API_KEYS_DOCS_URL = runtimeConfig.docsUrl
@@ -83,7 +83,7 @@ export const SettingsForm = ({
         signIn,
         signOut,
     } = useAuth()
-    const { data: calendars } = useListCalendars()
+    const { calendars } = useCalendarList()
 
     const handleSend = useCallback(async () => {
         const result = await saveSettings(
@@ -168,14 +168,14 @@ export const SettingsForm = ({
                 <CalendarIdField
                     id="events-cal"
                     label="Events Calendar ID"
-                    calendars={calendars ?? []}
+                    calendars={calendars}
                     value={eventsCalendar}
                     onChange={setEventsCalendar}
                 />
                 <CalendarIdField
                     id="bday-cal"
                     label="Birthday Calendar ID"
-                    calendars={calendars ?? []}
+                    calendars={calendars}
                     value={birthdayCalendar}
                     onChange={setBirthdayCalendar}
                 />
@@ -228,7 +228,7 @@ export const SettingsForm = ({
 interface CalendarIdFieldProps {
     id: string
     label: string
-    calendars: CalendarListItem[]
+    calendars: readonly CalendarInfo[]
     value: string
     onChange: (id: string) => void
 }

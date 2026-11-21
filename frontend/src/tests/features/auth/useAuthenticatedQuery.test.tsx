@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { act, waitFor } from '@testing-library/react'
-import { AuthRequiredError } from '@/application/ports/errors'
-import { useAccessToken, useAuthenticatedQuery } from '@/features/auth'
+import { googleQueryKey, useAuthenticatedQuery } from '@/features/auth'
 import { createTestContainer } from '../../support/createTestContainer'
 import { FakeAuthSession } from '../../support/FakeAuthSession'
 import { renderHookWithDeps } from '../../support/renderWithDeps'
@@ -83,37 +82,52 @@ describe('useAuthenticatedQuery', () => {
 
         expect(fn.mock.calls[0][0].signal).toBeInstanceOf(AbortSignal)
     })
-})
 
-describe('useAccessToken (transitional bridge for the legacy Google calls)', () => {
-    it('yields the access token', async () => {
-        const test = createTestContainer({ authSession: new FakeAuthSession() })
-        const { result } = renderHookWithDeps(() => useAccessToken(), {
-            deps: test.deps,
-        })
+    it('exposes the key it stores under, so callers can invalidate their own queries', async () => {
+        const { result, test } = setup(new FakeAuthSession())
+        await waitFor(() => expect(result.current.data).toBe('data'))
 
-        await expect(result.current()).resolves.toBe('fake-token')
+        expect(
+            test.deps.queryClient.getQueryData(googleQueryKey(['probe']))
+        ).toBe('data')
     })
 
-    it.each([
-        [{ status: 'signed-out' }, 'signed-out'],
-        [{ status: 'refresh-failed', reason: 'timeout' }, 'refresh-failed'],
-    ] as const)(
-        'throws AuthRequiredError when the result is %j',
-        async (tokenResult, reason) => {
-            const auth = new FakeAuthSession()
-            auth.tokenResult = tokenResult
-            const test = createTestContainer({ authSession: auth })
-            const { result } = renderHookWithDeps(() => useAccessToken(), {
-                deps: test.deps,
-            })
+    // Mount the same query twice and count the calls: a fresh answer is served
+    // from the cache, a stale one is fetched again.
+    const countCallsOnSecondMount = async (
+        appWideStaleTimeMs: number,
+        options?: { staleTimeMs?: number }
+    ) => {
+        const test = createTestContainer({ authSession: new FakeAuthSession() })
+        test.deps.queryClient.setDefaultOptions({
+            queries: { staleTime: appWideStaleTimeMs, cacheTime: 60_000 },
+        })
+        const fn = vi.fn().mockResolvedValue('data')
+        const mount = () =>
+            renderHookWithDeps(
+                () => useAuthenticatedQuery(['probe'], fn, options),
+                { deps: test.deps }
+            )
+        const first = mount()
+        await waitFor(() => expect(first.result.current.data).toBe('data'))
+        first.unmount()
 
-            const failure = await result
-                .current()
-                .catch((error: unknown) => error)
+        mount()
+        await new Promise((resolve) => setTimeout(resolve, 20))
+        return fn.mock.calls.length
+    }
 
-            expect(failure).toBeInstanceOf(AuthRequiredError)
-            expect(failure).toMatchObject({ reason })
-        }
-    )
+    it('keeps the app-wide stale time unless the caller sets one (an explicit undefined would reset it to 0)', async () => {
+        expect(await countCallsOnSecondMount(60_000)).toBe(1)
+    })
+
+    it('uses the stale time the caller gives', async () => {
+        expect(await countCallsOnSecondMount(0, { staleTimeMs: 60_000 })).toBe(
+            1
+        )
+    })
+
+    it('refetches a stale answer on the next mount', async () => {
+        expect(await countCallsOnSecondMount(0)).toBe(2)
+    })
 })

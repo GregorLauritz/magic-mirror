@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
+    addDays,
+    daysBetween,
     floorToMinute,
     instant,
     plainDate,
+    startOfDay,
     toPlainDate,
     utcOffsetMinutes,
     zonedParts,
@@ -114,5 +117,70 @@ describe('utcOffsetMinutes', () => {
         expect(
             utcOffsetMinutes(at('2024-03-31T01:00:00Z'), 'Europe/Berlin')
         ).toBe(120)
+    })
+})
+
+describe('addDays / daysBetween', () => {
+    it.each([
+        ['2024-01-31', 1, '2024-02-01'],
+        ['2023-12-31', 1, '2024-01-01'],
+        ['2024-03-01', -1, '2024-02-29'], // leap year
+        ['2023-03-01', -1, '2023-02-28'],
+        ['2024-01-15', 0, '2024-01-15'],
+        ['2024-01-15', 400, '2025-02-18'],
+    ])('%s + %i days is %s', (date, days, expected) => {
+        expect(addDays(plainDate(date), days)).toBe(expected)
+    })
+
+    it.each([
+        ['2024-01-15', '2024-01-20', 5],
+        ['2024-01-20', '2024-01-15', -5],
+        ['2024-01-15', '2024-01-15', 0],
+        ['2024-02-28', '2024-03-01', 2], // 2024 is a leap year
+        ['2024-03-30', '2024-04-01', 2], // across the European DST change: still whole days
+    ])('from %s to %s is %i days', (from, to, expected) => {
+        expect(daysBetween(plainDate(from), plainDate(to))).toBe(expected)
+    })
+})
+
+describe('startOfDay', () => {
+    it.each([
+        ['UTC', '2024-01-15', '2024-01-15T00:00:00Z'],
+        ['Asia/Tokyo', '2024-01-15', '2024-01-14T15:00:00Z'],
+        ['America/Los_Angeles', '2024-01-15', '2024-01-15T08:00:00Z'],
+        ['Asia/Kolkata', '2024-01-15', '2024-01-14T18:30:00Z'],
+        ['Pacific/Auckland', '2024-01-15', '2024-01-14T11:00:00Z'], // NZDT, UTC+13
+    ])('local midnight of %s on %s', (zone, date, utcIso) => {
+        expect(startOfDay(plainDate(date), zone)).toBe(at(utcIso))
+    })
+
+    it('has a 23-hour day when the clocks go forward (Europe/Berlin, 2024-03-31)', () => {
+        const start = startOfDay(plainDate('2024-03-31'), 'Europe/Berlin')
+        const next = startOfDay(plainDate('2024-04-01'), 'Europe/Berlin')
+
+        expect(start).toBe(at('2024-03-30T23:00:00Z'))
+        expect((next - start) / 3_600_000).toBe(23)
+    })
+
+    it('has a 25-hour day when the clocks go back (Europe/Berlin, 2024-10-27)', () => {
+        const start = startOfDay(plainDate('2024-10-27'), 'Europe/Berlin')
+        const next = startOfDay(plainDate('2024-10-28'), 'Europe/Berlin')
+
+        expect(start).toBe(at('2024-10-26T22:00:00Z'))
+        expect((next - start) / 3_600_000).toBe(25)
+    })
+
+    it('round-trips with toPlainDate', () => {
+        for (const zone of [
+            'UTC',
+            'Asia/Tokyo',
+            'America/St_Johns',
+            'Pacific/Auckland',
+        ]) {
+            const midnight = startOfDay(plainDate('2024-06-10'), zone)
+
+            expect(toPlainDate(midnight, zone)).toBe('2024-06-10')
+            expect(toPlainDate(instant(midnight - 1), zone)).toBe('2024-06-09')
+        }
     })
 })

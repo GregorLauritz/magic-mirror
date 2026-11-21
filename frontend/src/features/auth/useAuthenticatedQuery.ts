@@ -5,7 +5,13 @@ interface Options {
     /** Extra condition, on top of "the user is signed in". */
     readonly enabled?: boolean
     readonly refetchIntervalMs?: number
+    /** How long the answer counts as fresh; defaults to the app-wide setting. */
+    readonly staleTimeMs?: number
 }
+
+/** The cache key of a query that needs a Google account (see below). */
+export const googleQueryKey = (key: readonly unknown[]) =>
+    ['google', ...key] as const
 
 /**
  * A query that needs a Google account. It runs only for a user who is signed in
@@ -23,11 +29,16 @@ export function useAuthenticatedQuery<T>(
         state.status === 'signed-in' || state.status === 'needs-reauth'
 
     return useQuery<T, Error>(
-        ['google', ...key],
+        googleQueryKey(key),
         ({ signal }) => fn({ signal }),
         {
             enabled: eligible && (options.enabled ?? true),
             refetchInterval: options.refetchIntervalMs ?? false,
+            // Only when given: an explicit `undefined` would override the
+            // app-wide default with 0.
+            ...(options.staleTimeMs !== undefined && {
+                staleTime: options.staleTimeMs,
+            }),
         }
     )
 }

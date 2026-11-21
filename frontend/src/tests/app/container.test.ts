@@ -8,6 +8,9 @@ import { FakeGeocodingProvider } from '../support/FakeGeocodingProvider'
 import { FakeWeatherProvider } from '../support/FakeWeatherProvider'
 import { InMemoryKeyValueStore } from '../support/InMemoryKeyValueStore'
 import { FakeAppLifecycle } from '../support/FakeAppLifecycle'
+import { FakeAuthSession } from '../support/FakeAuthSession'
+import { FakeCalendarProvider } from '../support/FakeCalendarProvider'
+import { AuthRequiredError } from '@/application/ports/errors'
 import { FakeOAuthGateway } from '../support/FakeOAuthGateway'
 import { FULL_RAW } from '../infrastructure/storage/legacyFixtures'
 import { currentWeather } from '../support/weatherFixtures'
@@ -297,5 +300,69 @@ describe('createTestContainer', () => {
         expect(new Date(deps.clock.now()).toISOString()).toBe(
             '2030-06-01T08:00:00.000Z'
         )
+    })
+})
+
+describe('calendar wiring', () => {
+    it('builds the calendar service over the Google adapter, authorized by the signed-in session', async () => {
+        const { deps, http } = createTestContainer({
+            config: { urls: { googleCalendar: 'https://cal.test/v3' } },
+            authSession: new FakeAuthSession({ status: 'signed-in' }),
+        })
+        http.when('https://cal.test/v3/users/me/calendarList').reply({
+            items: [{ summary: 'Work', id: 'w', primary: true }],
+        })
+
+        const calendars = await deps.calendar.listCalendars()
+
+        expect(calendars).toEqual([{ name: 'Work', id: 'w', primary: true }])
+        expect(http.requests[0].headers).toEqual({
+            Authorization: 'Bearer fake-token',
+        })
+    })
+
+    it('does not call Google at all while signed out', async () => {
+        const auth = new FakeAuthSession({ status: 'signed-out' })
+        auth.tokenResult = { status: 'signed-out' }
+        const { deps, http } = createTestContainer({ authSession: auth })
+        http.when('calendar').reply({ items: [] })
+
+        await expect(deps.calendar.listCalendars()).rejects.toBeInstanceOf(
+            AuthRequiredError
+        )
+        expect(http.requests).toEqual([])
+    })
+
+    it('uses an injected provider instead of the adapter', async () => {
+        const provider = new FakeCalendarProvider({ calendars: [] })
+        const { deps, http } = createTestContainer({
+            calendarProvider: provider,
+        })
+
+        await deps.calendar.listCalendars()
+
+        expect(provider.listCalls).toBe(1)
+        expect(http.requests).toEqual([])
+    })
+
+    it('never sends the Google token to another API', async () => {
+        const { deps, http } = createTestContainer({
+            authSession: new FakeAuthSession({ status: 'signed-in' }),
+        })
+        http.when('maps.co').reply([])
+        http.when('open-meteo').reply({})
+
+        await deps.geocoding.geocode(
+            { country: 'DE', city: 'Stuttgart', postalCode: '' },
+            'key'
+        )
+        await deps.weather
+            .getCurrent({ latitude: 1, longitude: 2 })
+            .catch(() => undefined)
+
+        expect(http.requests.length).toBeGreaterThan(0)
+        for (const request of http.requests) {
+            expect(request.headers?.Authorization).toBeUndefined()
+        }
     })
 })
