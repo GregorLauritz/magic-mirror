@@ -4,7 +4,9 @@ import { FetchHttpClient } from '@/infrastructure/http/FetchHttpClient'
 import { createTestConfig } from '../support/createTestConfig'
 import { createTestContainer } from '../support/createTestContainer'
 import { createTestQueryClient } from '../support/createTestQueryClient'
+import { FakeGeocodingProvider } from '../support/FakeGeocodingProvider'
 import { FakeWeatherProvider } from '../support/FakeWeatherProvider'
+import { InMemoryKeyValueStore } from '../support/InMemoryKeyValueStore'
 import { currentWeather } from '../support/weatherFixtures'
 import { currentResponse } from '../fixtures/openMeteo'
 import { FakeClock } from '../support/FakeClock'
@@ -76,6 +78,53 @@ describe('weather wiring', () => {
         await deps.weather.getCurrent({ latitude: 1, longitude: 2 })
 
         expect(provider.currentCalls).toHaveLength(1)
+    })
+})
+
+describe('location wiring', () => {
+    it('reads the API key from the injected storage', () => {
+        const localStore = new InMemoryKeyValueStore()
+        localStore.set(
+            'magic-mirror.api-keys',
+            '{"geocodeApiKey":"from-storage"}'
+        )
+
+        const { deps } = createTestContainer({ localStore })
+
+        expect(deps.apiKeys.getSnapshot()).toEqual({
+            geocodeApiKey: 'from-storage',
+        })
+    })
+
+    it('geocodes through the Maps.co adapter on the configured base url', async () => {
+        const { deps, http } = createTestContainer({
+            config: { urls: { geocode: 'https://geo.test' } },
+        })
+        http.when('https://geo.test/search').reply([
+            { lat: '48.7', lon: '9.1', importance: 1 },
+        ])
+
+        const result = await deps.resolveCoordinates(
+            { country: 'DE', city: 'Stuttgart', postalCode: '' },
+            'KEY'
+        )
+
+        expect(result).toEqual({
+            ok: true,
+            value: { latitude: 48.7, longitude: 9.1 },
+        })
+    })
+
+    it('uses an injected geocoding provider instead of the adapter', async () => {
+        const geocoding = new FakeGeocodingProvider()
+        const { deps } = createTestContainer({ geocodingProvider: geocoding })
+
+        await deps.resolveCoordinates(
+            { country: 'DE', city: 'X', postalCode: '' },
+            'KEY'
+        )
+
+        expect(geocoding.calls).toHaveLength(1)
     })
 })
 

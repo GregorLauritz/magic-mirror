@@ -12,11 +12,9 @@ Magic Mirror uses [Geocode Maps.co](https://geocode.maps.co/) to turn your city/
 
 The free tier has a rate limit, but it's more than enough for a single device checking the weather every couple of minutes.
 
-## OpenWeatherMap API key (optional)
+## Weather icons
 
-Weather icons are currently served from OpenWeatherMap's keyless public icon CDN, so no key is required for icons to work today. The optional "OpenWeatherMap API Key" field in Settings is reserved for future use if that changes.
-
-If you'd like one anyway, sign up at [openweathermap.org](https://openweathermap.org/appid) for a free API key.
+Weather icons are served from OpenWeatherMap's keyless public icon CDN, so no OpenWeatherMap key is needed. (Earlier versions had an optional, unused "OpenWeatherMap API Key" field in Settings; it has been removed. A value you saved there stays in your browser's storage untouched but is no longer used.)
 
 ## A note on key exposure
 

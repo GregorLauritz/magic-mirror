@@ -48,7 +48,9 @@ export class FakeHttpClient implements HttpClient {
             typeof route.reply === 'function'
                 ? (route.reply as (request: HttpRequest) => unknown)(request)
                 : route.reply
-        if (result instanceof Error) throw result
+        // DOMException (e.g. AbortError) is not an Error subclass in every environment
+        if (result instanceof Error || result instanceof DOMException)
+            throw result
         return result as T
     }
 }

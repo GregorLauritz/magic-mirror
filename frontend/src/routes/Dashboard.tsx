@@ -9,7 +9,6 @@ import Birthdays from '../components/birthdays/Birthdays'
 import UpcomingEvents from '../components/upcoming_events/UpcomingEvents'
 import TrainTimes from '../components/train_times/TrainTimes'
 import { TimeContextProvider } from '../common/TimeContext'
-import { LocationContextProvider } from '../common/LocationContext'
 import { memo, useCallback, useMemo, useRef } from 'react'
 import { PADDING, SPACING } from '@/shared/styles/theme'
 import {
@@ -34,11 +33,9 @@ const gridItemSx = {
 
 const DashboardComponent = () => {
     return (
-        <LocationContextProvider>
-            <TimeContextProvider>
-                <DashBoardItems />
-            </TimeContextProvider>
-        </LocationContextProvider>
+        <TimeContextProvider>
+            <DashBoardItems />
+        </TimeContextProvider>
     )
 }
 

@@ -15,8 +15,8 @@ import {
 } from '../../models/user_settings'
 import { CalendarListItem } from '../../models/calendar'
 import { TrainSettingsSection } from './TrainSettingsSection'
-import { getGeocode } from '../../services/geocode'
-import { readApiKeys, useApiKeys } from '../../hooks/useApiKeys'
+import { useServices } from '@/app/services/useServices'
+import { useApiKeys } from '@/features/settings'
 import { useGoogleAuth } from '../../hooks/useGoogleAuth'
 import { useListCalendars } from '../../apis/calendar_list'
 import { runtimeConfig } from '../../constants/runtimeConfig'
@@ -80,13 +80,9 @@ export const SettingsForm = ({
             defaultTrainDisplaySettings || DEFAULT_TRAIN_DISPLAY_SETTINGS
         )
 
-    const { setApiKeys } = useApiKeys()
-    const [geocodeApiKey, setGeocodeApiKey] = useState(
-        () => readApiKeys().geocodeApiKey
-    )
-    const [openWeatherMapApiKey, setOpenWeatherMapApiKey] = useState(
-        () => readApiKeys().openWeatherMapApiKey
-    )
+    const { geocoding } = useServices()
+    const { apiKeys, setApiKeys } = useApiKeys()
+    const [geocodeApiKey, setGeocodeApiKey] = useState(apiKeys.geocodeApiKey)
 
     const {
         isSignedIn,
@@ -115,14 +111,21 @@ export const SettingsForm = ({
             return
         }
 
-        validate(
-            country,
-            geocodeApiKey,
-            city.current?.value,
-            zip.current?.value
-        )
-            .then(() => {
-                setApiKeys({ geocodeApiKey, openWeatherMapApiKey })
+        geocoding
+            .geocode(
+                {
+                    country,
+                    city: city.current?.value ?? '',
+                    postalCode: zip.current?.value ?? '',
+                },
+                geocodeApiKey
+            )
+            .then((result) => {
+                if (!result.ok) {
+                    alert('Address could not be geolocated!')
+                    return
+                }
+                setApiKeys({ geocodeApiKey })
 
                 const validConnections = trainConnections.filter(
                     (conn) =>
@@ -138,13 +141,12 @@ export const SettingsForm = ({
                     trainDisplaySettings,
                 })
             })
-            .catch(() => alert('Address could not be geolocated!'))
     }, [
         country,
         birthdayCalendar,
         eventsCalendar,
         geocodeApiKey,
-        openWeatherMapApiKey,
+        geocoding,
         setApiKeys,
         onSend,
         trainConnections,
@@ -241,15 +243,6 @@ export const SettingsForm = ({
                         value={geocodeApiKey}
                         onChange={(e) => setGeocodeApiKey(e.target.value)}
                     />
-                    <TextField
-                        id="openweathermap-api-key"
-                        label="OpenWeatherMap API Key (optional)"
-                        variant="outlined"
-                        value={openWeatherMapApiKey}
-                        onChange={(e) =>
-                            setOpenWeatherMapApiKey(e.target.value)
-                        }
-                    />
                 </Box>
             </Box>
 
@@ -272,15 +265,6 @@ export const SettingsForm = ({
             </Box>
         </Box>
     )
-}
-
-const validate = async (
-    country: string,
-    geocodeApiKey: string,
-    city?: string,
-    zipCode?: string
-): Promise<void> => {
-    await getGeocode(country, geocodeApiKey, city, zipCode)
 }
 
 interface CalendarIdFieldProps {

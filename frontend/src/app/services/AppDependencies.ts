@@ -3,6 +3,9 @@ import type { AppConfig } from '@/app/config'
 import type { Clock } from '@/application/ports/Clock'
 import type { HttpClient } from '@/application/ports/HttpClient'
 import type { Scheduler } from '@/application/ports/Scheduler'
+import type { GeocodingProvider } from '@/application/ports/GeocodingProvider'
+import type { ResolveCoordinates } from '@/application/location/resolveCoordinates'
+import type { ApiKeyStore } from '@/application/settings/ApiKeyStore'
 import type { WeatherService } from '@/application/weather/WeatherService'
 
 /**
@@ -18,6 +21,9 @@ export interface AppDependencies {
     readonly scheduler: Scheduler
     readonly http: HttpClient
     readonly weather: WeatherService
+    readonly apiKeys: ApiKeyStore
+    readonly geocoding: GeocodingProvider
+    readonly resolveCoordinates: ResolveCoordinates
     /** The only framework object in the container: server-state cache. */
     readonly queryClient: QueryClient
 }

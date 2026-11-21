@@ -6,7 +6,6 @@ export enum ServerStateKeysEnum {
     weather_icon,
     events,
     user_settings,
-    geocode,
     calendar_list,
     min_time,
     train_stations,
