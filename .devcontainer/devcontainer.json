@@ -59,7 +59,6 @@
           "typescriptreact"
         ],
         "typescript.tsdk": "node_modules/typescript/lib",
-        "ansible.python.interpreterPath": "/usr/local/bin/python3",
         "files.eol": "\n",
         "files.insertFinalNewline": true,
         "files.trimTrailingWhitespace": true
@@ -80,9 +79,6 @@
 
         // YAML & Configuration
         "redhat.vscode-yaml",
-
-        // Ansible
-        "redhat.ansible",
 
         // Git
         "eamodio.gitlens",

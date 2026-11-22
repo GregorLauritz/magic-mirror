@@ -7,7 +7,7 @@ This directory contains the VS Code Dev Container configuration for the Magic Mi
 ### Base Environment
 - **Node.js 24** - Latest LTS version required by the project
 - **Yarn** - Package manager (installed via corepack)
-- **Docker-in-Docker** - Full Docker support (used by `./scripts/dev.sh` for k3d on WSL2)
+- **Docker-in-Docker** - Full Docker support (to build and run the production image)
 - **Git** - Version control with zsh and oh-my-zsh
 
 ### VS Code Extensions
@@ -24,7 +24,6 @@ This directory contains the VS Code Dev Container configuration for the Magic Mi
 #### Docker & DevOps
 - **Docker** - Docker file support and container management
 - **Remote Containers** - Dev container support
-- **Ansible** - Ansible playbook support
 
 #### Utilities
 - **GitLens** - Advanced Git capabilities
@@ -78,9 +77,10 @@ cd frontend
 yarn dev
 ```
 
-**Option 2: Full k3s dev environment (matches production deployment)**
+**Option 2: The production image (nginx serving the static build)**
 ```bash
-./scripts/dev.sh up
+docker build -f frontend/docker/Dockerfile -t magic-mirror frontend
+docker run --rm -p 8080:8080 magic-mirror   # http://localhost:8080
 ```
 
 ### Running Tests
@@ -104,8 +104,8 @@ yarn format:check      # Check formatting
 
 ## Docker-in-Docker
 
-The dev container supports running Docker commands, used by `./scripts/dev.sh`
-for the k3d-based dev environment on WSL2:
+The dev container supports running Docker commands, e.g. to build and run the
+production image:
 
 ```bash
 docker ps

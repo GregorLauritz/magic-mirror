@@ -11,6 +11,5 @@
   "python.formatting.provider": "none",
   "editor.formatOnPaste": true,
   "editor.formatOnSave": true,
-  "editor.formatOnType": false,
-  "ansible.python.interpreterPath": "/bin/python3"
+  "editor.formatOnType": false
 }
