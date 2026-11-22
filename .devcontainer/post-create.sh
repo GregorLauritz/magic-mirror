@@ -17,12 +17,6 @@ echo "Installing frontend dependencies..."
 cd /workspaces/magic-mirror/frontend
 yarn install
 
-# Install backend dependencies
-echo ""
-echo "Installing backend dependencies..."
-cd /workspaces/magic-mirror/backend
-yarn install
-
 # Return to workspace root
 cd /workspaces/magic-mirror
 
@@ -33,8 +27,7 @@ echo "========================================="
 echo ""
 echo "Quick Start Commands:"
 echo "  Frontend: cd frontend && yarn dev"
-echo "  Backend:  cd backend && yarn dev"
-echo "  k3s:      ./scripts/dev.sh up  (full stack with hot reload)"
+echo "  Image:    docker build -f frontend/docker/Dockerfile -t magic-mirror frontend"
 echo ""
 echo "For more commands, see CLAUDE.md and LOCAL_DEV.md"
 echo "========================================="

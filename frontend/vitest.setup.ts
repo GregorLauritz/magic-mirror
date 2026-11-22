@@ -1,5 +1,6 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
+import { setLogger } from 'react-query'
 import { afterEach, vi } from 'vitest'
 
 // Cleanup after each test
@@ -41,12 +42,6 @@ global.ResizeObserver = class ResizeObserver {
     unobserve() {}
 } as any
 
-// Mock import.meta.env
-vi.stubGlobal('import', {
-    meta: {
-        env: {
-            API_BACKEND_CONTEXT: 'api',
-            REACT_APP_REFRESH_MILLIS: '120000',
-        },
-    },
-})
+// react-query logs every failed query to the console; the tests assert on the
+// error state directly, so keep the output readable.
+setLogger({ log: () => {}, warn: () => {}, error: () => {} })

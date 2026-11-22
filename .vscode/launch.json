@@ -1,15 +1,4 @@
 {
   "version": "0.2.0",
-  "configurations": [
-    {
-      "address": "localhost",
-      "localRoot": "${workspaceFolder}/backend/src",
-      "name": "Attach to backend",
-      "port": 9229,
-      "remoteRoot": "/opt/src",
-      "request": "attach",
-      "skipFiles": [],
-      "type": "node"
-    }
-  ]
+  "configurations": []
 }

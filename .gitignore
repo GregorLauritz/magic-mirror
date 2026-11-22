@@ -118,25 +118,10 @@ token.json
 *.csr
 *.crt
 
-# Mongo data
-*.wt
-*.lock
-*.bson
-*.turtle
-WiredTiger*
-mongo/*/**
 frontend/build/
 10-variables.conf
 .env.*
 
-
-# Ansible
-!ansible/roles/*/**/*.j2
-ansible/pwstore/*.txt
-ansible/vault.yml
-
-oauth2-proxy/oauth2-proxy.cfgbackups/
-oauth2-proxy/oauth2-proxy.cfg
 
 # Ignore local claude settings
 .claude/settings.local.json

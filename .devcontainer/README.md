@@ -7,7 +7,7 @@ This directory contains the VS Code Dev Container configuration for the Magic Mi
 ### Base Environment
 - **Node.js 24** - Latest LTS version required by the project
 - **Yarn** - Package manager (installed via corepack)
-- **Docker-in-Docker** - Full Docker support for running docker-compose files
+- **Docker-in-Docker** - Full Docker support (to build and run the production image)
 - **Git** - Version control with zsh and oh-my-zsh
 
 ### VS Code Extensions
@@ -24,10 +24,6 @@ This directory contains the VS Code Dev Container configuration for the Magic Mi
 #### Docker & DevOps
 - **Docker** - Docker file support and container management
 - **Remote Containers** - Dev container support
-- **Ansible** - Ansible playbook support
-
-#### Database
-- **MongoDB for VS Code** - MongoDB management and queries
 
 #### Utilities
 - **GitLens** - Advanced Git capabilities
@@ -59,8 +55,7 @@ This directory contains the VS Code Dev Container configuration for the Magic Mi
 The `post-create.sh` script automatically:
 1. Enables Yarn via corepack
 2. Installs frontend dependencies (`frontend/node_modules`)
-3. Installs backend dependencies (`backend/node_modules`)
-4. Displays helpful quick start commands
+3. Displays helpful quick start commands
 
 ## Port Forwarding
 
@@ -69,104 +64,53 @@ The following ports are automatically forwarded:
 | Port  | Service                | Description              |
 |-------|------------------------|--------------------------|
 | 3000  | Frontend               | Vite dev server          |
-| 3001  | Backend API            | Express server           |
-| 9229  | Node Debugger          | Backend debugging        |
-| 27017 | MongoDB                | Database (when running)  |
-| 443   | OAuth2 Proxy           | HTTPS gateway            |
 
 ## Development Workflow
 
-### Running the Application
+Magic Mirror is a static frontend with no backend server - it calls external
+APIs (Open-Meteo, geocode.maps.co, db.transport.rest, Google Calendar)
+directly from the browser. See [LOCAL_DEV.md](../LOCAL_DEV.md) for details.
 
-**Option 1: Using Docker Compose (Recommended)**
+**Option 1: Run the Vite dev server directly**
 ```bash
-cd docker-compose
-docker compose -f docker-compose.dev.yml up
-```
-
-**Option 2: Running Services Individually**
-```bash
-# Terminal 1 - Frontend
 cd frontend
 yarn dev
+```
 
-# Terminal 2 - Backend
-cd backend
-yarn dev
+**Option 2: The production image (nginx serving the static build)**
+```bash
+docker build -f frontend/docker/Dockerfile -t magic-mirror frontend
+docker run --rm -p 8080:8080 magic-mirror   # http://localhost:8080
 ```
 
 ### Running Tests
 
-**Frontend:**
 ```bash
 cd frontend
 yarn test              # Run tests once
-yarn test:ui           # Open Vitest UI
-yarn test:coverage     # Generate coverage report
-```
-
-**Backend:**
-```bash
-cd backend
-yarn test              # Run tests once
-yarn test:watch        # Watch mode
 yarn test:ui           # Open Vitest UI
 yarn test:coverage     # Generate coverage report
 ```
 
 ### Code Quality
 
-**Linting:**
 ```bash
-# Frontend
 cd frontend
 yarn lint              # Check for issues
 yarn lint:fix          # Auto-fix issues
-
-# Backend
-cd backend
-yarn lint              # Check for issues
-yarn lint:fix          # Auto-fix issues
-```
-
-**Formatting:**
-```bash
-# Frontend
-cd frontend
-yarn format            # Format code
-yarn format:check      # Check formatting
-
-# Backend
-cd backend
 yarn format            # Format code
 yarn format:check      # Check formatting
 ```
-
-### Debugging
-
-The dev container includes a pre-configured launch configuration for debugging the backend:
-
-1. Start the backend in dev mode: `cd backend && yarn dev`
-2. Go to VS Code's Run and Debug panel (`Ctrl+Shift+D`)
-3. Select **"Attach to backend"** and press `F5`
-4. Set breakpoints in TypeScript files
 
 ## Docker-in-Docker
 
-The dev container supports running Docker commands and docker-compose:
+The dev container supports running Docker commands, e.g. to build and run the
+production image:
 
 ```bash
-# Docker commands work as expected
 docker ps
 docker images
-docker compose version
-
-# Run the application with Docker Compose
-cd docker-compose
-docker compose -f docker-compose.dev.yml up
 ```
-
-**Note:** MongoDB is NOT started automatically by the dev container. You should start it using docker-compose when needed.
 
 ## Customization
 
@@ -183,13 +127,6 @@ Edit `.devcontainer/devcontainer.json` and add extension IDs to the `extensions`
 ### Modifying Post-Create Steps
 
 Edit `.devcontainer/post-create.sh` to add custom setup steps.
-
-### Environment Variables
-
-Create environment files in `docker-compose/` directory:
-- `backend.env` - Backend configuration
-- `frontend.env` - Frontend configuration
-- `proxy.env` - OAuth2-Proxy configuration
 
 ## Troubleshooting
 
@@ -214,4 +151,3 @@ If you need to completely rebuild the container:
 
 - [VS Code Dev Containers Documentation](https://code.visualstudio.com/docs/remote/containers)
 - [Magic Mirror Project Documentation](../CLAUDE.md)
-- [Docker Compose Files](../docker-compose/)

@@ -4,358 +4,176 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Magic Mirror is a personalized smart display dashboard application that shows real-time weather, calendar events, birthdays, and time. It integrates with Google Calendar via OAuth2 and displays information on a full-screen dashboard (originally designed for Raspberry Pi displays).
+Magic Mirror is a personalized smart display dashboard application that shows real-time weather, calendar events, birthdays, train departures, and time. It's a **fully static, client-side-rendered app with no backend server or database** — the browser calls external APIs directly and signs in to Google using Google Identity Services (GIS). Originally designed for Raspberry Pi displays.
 
 **Tech Stack:**
-- Frontend: React 18 + TypeScript + Vite + Material-UI + Yarn as package manager
-- Backend: Node.js + Express + TypeScript + MongoDB + Yarn as package manager
-- Auth: OAuth2-Proxy (reverse proxy handling Google OAuth2)
-- Infrastructure: Docker Compose, Ansible, Nginx
+- Frontend: React 19 + TypeScript + Vite + Material-UI + Yarn 4 as package manager
+- Server state: react-query v3 (used in feature hooks and a little plumbing, see below)
+- Auth: Google Identity Services (GIS) — in-browser OAuth2 token client, no server-side auth
+- Hosting: a single Docker image (Nginx serving the static build over plain HTTP on 8080); TLS is the job of a reverse proxy in front of it
 
 ## Development Commands
 
-### Frontend (run from `/frontend`)
+Run from `/frontend`:
 
 ```bash
 yarn dev              # Dev server on port 3000 with hot reload
 yarn build            # Production build (TypeScript + Vite)
-yarn lint             # Run ESLint
+yarn lint             # ESLint incl. the architecture rules; no warnings allowed
 yarn lint:fix         # Auto-fix ESLint issues
-yarn format           # Run Prettier
+yarn format           # Run Prettier (yarn format:check to only check)
+yarn test             # Run Vitest unit tests (watch mode; add --run for one pass)
+yarn test:ui          # Vitest UI
+yarn test:coverage    # Coverage report + per-layer thresholds
+TZ=Asia/Tokyo yarn test --run   # time handling must not depend on the zone
 ```
 
-### Backend (run from `/backend`)
+### Production image (run from the repo root)
 
 ```bash
-yarn dev              # Dev server with nodemon + debugger (port 3001, debug on 9229)
-yarn prod             # Production mode (ts-node)
-yarn test             # Run all Mocha tests
-yarn lint             # Run ESLint
-yarn lint:fix         # Auto-fix ESLint issues
-yarn format           # Run Prettier
+docker build -f frontend/docker/Dockerfile -t magic-mirror frontend
+docker run --rm -p 8080:8080 magic-mirror    # http://localhost:8080
 ```
 
-**Running specific tests:**
-```bash
-# Single test file
-mocha --require ts-node/register src/tests/calendar.test.ts --exit
-```
-
-### Docker Compose (run from `/docker-compose`)
-
-```bash
-docker compose -f docker-compose.dev.yml up      # Dev with hot reload
-docker compose -f docker-compose.yml up          # Production
-docker compose -f docker-compose.test.yml up     # Tests
-docker compose -f docker-compose.sonar.yml up    # SonarQube
-```
+See [LOCAL_DEV.md](LOCAL_DEV.md) for details.
 
 ## Architecture Overview
+
+The frontend follows a **hexagonal architecture**. The full description, the dependency rules and the recipes live in [`frontend/src/ARCHITECTURE.md`](frontend/src/ARCHITECTURE.md); this is the summary.
 
 ### Request Flow
 
 ```
-User (Browser)
-    ↓ HTTPS:443
-OAuth2-Proxy (authentication gateway)
-    ├─ Routes /api/* → Backend (https://backend:3001/api/)
-    ├─ Routes /*     → Frontend (http://frontend:3000/)
-    └─ Injects auth headers: x-forwarded-user, x-forwarded-email, x-forwarded-access-token
-        ↓
-Backend (Express)
-    ├─ Reads user identity from headers (no direct auth)
-    ├─ Queries MongoDB
-    └─ Calls external APIs (Google Calendar, Open-Meteo weather)
+Browser
+  ├── Nginx container (static files, plain HTTP behind the user's TLS proxy) — the only server-side component
+  ├── Google Identity Services  ──►  Google Calendar API (events, birthdays, calendar list)
+  ├── Open-Meteo, OpenWeatherMap icons  (weather — keyless)
+  ├── geocode.maps.co  (location lookup — user-supplied API key)
+  ├── v6.db.transport.rest  (train departures — keyless, Deutsche Bahn public API)
+  └── localStorage / sessionStorage  (settings, API keys, Google token)
 ```
 
-**Critical:** Backend does NOT handle authentication. OAuth2-Proxy handles all OAuth flow, session management, and token refresh. Backend trusts injected headers.
-
-### Backend Structure
-
-**Service-Repository Pattern:**
-
-```
-backend/src/
-├── index.ts              # App entry, route registration, error handling
-├── config/               # Environment config (ports, MongoDB, API URLs)
-├── routes/               # Route handlers (thin controllers)
-│   ├── weather/          # Weather endpoints
-│   ├── events/           # Calendar events
-│   ├── birthdays/        # Birthdays from calendar
-│   ├── calendars/        # List Google calendars
-│   ├── location/         # Geocoding
-│   └── users/            # User settings CRUD
-│       ├── index.ts      # Route definitions
-│       ├── settings.ts   # Settings service + handlers
-│       ├── users.ts      # User service + handlers
-│       └── services.ts   # Repositories (DB access layer)
-├── services/
-│   ├── server/           # HTTP/HTTPS server (http2-express-bridge)
-│   ├── database/         # MongoDB connection
-│   ├── validators/       # Request validators (Range, Regex, Custom)
-│   ├── google.ts         # Google Calendar API client
-│   ├── headers.ts        # Extract auth headers
-│   └── loggers.ts        # Winston logging
-├── models/
-│   ├── api/              # API response DTOs
-│   └── mongo/            # Mongoose schemas (User, UserSettings)
-└── tests/                # Mocha tests
-```
-
-**Pattern:** Route → Service (business logic) → Repository (database operations)
-
-Example flow for user settings:
-1. `routes/users/index.ts` - Defines `GET /api/users/settings/me`
-2. `routes/users/settings.ts` - `UserSettingsService.getSettings()` handles logic
-3. `routes/users/services.ts` - `UserSettingsRepository.get()` queries MongoDB
+**Critical:** There is no backend server, database, or auth proxy. Every external API call is made directly from the browser. Nginx's only job is serving the static build (with cache rules, security headers and a CSP).
 
 ### Frontend Structure
 
-**Component-based with Context + React Query:**
-
 ```
 frontend/src/
-├── main.tsx              # Entry point
-├── App.tsx               # Router setup (/, /settings, /error)
-├── routes/
-│   ├── Dashboard.tsx     # Main dashboard (wraps components in contexts)
-│   ├── Settings.tsx      # User settings form
-│   └── ErrorPage.tsx     # Error display
-├── components/           # UI components (each in own folder)
-│   ├── current_weather/  # Current temperature display
-│   ├── hourly_forecast/  # Hourly weather
-│   ├── daily_forecast/   # Daily weather
-│   ├── birthdays/        # Upcoming birthdays
-│   ├── upcoming_events/  # Calendar events
-│   ├── time/             # Clock display
-│   ├── settings_form/    # Settings editor
-│   └── appbar/           # Top navigation bar
-├── apis/                 # React Query hooks for API calls
-│   ├── current_weather.ts   # useGetCurrentWeather()
-│   ├── user_settings.ts     # useGetUserSettings(), patchUserSettings()
-│   └── ...
-├── common/
-│   ├── LocationContext.tsx  # Provides user location (from settings + geocoding)
-│   ├── TimeContext.tsx      # Provides timezone + hourly/daily triggers
-│   └── fetch.ts             # Custom fetch with retry logic
-└── models/               # TypeScript interfaces
+├── main.tsx             # loadConfig → createContainer → <AppProviders><RouterProvider/>
+├── domain/              # PURE types and rules (no React, no I/O, no clock)
+│   ├── shared/          #   time (Instant, PlainDate, zone-explicit helpers), Result, Measurement
+│   ├── location/ weather/ calendar/ trains/ settings/ auth/
+├── application/         # framework-free: ports (interfaces) + use cases
+│   ├── ports/           #   Clock, Scheduler, HttpClient, *Provider, *Repository, ...
+│   └── auth|settings|location|weather|calendar|time/   services and use cases
+├── infrastructure/      # adapters implementing the ports
+│   ├── http/ browser/ storage/ google/ weather/ geocode/ trains/
+├── features/            # React UI + feature hooks; each folder has an index.ts barrel
+│   └── auth/ calendar/ dashboard/ errors/ settings/ settings-page/ shell/ time/ trains/ weather/
+├── shared/              # UI/hooks used by several features (CardFrame, ConfirmDialog, ...)
+├── app/                 # composition root
+│   ├── config.ts        #   loadConfig(env): the only reader of VITE_* variables
+│   ├── container.ts     #   createContainer(config, overrides): builds the whole graph
+│   ├── router.tsx, routes.ts, AppProviders.tsx, queryClient.ts
+│   └── services/        #   AppDependencies, ServicesProvider, useServices
+└── tests/               # mirrors the layers; support/ has fakes + createTestContainer + renderWithDeps
 ```
 
-**State Management:**
-- **Server state:** React Query (caching, refetching, loading/error states)
-- **Global app state:** Context API (LocationContext, TimeContext)
+**Dependency rules (enforced by ESLint, `yarn lint`):** `domain` imports only `domain`; `application` imports `domain` and `application`; `infrastructure` imports `domain` and `application`; `features`/`shared` use `domain`, `application`, `shared`, `@/app/services` (and `@/app/routes` for features) and reach other features only through their barrel (`@/features/<x>`); only `app/` may import everything. `domain`/`application` must not use `window`, `fetch`, timers, `new Date()` or `Date.now()` — time and I/O arrive through ports.
 
-Dashboard component wraps everything in providers:
-```tsx
-<LocationContextProvider>  {/* Fetches user location from settings, geocodes to coords */}
-  <TimeContextProvider>     {/* Manages timezone, triggers hourly/daily updates */}
-    {/* Weather/Events/Birthday components use both contexts */}
-  </TimeContextProvider>
-</LocationContextProvider>
-```
+**Dependency injection:** hand-rolled composition root, no library. `createContainer(config, overrides)` builds adapters and services; `ServicesProvider` exposes them and components get them through feature hooks that call `useServices()`. Tests build the real graph over fakes with `createTestContainer`.
+
+**State management:**
+- **Server state:** react-query (caching, refetching, loading/error states) in feature hooks, plus `app/queryClient.ts`, `app/AppProviders.tsx`, `shared/hooks/useInvalidateOnChange.ts` and `features/auth/useAuthenticatedQuery.ts`
+- **External state** (settings, API keys, sign-in state): observable stores in `application/`, read with `useSyncExternalStore` (`useSetting`, `useAuth`, ...)
+- **Persisted state:** `localStorage` (settings, API keys) and `sessionStorage` (Google token), accessed only by `infrastructure/storage`
 
 ## Authentication Architecture
 
-**OAuth2-Proxy as Reverse Proxy:**
+**Google Identity Services (GIS), entirely client-side:**
 
-1. User accesses app → OAuth2-Proxy intercepts
-2. If not authenticated → Redirects to Google OAuth2 login
-3. After successful auth → OAuth2-Proxy sets secure cookies
-4. All subsequent requests include cookies
-5. OAuth2-Proxy validates session and injects headers into upstream requests:
-   - `x-forwarded-user`: Google user ID (sub)
-   - `x-forwarded-email`: User email
-   - `x-forwarded-access-token`: Google OAuth access token
+1. The app loads with no login gate — weather, trains, and the clock work immediately.
+2. The user clicks "Sign in with Google" in Settings, which calls `useAuth().signIn`.
+3. `infrastructure/google/GisTokenGateway` (the `OAuthTokenGateway` port) shows GIS's consent popup and returns a short-lived Calendar-scoped (`calendar.readonly`) access token.
+4. `application/auth/AuthSessionService` keeps the token in `sessionStorage` (via `TokenStore`), renews it silently before it expires (single-flight, with a cooldown after a failure) and exposes `signed-out | signing-in | signed-in | needs-reauth`.
+5. `infrastructure/google/AuthorizedHttpClient` adds `Authorization: Bearer <token>` to Google requests, so providers never handle tokens.
+6. Calendar widgets and the calendar picker use `useAuthenticatedQuery`, which runs only for a signed-in user and stores data under the `['google', ...]` key; signing out purges that key.
 
-**Backend reads identity from headers:**
-```typescript
-import { getUserId } from 'services/headers';
-const userId = getUserId(req); // Reads x-forwarded-user header
-```
+**There is no server-side auth of any kind.** Never add a backend, session cookie, or reverse-auth-proxy for this — it's a deliberate architectural choice (see git history for the SSR→CSR migration).
 
-**Never implement auth logic in backend.** Trust OAuth2-Proxy headers. Use access token from headers to call Google APIs.
+## External APIs Called Directly From the Browser
 
-## API Structure
+| API | Used for | Key required? |
+|-----|----------|----------------|
+| `api.open-meteo.com` | Current/hourly/daily weather | No |
+| `openweathermap.org` (icon CDN) | Weather icons | No |
+| `geocode.maps.co` | City/country/zip → coordinates | Yes — user-supplied, see `api-keys.md` |
+| `v6.db.transport.rest` | Train stations, journeys | No |
+| `www.googleapis.com/calendar/v3` | Events, birthdays, calendar list | Google OAuth token (GIS) |
 
-All backend routes prefixed with `/api/`:
+**All outbound calls go through the `HttpClient` port (`infrastructure/http/FetchHttpClient`)**, never bare `fetch()`, and never with credentials. Sending `credentials:'include'` (or cookies) to a third-party API causes the browser to require a non-wildcard CORS response, which these APIs don't return — the request would be silently blocked. The adapter also gives every call a timeout, retries only transient failures (network, 5xx, 429) and reports typed errors (`HttpError`, `NetworkError`, `TimeoutError`, `ProviderResponseError`).
 
-| Route | Purpose |
-|-------|---------|
-| `GET /api/weather/current` | Current weather |
-| `GET /api/weather/hourly` | Hourly forecast |
-| `GET /api/weather/forecast` | Daily forecast |
-| `GET /api/weather/icon/:code` | Weather icon image |
-| `GET /api/events/` | Calendar events in time range |
-| `GET /api/calendars` | List user's Google calendars |
-| `GET /api/birthdays/` | Upcoming birthdays |
-| `GET /api/location/geocode` | Convert city/country/zip → coordinates |
-| `GET /api/users/settings/me` | Get current user settings |
-| `PATCH /api/users/settings/me` | Update user settings |
-| `POST /api/users/settings` | Create user settings |
-| `DELETE /api/users/settings/me` | Delete user settings |
-| `DELETE /api/users/me` | Delete user account |
+## Settings & API Keys
 
-**External APIs called by backend:**
-- Open-Meteo API (weather data, no key needed)
-- OpenWeatherMap (weather icons only)
-- Geocode Maps (city → coordinates)
-- Google Calendar API (events, birthdays)
+`UserSettings` (address, calendar ids, dashboard layout, train connections) and the user-supplied API keys (Geocode Maps) live entirely in `localStorage`, behind `SettingsStore` / `ApiKeyStore` (`application/settings`) and the `LocalStorage*Repository` adapters. There is no cross-device sync — settings are per-browser.
 
-## Database
+The storage keys are a compatibility contract with data saved by earlier versions and must never be renamed or made configurable: `magic-mirror.user-settings`, `magic-mirror.api-keys` (localStorage) and `magic-mirror.google-token` (sessionStorage). `infrastructure/storage/settingsDto.ts` maps the stored snake_case shape to the domain model; it never throws, keeps keys it does not know and adds an additive `schema_version`. "Clear Local Data" (`resetLocalData`) removes every `magic-mirror.*` key from both storages, forgets cached server data and reloads the app.
 
-**MongoDB Collections:**
+`api-keys.md` (linked from Settings via `config.docsUrl`) explains how to obtain the Geocode Maps key — keep it in sync with `domain/settings/ApiKeys.ts` and the settings form.
 
-1. **users** - Google OAuth user data
-   - Fields: email, displayName, given_name, family_name, photo, sub, access_token, refresh_token
-   - Indexes: email (unique), sub (unique)
+## Adding a New External API Integration
 
-2. **userSettings** - User preferences
-   - Fields: sub, country, city, zip_code, events_cal_id, birthday_cal_id
-   - Index: sub (unique)
+1. **Domain:** the types and rules (pure, table-tested).
+2. **Port:** an interface in `application/ports/` — no token parameter, no `fetch`.
+3. **Adapter:** `infrastructure/<name>/` — a provider over the `HttpClient` port plus a pure mapper that turns the response into domain objects (drop what cannot be understood, throw `ProviderResponseError` for a malformed response). Base URL comes from `app/config.ts`; add its host to the CSP `connect-src` in `frontend/nginx/security-headers.conf`.
+4. **Wire it** in `app/container.ts` (with an override for tests) and `app/services/AppDependencies.ts`. For Google APIs, wrap the client in `AuthorizedHttpClient`.
+5. **Service** in `application/<name>/` only if there is policy to decide; otherwise hooks use the port directly.
+6. **Feature:** hooks in `features/<name>/hooks/` using `useQuery` (or `useAuthenticatedQuery` for Google), then the widget; export it from the feature's `index.ts`.
+7. If the API needs a user-supplied key, extend `ApiKeys`, the settings form and `api-keys.md`.
+8. Add a fake for the port to `tests/support/` and write the tests first (mapper, provider, hooks, widget states).
 
-**Connection:** Configured via env vars in `backend/src/config/index.ts`:
-- `MONGO_HOSTNAME`, `MONGO_PORT`, `MONGO_USERNAME`, `MONGO_PASSWORD`
-- Auth uses `authSource=admin`
+## Adding a Dashboard Widget
 
-## Configuration
-
-**Environment files** (in `/docker-compose`):
-- `.env` - Node version, OAuth2-Proxy version
-- `backend.env` - MongoDB credentials, port, timezone
-- `frontend.env` - API endpoint URL
-- `proxy.env` - Google OAuth client ID/secret, domain
-
-**Key backend config** (`backend/src/config/index.ts`):
-- `SERVER_PORT` - Default 3001
-- `ENABLE_HTTPS` - Toggle HTTP/HTTPS
-- `FRONTEND_URL` - CORS origin
-- `RATE_LIMIT` - 500 req/min per endpoint
-- Weather API URLs (Open-Meteo, OpenWeatherMap, Geocode)
-
-## Adding New Features
-
-### Adding a new API endpoint:
-
-1. **Create route handler** in `backend/src/routes/{feature}/`
-   - Use validators from `services/validators/` for params
-   - Call service layer for business logic
-
-2. **Create service class** (if complex logic needed)
-   - Implement business logic
-   - Call repository or external APIs
-
-3. **Create repository class** (if database access needed)
-   - Handle Mongoose queries
-   - Keep DB logic isolated from business logic
-
-4. **Define models** in `backend/src/models/`
-   - API DTOs in `models/api/`
-   - Mongoose schemas in `models/mongo/`
-
-5. **Register route** in `backend/src/index.ts`:
-   ```typescript
-   import { default as MyRoute } from 'routes/my_feature';
-   server.app.use('/api/my_feature', MyRoute);
-   ```
-
-6. **Create React Query hook** in `frontend/src/apis/`
-   - Use `customFetch` from `common/fetch.ts` for retry logic
-   - Configure stale time, refetch intervals
-
-7. **Use hook in component** - Follow patterns in `frontend/src/components/`
-
-### Reading user identity in routes:
-
-```typescript
-import { getUserId } from 'services/headers';
-
-const handler = (req: Request, res: Response) => {
-  const userId = getUserId(req); // Gets x-forwarded-user
-  // Use userId to query database or call services
-};
-```
-
-### Using validators:
-
-```typescript
-import { RangeParameterValidator } from 'services/validators/range_parameter_validator';
-import { EParamType } from 'services/validators/parameter_validator';
-
-const countValidator = new RangeParameterValidator(
-  'count',
-  { min: 1, max: 100 },
-  EParamType.query,
-  false // optional parameter
-);
-
-router.get('/', countValidator.validate(), handler);
-```
+Put the component in its feature, export it from the barrel and add one entry (id + default place) to `features/dashboard/widgetRegistry.tsx`. Widget ids are stored in saved layouts: never rename one.
 
 ## React Query Configuration
 
-Global config in `App.tsx`:
-```typescript
-const queryCache = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: true,
-      retry: 2,
-      retryDelay: 300,
-      staleTime: 60000, // 1 minute
-    },
-  },
-});
-```
+Global config in `app/queryClient.ts` (`createQueryClient(config)`): `refetchOnWindowFocus: true`, `staleTime` from `config.staleTimeMs`, and a retry policy that retries at most once and only for failures that can succeed on a second try (`isRetryable`). Live widgets pass `refetchInterval: config.refreshIntervalMs`; train polling follows `domain/trains/pollingPolicy`.
 
 ## Testing
 
-**Backend tests:** Mocha + Chai + Supertest
-- Location: `backend/src/tests/`
-- JSON schema validation tests in `backend/src/tests/json_schemas/`
-- Run all: `yarn test`
-- Run specific: `mocha --require ts-node/register src/tests/calendar.test.ts --exit`
-
-**Frontend:** No tests currently present.
+**Frontend tests:** Vitest + Testing Library, in `frontend/src/tests/`, mirroring the layers (`domain/`, `application/`, `infrastructure/`, `features/`, `shared/`, `app/`, `repo/`).
+- **Fakes at the port boundary**, not module mocks (`vi.spyOn(<module>)` on our own code is a smell): `FakeClock`, `FakeScheduler`, `FakeHttpClient`, `InMemoryKeyValueStore`, `FakeAuthSession`, `Fake*Provider`, ... in `tests/support/`.
+- `createTestContainer(options)` builds the real graph over fakes; `renderWithDeps` / `renderHookWithDeps` render inside the app's providers.
+- Write the regression test first and watch it fail. Hand-author API fixtures in `tests/fixtures/` from the API's documentation.
+- Time must not depend on the machine: use `FakeClock`/`FakeScheduler`, local-time constructors only where a zone is irrelevant, and check `TZ=Asia/Tokyo` / `TZ=America/Los_Angeles` runs (CI does).
+- Coverage thresholds are enforced per layer in `vite.config.ts` and are ratcheted: raise them when coverage improves, never lower them.
+- Run all: `yarn test --run`; one file: `yarn test --run src/tests/domain/calendar/eventRules.test.ts`.
 
 ## Deployment
 
-**Docker Compose services:**
-1. `frontend` - Nginx serving Vite build (port 3000 internal)
-2. `backend` - Express app (port 3001 internal)
-3. `mongo` - MongoDB (port 27017 internal)
-4. `oauth2-proxy` - Auth gateway (port 443 external)
+**One Docker image, nothing else** — no Kubernetes, Ansible or Compose files in this repo. `.github/workflows/deploy.yml` builds `frontend/docker/Dockerfile` and pushes `ghcr.io/<owner>/magic-mirror-frontend` (commit-SHA tags; `latest` only from `main`).
 
-**Networks:**
-- `db` - Backend ↔ MongoDB
-- `app` - OAuth2-Proxy ↔ Backend/Frontend
-
-**Ansible deployment** (for Raspberry Pi):
-- Playbook: `ansible/rpi_setup.yml`
-- Targets "rpi" hosts in inventory
+- Nginx (`frontend/nginx/nginx.conf`) listens on **8080, plain HTTP**, as a non-root user. TLS is terminated by whatever runs in front; Google Identity Services needs an `https://` origin (or `http://localhost`). `GET /health` is the health check.
+- `index.html` is `no-cache`; only the hashed `/assets/` are `immutable`. The security headers and the Content-Security-Policy live in `frontend/nginx/security-headers.conf`, included in every location that sets headers. **A new external API host must be added to the CSP's `connect-src`** (and image hosts to `img-src`), or the browser blocks the call.
+- Build-time configuration is passed as `--build-arg VITE_*` (`VITE_GOOGLE_CLIENT_ID`, `VITE_LOCALE`, `VITE_REFRESH_INTERVAL_MS`, `VITE_WEATHER_ICON_ZOOM`); empty means the default in `app/config.ts`.
 
 ## Important Patterns & Conventions
 
-1. **Service-Repository Pattern:** Always separate business logic (services) from data access (repositories)
+1. **No backend.** Don't add one. If a feature seems to need server-side secrets, prefer a user-supplied API key (like Geocode Maps) over a shared server-side credential.
 
-2. **Authentication:** Never implement OAuth in backend. Trust OAuth2-Proxy headers.
+2. **Respect the layers.** Business rules go in `domain`/`application`, I/O in `infrastructure`, React in `features`/`shared`, wiring only in `app`. Components don't construct adapters or touch `window`/`fetch`/`localStorage`; they call hooks that use `useServices()`. `yarn lint` enforces this.
 
-3. **Error Handling:** Throw `ApiError` with status codes. Centralized handler in `index.ts` catches all errors.
+3. **External fetches never send credentials** and go through the `HttpClient` port.
 
-4. **Logging:** Use `LOGGER` from `services/loggers.ts`. Winston configured with express-winston middleware.
+4. **Time through ports.** `Instant` and `PlainDate` instead of `Date` and zone-less strings; "now" from `Clock`, timers from `Scheduler`; every zone-dependent function takes the zone as an argument.
 
-5. **CORS:** Backend CORS restricted to `FRONTEND_URL` env var. Update for new domains.
+5. **Errors are values or typed.** Expected failures (validation, geocoding, auth) are returned as `Result`/discriminated unions; infrastructure throws the typed errors from `application/ports/errors`. No `alert()` — feedback is inline field messages and a Snackbar.
 
-6. **Context Usage:** LocationContext provides coords for weather. TimeContext triggers periodic refetches.
+6. **Settings persistence:** only via `SettingsStore` / `ApiKeyStore` and their repositories — not a database, no cross-device sync. Never rename a storage key or a widget id.
 
-7. **Fetch Wrapper:** Frontend uses `customFetch` from `common/fetch.ts` for consistent retry logic and error handling.
+7. **Google auth:** `AuthSessionService` + `useAuth` / `useAuthenticatedQuery`. Gate any Google Calendar-dependent query/UI on the sign-in state; never call `refetch()` to bypass `enabled`.
 
-8. **HTTP/2:** Backend uses `http2-express-bridge` for HTTP/2 support when HTTPS enabled.
+8. **TypeScript:** strict, with `noUnusedLocals`/`noUnusedParameters` — don't leave stale parameters when refactoring hook signatures. No `any` outside tests.
 
-9. **TypeScript:** Both frontend and backend use TypeScript. Frontend uses Vite, backend uses ts-node.
-
-10. **Port Mapping:**
-    - Frontend: 3000 (internal)
-    - Backend: 3001 (internal)
-    - MongoDB: 27017 (internal)
-    - Debug: 9229 (backend dev)
-    - HTTPS: 443 (OAuth2-Proxy external)
+9. **Docs:** `api-keys.md` at repo root (served the same way as `privacy.md`/`impressum.md`) explains how to obtain the Geocode Maps API key — keep it in sync with the settings form. `frontend/src/ARCHITECTURE.md` describes the layers; update it when the rules change.
