@@ -10,7 +10,7 @@ Magic Mirror is a personalized smart display dashboard application that shows re
 - Frontend: React 19 + TypeScript + Vite + Material-UI + Yarn 4 as package manager
 - Server state: react-query v3 (used in feature hooks and a little plumbing, see below)
 - Auth: Google Identity Services (GIS) — in-browser OAuth2 token client, no server-side auth
-- Hosting: Nginx (static files + TLS termination), Kubernetes (k3s) + Ansible for deployment
+- Hosting: a single Docker image (Nginx serving the static build over plain HTTP on 8080); TLS is the job of a reverse proxy in front of it
 
 ## Development Commands
 
@@ -28,14 +28,11 @@ yarn test:coverage    # Coverage report + per-layer thresholds
 TZ=Asia/Tokyo yarn test --run   # time handling must not depend on the zone
 ```
 
-### k3s dev environment (matches production deployment)
+### Production image (run from the repo root)
 
 ```bash
-./scripts/dev.sh up      # Start (frontend only, in a magic-mirror-dev namespace)
-./scripts/dev.sh down    # Stop
-./scripts/dev.sh status  # Pod status
-./scripts/dev.sh logs    # Tail logs
-./scripts/dev.sh reset   # Tear down and clean dev data
+docker build -f frontend/docker/Dockerfile -t magic-mirror frontend
+docker run --rm -p 8080:8080 magic-mirror    # http://localhost:8080
 ```
 
 See [LOCAL_DEV.md](LOCAL_DEV.md) for details.
@@ -48,7 +45,7 @@ The frontend follows a **hexagonal architecture**. The full description, the dep
 
 ```
 Browser
-  ├── Nginx (static files + TLS termination) — the only server-side component
+  ├── Nginx container (static files, plain HTTP behind the user's TLS proxy) — the only server-side component
   ├── Google Identity Services  ──►  Google Calendar API (events, birthdays, calendar list)
   ├── Open-Meteo, OpenWeatherMap icons  (weather — keyless)
   ├── geocode.maps.co  (location lookup — user-supplied API key)
@@ -56,7 +53,7 @@ Browser
   └── localStorage / sessionStorage  (settings, API keys, Google token)
 ```
 
-**Critical:** There is no backend server, database, or auth proxy. Every external API call is made directly from the browser. Nginx's only job is serving the static build and terminating TLS.
+**Critical:** There is no backend server, database, or auth proxy. Every external API call is made directly from the browser. Nginx's only job is serving the static build (with cache rules, security headers and a CSP).
 
 ### Frontend Structure
 
@@ -128,7 +125,7 @@ The storage keys are a compatibility contract with data saved by earlier version
 
 1. **Domain:** the types and rules (pure, table-tested).
 2. **Port:** an interface in `application/ports/` — no token parameter, no `fetch`.
-3. **Adapter:** `infrastructure/<name>/` — a provider over the `HttpClient` port plus a pure mapper that turns the response into domain objects (drop what cannot be understood, throw `ProviderResponseError` for a malformed response). Base URL comes from `app/config.ts`.
+3. **Adapter:** `infrastructure/<name>/` — a provider over the `HttpClient` port plus a pure mapper that turns the response into domain objects (drop what cannot be understood, throw `ProviderResponseError` for a malformed response). Base URL comes from `app/config.ts`; add its host to the CSP `connect-src` in `frontend/nginx/security-headers.conf`.
 4. **Wire it** in `app/container.ts` (with an override for tests) and `app/services/AppDependencies.ts`. For Google APIs, wrap the client in `AuthorizedHttpClient`.
 5. **Service** in `application/<name>/` only if there is policy to decide; otherwise hooks use the port directly.
 6. **Feature:** hooks in `features/<name>/hooks/` using `useQuery` (or `useAuthenticatedQuery` for Google), then the widget; export it from the feature's `index.ts`.
@@ -155,15 +152,11 @@ Global config in `app/queryClient.ts` (`createQueryClient(config)`): `refetchOnW
 
 ## Deployment
 
-**Kubernetes (k3s) + Ansible**, not Docker Compose (there is no `docker-compose/` directory in this repo). See `k8s/templates/` (production, Jinja2-templated) and `k8s/dev/` (local dev).
+**One Docker image, nothing else** — no Kubernetes, Ansible or Compose files in this repo. `.github/workflows/deploy.yml` builds `frontend/docker/Dockerfile` and pushes `ghcr.io/<owner>/magic-mirror-frontend` (commit-SHA tags; `latest` only from `main`).
 
-- `frontend` — the only deployed service: an Nginx container serving the Vite build. Listens on port 3000 (plain HTTP, used internally for k8s health probes) and port 8443 (TLS, the app's only externally-reachable entrypoint — mapped to external port 443 via the k8s Service's NodePort).
-- TLS certs come from `ansible/roles/generate_certs` (mkcert, for `*.fritz.box`-style local domains) or cert-manager/Let's Encrypt (`letsencrypt_enabled: true`).
-
-**Ansible playbooks:**
-- `ansible/server_setup.yml` — deploys the frontend to a server via k3s (role: `setup_server`, which also handles generic host provisioning: package installs, k3s install, cert generation — not backend-specific despite historical naming of its predecessor).
-- `ansible/rpi_setup.yml` — sets up a Raspberry Pi kiosk display (Firefox pointed at the deployed frontend URL).
-- `ansible/setup_certs.yml` — generates local mkcert certificates for dev.
+- Nginx (`frontend/nginx/nginx.conf`) listens on **8080, plain HTTP**, as a non-root user. TLS is terminated by whatever runs in front; Google Identity Services needs an `https://` origin (or `http://localhost`). `GET /health` is the health check.
+- `index.html` is `no-cache`; only the hashed `/assets/` are `immutable`. The security headers and the Content-Security-Policy live in `frontend/nginx/security-headers.conf`, included in every location that sets headers. **A new external API host must be added to the CSP's `connect-src`** (and image hosts to `img-src`), or the browser blocks the call.
+- Build-time configuration is passed as `--build-arg VITE_*` (`VITE_GOOGLE_CLIENT_ID`, `VITE_LOCALE`, `VITE_REFRESH_INTERVAL_MS`, `VITE_WEATHER_ICON_ZOOM`); empty means the default in `app/config.ts`.
 
 ## Important Patterns & Conventions
 
