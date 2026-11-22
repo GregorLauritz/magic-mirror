@@ -24,3 +24,15 @@ export const DEFAULT_ADDRESS: Address = {
     city: 'Stuttgart',
     postalCode: '70176',
 }
+
+/** Whether two addresses name the same place, field by field (both absent counts as equal). */
+export const sameAddress = (
+    a: Address | undefined,
+    b: Address | undefined
+): boolean =>
+    a === b ||
+    (a !== undefined &&
+        b !== undefined &&
+        a.country === b.country &&
+        a.city === b.city &&
+        a.postalCode === b.postalCode)

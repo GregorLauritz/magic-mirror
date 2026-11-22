@@ -176,6 +176,43 @@ describe('saveSettings', () => {
         expect(geocoding.calls).toEqual([])
     })
 
+    it('does not geocode again when only fields other than the address and key change', async () => {
+        const first = setup()
+        await first.save(input())
+        const { save, settings, geocoding } = setup({
+            settings: first.settings.getSnapshot(),
+            keys: { geocodeApiKey: 'new-key' },
+            // An outage must not block saving an unrelated change.
+            geocoding: new FakeGeocodingProvider().failWith('network'),
+        })
+
+        const result = await save(
+            input({
+                eventsCalendarId: 'work',
+                address: { ...ADDRESS, city: ' Stuttgart ' },
+            })
+        )
+
+        expect(result).toEqual({ ok: true, value: 'saved' })
+        expect(geocoding.calls).toEqual([])
+        expect(settings.getSnapshot().eventsCalendarId).toBe('work')
+    })
+
+    it('geocodes again when only the key changes', async () => {
+        const first = setup()
+        await first.save(input())
+        const { save, geocoding } = setup({
+            settings: first.settings.getSnapshot(),
+            keys: { geocodeApiKey: 'new-key' },
+        })
+
+        await save(input({ geocodeApiKey: 'other-key' }))
+
+        expect(geocoding.calls).toEqual([
+            { address: ADDRESS, apiKey: 'other-key' },
+        ])
+    })
+
     it('shares one run between concurrent submissions (double click)', async () => {
         const { save, geocoding } = setup()
 

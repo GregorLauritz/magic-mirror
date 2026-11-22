@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { isGeocodable, type Address } from '@/domain/location/Address'
+import {
+    isGeocodable,
+    sameAddress,
+    type Address,
+} from '@/domain/location/Address'
 
 const address = (overrides: Partial<Address> = {}): Address => ({
     country: 'DE',
@@ -38,5 +42,19 @@ describe('isGeocodable', () => {
 
     it('is false when there is no address at all', () => {
         expect(isGeocodable(undefined)).toBe(false)
+    })
+})
+
+describe('sameAddress', () => {
+    it.each([
+        ['identical fields', address(), address(), true],
+        ['both absent', undefined, undefined, true],
+        ['one absent', address(), undefined, false],
+        ['other city', address(), address({ city: 'Berlin' }), false],
+        ['other postal code', address(), address({ postalCode: '1' }), false],
+        ['other country', address(), address({ country: 'AT' }), false],
+    ])('%s', (_, a, b, expected) => {
+        expect(sameAddress(a, b)).toBe(expected)
+        expect(sameAddress(b, a)).toBe(expected)
     })
 })
